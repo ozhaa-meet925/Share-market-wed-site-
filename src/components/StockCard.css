@@ -1,0 +1,89 @@
+/* StockCard flash animation for price direction changes */
+
+.stock-card {
+  transition: background-color 0.2s ease-in-out;
+}
+
+/* Flash when price goes up */
+.flash-up {
+  animation: flashUp 0.6s forwards;
+}
+
+@keyframes flashUp {
+  0% { background-color: rgba(0, 200, 0, 0.2); }
+  100% { background-color: transparent; }
+}
+
+/* Flash when price goes down */
+.flash-down {
+  animation: flashDown 0.6s forwards;
+}
+
+@keyframes flashDown {
+  0% { background-color: rgba(200, 0, 0, 0.2); }
+  100% { background-color: transparent; }
+}
+
+/* Optional: make the price text colored */
+.pill.gain-pill {
+  background-color: #e6f7e6;
+  color: #2e7d32;
+}
+
+.pill.loss-pill {
+  background-color: #fdecea;
+  color: #c62828;
+}
+
+.stock-card .stock-price-value {
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+.stock-card .stock-current-price b.stock-price-value.price-up,
+.stock-card .market-stock-price.stock-price-value.price-up,
+.stock-card .market-stock-change.price-up {
+  color: #11875d !important;
+}
+
+.stock-card .stock-current-price b.stock-price-value.price-down,
+.stock-card .market-stock-price.stock-price-value.price-down,
+.stock-card .market-stock-change.price-down {
+  color: #c43b38 !important;
+}
+
+.stock-card .stock-current-price b.stock-price-value.price-neutral,
+.stock-card .market-stock-price.stock-price-value.price-neutral {
+  color: inherit;
+}
+
+.stock-price-value.price-flash-up,
+.stock-price-value.price-flash-down {
+  border-radius: 4px;
+  padding-inline: 3px;
+}
+
+.stock-price-value.price-flash-up {
+  animation: stockPriceFlashUp 800ms ease-in-out 2;
+}
+
+.stock-price-value.price-flash-down {
+  animation: stockPriceFlashDown 800ms ease-in-out 2;
+}
+
+@keyframes stockPriceFlashUp {
+  0%, 40%, 80%, 100% { background-color: transparent; text-shadow: none; transform: scale(1); }
+  20%, 60% { background-color: rgba(17, 135, 93, 0.2); text-shadow: 0 0 8px rgba(17, 135, 93, 0.5); transform: scale(1.06); }
+}
+
+@keyframes stockPriceFlashDown {
+  0%, 40%, 80%, 100% { background-color: transparent; text-shadow: none; transform: scale(1); }
+  20%, 60% { background-color: rgba(196, 59, 56, 0.18); text-shadow: 0 0 8px rgba(196, 59, 56, 0.45); transform: scale(1.06); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stock-price-value.price-flash-up,
+  .stock-price-value.price-flash-down {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
+}

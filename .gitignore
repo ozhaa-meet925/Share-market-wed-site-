@@ -1,0 +1,14 @@
+node_modules
+dist
+.env
+.venv-yfinance/
+.DS_Store
+__pycache__/
+*.py[cod]
+.tmp-verify-*.mjs
+last_input.txt
+*-preview.png
+calendar-output.png
+gold-chart-preview.png
+livechart-preview.png
+output-*.png

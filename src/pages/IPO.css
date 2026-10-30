@@ -1,0 +1,1030 @@
+.ipo-page {
+  width: min(100%, 1440px);
+  max-width: 1440px;
+  padding: clamp(16px, 2.6vw, 34px);
+  border-radius: 26px;
+  background: #f4f7f4;
+  color: #1c2b24;
+}
+
+.ipo-hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.7fr);
+  align-items: center;
+  gap: 22px;
+  min-height: 294px;
+  margin: 0 0 22px;
+  padding: clamp(24px, 4vw, 44px);
+  overflow: hidden;
+  border: 1px solid #dce9df;
+  border-radius: 26px;
+  background: linear-gradient(112deg, #ffffff 0%, #f5fbf6 55%, #e9f5ec 100%);
+  box-shadow: 0 16px 40px rgba(31, 62, 44, 0.07);
+}
+
+.ipo-hero::before {
+  position: absolute;
+  z-index: -1;
+  top: -190px;
+  right: -95px;
+  width: 480px;
+  height: 480px;
+  border: 1px solid rgba(16, 138, 93, 0.09);
+  border-radius: 50%;
+  box-shadow: 0 0 0 36px rgba(16, 138, 93, 0.025), 0 0 0 74px rgba(16, 138, 93, 0.02);
+  content: '';
+}
+
+.ipo-hero-copy,
+.ipo-hero-visual {
+  position: relative;
+  z-index: 1;
+}
+
+.ipo-hero-copy {
+  max-width: 720px;
+}
+
+.ipo-hero-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #567065;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+
+.ipo-hero-eyebrow-dot,
+.ipo-live-pill .live-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #0d9b68;
+  box-shadow: 0 0 0 4px rgba(13, 155, 104, 0.12);
+}
+
+.ipo-hero-eyebrow-divider {
+  width: 20px;
+  height: 1px;
+  margin: 0 1px;
+  background: #b9c9bf;
+}
+
+.ipo-hero h1 {
+  margin: 15px 0 8px;
+  color: #18251e;
+  font-size: clamp(2.2rem, 4.6vw, 3.65rem);
+  font-weight: 850;
+  letter-spacing: -0.065em;
+  line-height: 1.02;
+}
+
+.ipo-hero h1 span {
+  color: #0d8a5d;
+}
+
+.ipo-hero-copy > p {
+  max-width: 570px;
+  margin: 0;
+  color: #65766c;
+  font-size: 0.98rem;
+  line-height: 1.65;
+}
+
+.ipo-hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 25px;
+}
+
+.ipo-hero-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 122px;
+  padding-right: 18px;
+  border-right: 1px solid #dce7df;
+}
+
+.ipo-hero-stat-icon,
+.ipo-group-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  border-radius: 11px;
+  background: #e4f4ea;
+  color: #0d8a5d;
+}
+
+.ipo-hero-stat-icon.is-upcoming,
+.ipo-group-icon.is-upcoming {
+  background: #fff3dd;
+  color: #a76b12;
+}
+
+.ipo-hero-stat > span:last-child {
+  display: grid;
+  gap: 1px;
+}
+
+.ipo-hero-stat strong {
+  color: #1c2b24;
+  font-size: 1.08rem;
+  line-height: 1.2;
+}
+
+.ipo-hero-stat small {
+  color: #728178;
+  font-size: 0.73rem;
+  font-weight: 650;
+}
+
+.ipo-hero-updated {
+  display: grid;
+  gap: 3px;
+  color: #77867e;
+  font-size: 0.7rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.ipo-hero-updated strong {
+  color: #33483b;
+  font-size: 0.82rem;
+}
+
+.ipo-hero-visual {
+  display: grid;
+  min-height: 220px;
+  place-items: center;
+}
+
+.ipo-hero-orbit {
+  position: absolute;
+  border: 1px solid rgba(13, 138, 93, 0.14);
+  border-radius: 50%;
+}
+
+.ipo-hero-orbit-outer {
+  width: 232px;
+  height: 232px;
+}
+
+.ipo-hero-orbit-inner {
+  width: 174px;
+  height: 174px;
+  border-style: dashed;
+  border-color: rgba(13, 138, 93, 0.2);
+}
+
+.ipo-hero-emblem {
+  position: absolute;
+  left: calc(50% - 110px);
+  top: calc(50% - 45px);
+  display: grid;
+  place-items: center;
+  width: 82px;
+  height: 82px;
+  border: 1px solid rgba(13, 138, 93, 0.12);
+  border-radius: 23px;
+  background: linear-gradient(145deg, #158b62, #0a684a);
+  color: white;
+  box-shadow: 0 18px 32px rgba(9, 104, 74, 0.22);
+  transform: rotate(-9deg);
+}
+
+.ipo-hero-summary-card {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 205px;
+  gap: 8px;
+  padding: 18px 19px;
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  border-radius: 19px;
+  background: rgba(255, 255, 255, 0.91);
+  box-shadow: 0 18px 44px rgba(29, 68, 47, 0.14);
+  transform: translate(23px, 5px) rotate(3deg);
+  backdrop-filter: blur(12px);
+}
+
+.ipo-hero-summary-label {
+  color: #708278;
+  font-size: 0.64rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+}
+
+.ipo-hero-summary-card > strong {
+  color: #1c2b24;
+  font-size: 2rem;
+  letter-spacing: -0.06em;
+  line-height: 1;
+}
+
+.ipo-hero-summary-card > strong small {
+  color: #64766b;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.ipo-hero-summary-note {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #69796f;
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.ipo-hero-summary-note span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #0d9b68;
+}
+
+.ipo-hero .ipo-live-pill {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  gap: 7px;
+  min-height: 0;
+  padding: 8px 11px;
+  border: 1px solid #d9e8de;
+  background: rgba(255, 255, 255, 0.78);
+  color: #355345;
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0;
+  box-shadow: 0 5px 15px rgba(31, 62, 44, 0.06);
+}
+
+.ipo-hero .ipo-live-pill .live-dot {
+  width: 7px;
+  height: 7px;
+}
+
+.ipo-hero .ipo-live-pill.is-demo .live-dot {
+  background: #d59729;
+  box-shadow: 0 0 0 4px rgba(213, 151, 41, 0.12);
+}
+
+.ipo-feed-notice {
+  margin-bottom: 18px;
+  padding: 13px 17px;
+  border-radius: 15px;
+}
+
+.ipo-status-tabs {
+  display: inline-flex;
+  gap: 4px;
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 15px;
+  padding: 5px;
+  overflow-x: auto;
+  border: 1px solid #e0e8e2;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(31, 62, 44, 0.035);
+}
+
+.ipo-status-tabs button {
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  color: #687a70;
+  font-size: 0.82rem;
+}
+
+.ipo-status-tabs button:hover {
+  background: #f2f7f3;
+  color: #213b2d;
+}
+
+.ipo-status-tabs button small {
+  min-width: 22px;
+  padding: 3px 6px;
+  background: #f0f4f1;
+  color: #75847a;
+  text-align: center;
+}
+
+.ipo-status-tabs button.active {
+  background: #e8f5ec;
+  color: #126c4b;
+}
+
+.ipo-status-tabs button.active small {
+  background: #16865d;
+  color: #fff;
+}
+
+.ipo-status-tabs button.active::after {
+  display: none;
+}
+
+.ipo-list-controls {
+  align-items: center;
+  gap: 13px;
+  margin: 0 0 23px;
+  padding: 13px;
+  border: 1px solid #e1e9e3;
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: 0 5px 18px rgba(31, 62, 44, 0.035);
+}
+
+.ipo-list-control-search {
+  display: flex;
+  flex: 1 1 460px;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ipo-page .ipo-search-box {
+  flex: 1 1 245px;
+  min-width: min(100%, 220px);
+  margin: 0;
+  padding: 10px 13px;
+  border: 1px solid #e1e9e3;
+  border-radius: 11px;
+  background: #f8faf8;
+  color: #78887e;
+}
+
+.ipo-page .ipo-search-box:focus-within {
+  border-color: #85c5a1;
+  box-shadow: 0 0 0 3px rgba(18, 126, 82, 0.1);
+}
+
+.ipo-page .ipo-search-box input {
+  min-width: 0;
+  color: #1c2b24;
+  font-size: 0.86rem;
+}
+
+.ipo-page .ipo-search-box input::placeholder {
+  color: #99a69d;
+}
+
+.ipo-segment-filters {
+  gap: 7px;
+}
+
+.ipo-segment-filters label {
+  min-height: 40px;
+  padding: 8px 11px;
+  border: 1px solid #e1e9e3;
+  border-radius: 11px;
+  background: #fff;
+  color: #5f7166;
+  font-size: 0.78rem;
+}
+
+.ipo-segment-filters label:has(input:checked) {
+  border-color: #b8dac5;
+  background: #eff8f2;
+  color: #176e4d;
+}
+
+.ipo-sort-control {
+  min-height: 40px;
+  padding: 6px 11px;
+  border: 1px solid #e1e9e3;
+  border-radius: 11px;
+  background: #fff;
+  color: #718178;
+  font-size: 0.78rem;
+}
+
+.ipo-sort-control select {
+  max-width: 150px;
+  color: #26392e;
+  font-size: 0.8rem;
+}
+
+.ipo-sort-control option {
+  background: #fff;
+  color: #1c2b24;
+}
+
+.ipo-results-heading {
+  align-items: end;
+  margin: 4px 0 16px;
+}
+
+.ipo-results-heading h2 {
+  color: #26382e;
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.ipo-results-heading > span {
+  color: #75847b;
+  font-size: 0.79rem;
+  font-weight: 650;
+}
+
+.ipo-page .ipo-list {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 17px;
+}
+
+.ipo-page .ipo-card-expanded {
+  border: 1px solid #e2e9e3;
+  border-radius: 19px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(31, 62, 44, 0.045);
+}
+
+.ipo-page .ipo-card-expanded:hover {
+  border-color: #b7d9c2;
+  box-shadow: 0 16px 34px rgba(31, 82, 54, 0.11);
+  transform: translateY(-3px);
+}
+
+.ipo-page .ipo-card-heading {
+  min-height: 84px;
+  padding: 18px 20px 14px;
+  border-color: #edf1ee;
+}
+
+.ipo-page .ipo-card-heading h2 {
+  color: #203329;
+  font-size: 1.08rem;
+  letter-spacing: -0.025em;
+}
+
+.ipo-page .ipo-card-heading > div > span {
+  display: inline-block;
+  margin-top: 5px;
+  color: #819087 !important;
+  font-size: 0.67rem !important;
+  letter-spacing: 0.11em !important;
+}
+
+.ipo-page .ipo-card-expanded .status-badge {
+  padding: 6px 9px;
+  border: 0;
+  background: #fff3dd;
+  color: #9a6718;
+  font-size: 0.63rem;
+  letter-spacing: 0.06em;
+}
+
+.ipo-page .ipo-card-expanded .ipo-status-open {
+  background: #e7f6ed;
+  color: #11724d;
+}
+
+.ipo-page .ipo-card-expanded .ipo-status-upcoming,
+.ipo-page .ipo-card-expanded .ipo-status-open-soon {
+  background: #fff3dd !important;
+  color: #956215 !important;
+}
+
+.ipo-page .ipo-primary-details {
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 14px;
+  padding: 16px 20px;
+  background: #f8faf8;
+}
+
+.ipo-page .ipo-logo {
+  width: 54px;
+  height: 54px;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #dcf2e4, #c5e7d2);
+  color: #11764f;
+  font-size: 1.45rem;
+  box-shadow: inset 0 0 0 1px rgba(17, 118, 79, 0.06);
+}
+
+.ipo-page .ipo-summary-grid {
+  gap: 11px 15px;
+}
+
+.ipo-page .ipo-summary-grid span {
+  gap: 4px;
+  color: #78877e;
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+
+.ipo-page .ipo-summary-grid b {
+  color: #26382e;
+  font-size: 0.82rem;
+  font-weight: 760;
+}
+
+.ipo-page .ipo-divider {
+  margin: 0 20px;
+  background: #e9efea;
+}
+
+.ipo-page .ipo-detail-rows {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 15px;
+  padding: 8px 20px 13px;
+}
+
+.ipo-page .ipo-detail-rows > span {
+  min-width: 0;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f3f0;
+  color: #7a8980;
+  font-size: 0.73rem;
+}
+
+.ipo-page .ipo-detail-rows > span b {
+  color: #293b30;
+  font-size: 0.75rem;
+  text-align: right;
+}
+
+.ipo-page .ipo-detail-rows > span:nth-last-child(1):nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+.ipo-page .ipo-actions {
+  grid-template-columns: minmax(0, 1fr) 44px;
+  gap: 9px;
+  padding: 0 20px 18px;
+}
+
+.ipo-page .ipo-view-button {
+  height: 42px;
+  border: 0;
+  border-radius: 11px;
+  background: #147d55;
+  color: #fff;
+  font-size: 0.82rem;
+  box-shadow: 0 5px 12px rgba(20, 125, 85, 0.15);
+}
+
+.ipo-page .ipo-view-button:hover {
+  background: #0f6847;
+  color: #fff;
+}
+
+.ipo-page .ipo-share-button {
+  height: 42px;
+  border: 1px solid #e0e9e3;
+  border-radius: 11px;
+  background: #fff;
+  color: #607268;
+}
+
+.ipo-page .ipo-share-button:hover {
+  border-color: #b8d9c4;
+  background: #f0f8f2;
+  color: #147d55;
+}
+
+.ipo-group-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 3px 0 14px;
+}
+
+.ipo-group-heading h3 {
+  margin: 0;
+  color: #26382e;
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.ipo-group-icon {
+  width: 33px;
+  height: 33px;
+  border-radius: 10px;
+}
+
+.ipo-group-count {
+  margin-left: 2px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #e7f6ed;
+  color: #11724d;
+  font-size: 0.67rem;
+  font-weight: 800;
+}
+
+.ipo-group-count.is-upcoming {
+  background: #fff3dd;
+  color: #956215;
+}
+
+.ipo-page .ipo-empty {
+  padding: 32px 20px;
+  border: 1px dashed #cbd9cf;
+  border-radius: 17px;
+  background: #fff;
+  color: #738279;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .ipo-hero {
+    grid-template-columns: minmax(0, 1fr) 270px;
+    gap: 10px;
+  }
+
+  .ipo-hero-stats {
+    gap: 12px;
+  }
+
+  .ipo-hero-stat {
+    min-width: 104px;
+    padding-right: 11px;
+  }
+}
+
+@media (max-width: 680px) {
+  .ipo-page {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .ipo-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+    min-height: 0;
+    padding: 24px 20px 17px;
+    border-radius: 21px;
+  }
+
+  .ipo-hero h1 {
+    margin-top: 12px;
+    font-size: clamp(2.1rem, 10vw, 3rem);
+  }
+
+  .ipo-hero-copy > p {
+    max-width: 100%;
+    font-size: 0.88rem;
+  }
+
+  .ipo-hero-stats {
+    gap: 10px;
+    justify-content: space-between;
+    margin-top: 19px;
+  }
+
+  .ipo-hero-stat {
+    min-width: 0;
+    gap: 7px;
+    padding-right: 9px;
+  }
+
+  .ipo-hero-stat-icon {
+    width: 31px;
+    height: 31px;
+    border-radius: 9px;
+  }
+
+  .ipo-hero-visual {
+    min-height: 174px;
+    margin-top: 4px;
+  }
+
+  .ipo-hero-orbit-outer {
+    width: 168px;
+    height: 168px;
+  }
+
+  .ipo-hero-orbit-inner {
+    width: 126px;
+    height: 126px;
+  }
+
+  .ipo-hero-emblem {
+    left: calc(50% - 91px);
+    top: calc(50% - 36px);
+    width: 65px;
+    height: 65px;
+    border-radius: 18px;
+  }
+
+  .ipo-hero-summary-card {
+    width: 174px;
+    padding: 14px 15px;
+    transform: translate(17px, 3px) rotate(3deg);
+  }
+
+  .ipo-hero-summary-card > strong {
+    font-size: 1.7rem;
+  }
+
+  .ipo-hero .ipo-live-pill {
+    right: 0;
+    bottom: 0;
+    font-size: 0.64rem;
+  }
+
+  .ipo-feed-notice {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .ipo-feed-notice p {
+    font-size: 0.76rem;
+  }
+
+  .ipo-status-tabs {
+    display: flex;
+    width: 100%;
+  }
+
+  .ipo-status-tabs button {
+    flex: 1 0 auto;
+    justify-content: center;
+    padding: 8px 10px;
+    font-size: 0.72rem;
+  }
+
+  .ipo-list-controls {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  .ipo-list-control-search {
+    flex: 1 1 auto;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ipo-page .ipo-search-box {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .ipo-segment-filters {
+    flex-wrap: wrap;
+  }
+
+  .ipo-sort-control {
+    align-self: stretch;
+    justify-content: space-between;
+  }
+
+  .ipo-sort-control select {
+    max-width: 58%;
+  }
+
+  .ipo-page .ipo-list {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 13px;
+  }
+
+  .ipo-page .ipo-card-heading {
+    padding: 15px 15px 12px;
+  }
+
+  .ipo-page .ipo-primary-details {
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 11px;
+    padding: 13px 15px;
+  }
+
+  .ipo-page .ipo-logo {
+    width: 46px;
+    height: 46px;
+    border-radius: 13px;
+    font-size: 1.2rem;
+  }
+
+  .ipo-page .ipo-detail-rows {
+    gap: 0 10px;
+    padding-right: 15px;
+    padding-left: 15px;
+  }
+
+  .ipo-page .ipo-detail-rows > span {
+    font-size: 0.68rem;
+  }
+
+  .ipo-page .ipo-detail-rows > span b {
+    font-size: 0.7rem;
+  }
+
+  .ipo-page .ipo-divider {
+    margin: 0 15px;
+  }
+
+  .ipo-page .ipo-actions {
+    padding: 0 15px 15px;
+  }
+}
+
+@media (max-width: 380px) {
+  .ipo-hero-eyebrow {
+    gap: 6px;
+    font-size: 0.61rem;
+    letter-spacing: 0.1em;
+  }
+
+  .ipo-hero-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ipo-hero-updated {
+    grid-column: 1 / -1;
+    padding-top: 8px;
+    border-top: 1px solid #dce7df;
+  }
+
+  .ipo-page .ipo-detail-rows {
+    grid-template-columns: 1fr;
+  }
+
+  .ipo-page .ipo-detail-rows > span:nth-last-child(1):nth-child(odd) {
+    grid-column: auto;
+  }
+}
+
+:root[data-theme='dark'] .ipo-page {
+  background: #141b18;
+  color: #edf4ef;
+}
+
+:root[data-theme='dark'] .ipo-hero {
+  border-color: rgba(194, 226, 204, 0.12);
+  background: linear-gradient(112deg, #1b2520 0%, #19251f 58%, #1c3025 100%);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+}
+
+:root[data-theme='dark'] .ipo-hero::before {
+  border-color: rgba(77, 188, 132, 0.12);
+  box-shadow: 0 0 0 36px rgba(77, 188, 132, 0.025), 0 0 0 74px rgba(77, 188, 132, 0.02);
+}
+
+:root[data-theme='dark'] .ipo-hero-eyebrow,
+:root[data-theme='dark'] .ipo-hero-copy > p,
+:root[data-theme='dark'] .ipo-hero-stat small,
+:root[data-theme='dark'] .ipo-hero-updated,
+:root[data-theme='dark'] .ipo-hero-summary-note {
+  color: #a8b9ae;
+}
+
+:root[data-theme='dark'] .ipo-hero h1,
+:root[data-theme='dark'] .ipo-hero-stat strong,
+:root[data-theme='dark'] .ipo-group-heading h3,
+:root[data-theme='dark'] .ipo-results-heading h2 {
+  color: #edf4ef;
+}
+
+:root[data-theme='dark'] .ipo-hero h1 span {
+  color: #78d6a5;
+}
+
+:root[data-theme='dark'] .ipo-hero-updated strong {
+  color: #d7e6dc;
+}
+
+:root[data-theme='dark'] .ipo-hero-stat,
+:root[data-theme='dark'] .ipo-hero-updated {
+  border-color: rgba(222, 239, 227, 0.14);
+}
+
+:root[data-theme='dark'] .ipo-hero-stat-icon {
+  background: #253c30;
+  color: #8be0b3;
+}
+
+:root[data-theme='dark'] .ipo-hero-stat-icon.is-upcoming,
+:root[data-theme='dark'] .ipo-group-icon.is-upcoming {
+  background: #3a3222;
+  color: #f2c66e;
+}
+
+:root[data-theme='dark'] .ipo-hero-orbit {
+  border-color: rgba(126, 211, 163, 0.16);
+}
+
+:root[data-theme='dark'] .ipo-hero-summary-card,
+:root[data-theme='dark'] .ipo-hero .ipo-live-pill,
+:root[data-theme='dark'] .ipo-status-tabs,
+:root[data-theme='dark'] .ipo-list-controls,
+:root[data-theme='dark'] .ipo-segment-filters label,
+:root[data-theme='dark'] .ipo-sort-control {
+  border-color: rgba(225, 239, 229, 0.12);
+  background: #202a24;
+  color: #d6e3da;
+}
+
+:root[data-theme='dark'] .ipo-hero-summary-label,
+:root[data-theme='dark'] .ipo-hero-summary-card > strong small,
+:root[data-theme='dark'] .ipo-hero .ipo-live-pill {
+  color: #b6c7bc;
+}
+
+:root[data-theme='dark'] .ipo-hero-summary-card > strong {
+  color: #eef6f0;
+}
+
+:root[data-theme='dark'] .ipo-status-tabs button {
+  color: #a9b9af;
+}
+
+:root[data-theme='dark'] .ipo-status-tabs button:hover,
+:root[data-theme='dark'] .ipo-status-tabs button.active {
+  background: #293a30;
+  color: #a8e8c1;
+}
+
+:root[data-theme='dark'] .ipo-status-tabs button small {
+  background: #303b34;
+  color: #adbbb2;
+}
+
+:root[data-theme='dark'] .ipo-status-tabs button.active small {
+  background: #47b87e;
+  color: #102118;
+}
+
+:root[data-theme='dark'] .ipo-page .ipo-search-box,
+:root[data-theme='dark'] .ipo-sort-control select,
+:root[data-theme='dark'] .ipo-sort-control option {
+  border-color: rgba(225, 239, 229, 0.12);
+  background: #19221d;
+  color: #e3eee7;
+}
+
+:root[data-theme='dark'] .ipo-page .ipo-search-box input {
+  color: #e3eee7;
+}
+
+:root[data-theme='dark'] .ipo-page .ipo-card-expanded,
+:root[data-theme='dark'] .ipo-page .ipo-empty {
+  border-color: rgba(225, 239, 229, 0.12);
+  background: #1c2620;
+  color: #e3eee7;
+}
+
+:root[data-theme='dark'] .ipo-page .ipo-card-heading {
+  border-color: rgba(225, 239, 229, 0.09);
+}
+
+:root[data-theme='dark'] .ipo-page .ipo-card-heading h2,
+:root[data-theme='dark'] .ipo-page .ipo-summary-grid b,
+:root[data-theme='dark'] .ipo-page .ipo-detail-rows > span b {
+  color: #e8f1eb;
+}
+
+:root[data-theme='dark'] .ipo-page .ipo-summary-grid span,
+:root[data-theme='dark'] .ipo-page .ipo-detail-rows > span,
+:root[data-theme='dark'] .ipo-page .ipo-card-heading > div > span,
+:root[data-theme='dark'] .ipo-results-heading > span {
+  color: #a8b9ae;
+}
+
+:root[data-theme='dark'] .ipo-page .ipo-primary-details {
+  background: #202b24;
+}
+
+:root[data-theme='dark'] .ipo-page .ipo-divider {
+  background: rgba(225, 239, 229, 0.13);
+}
+
+:root[data-theme='dark'] .ipo-page .ipo-detail-rows > span {
+  border-color: rgba(225, 239, 229, 0.1);
+  background-color: transparent;
+}
+
+:root[data-theme='dark'] .ipo-page .ipo-share-button {
+  border-color: rgba(225, 239, 229, 0.13);
+  background: #202a24;
+  color: #bfcec4;
+}
+
+:root[data-theme='dark'] .ipo-group-count {
+  background: #253c30;
+  color: #a8e0bd;
+}
+
+:root[data-theme='dark'] .ipo-group-count.is-upcoming {
+  background: #3a3222;
+  color: #f2c66e;
+}
+
+:root[data-theme='dark'] .ipo-results-heading > span {
+  color: #9cafa3;
+}

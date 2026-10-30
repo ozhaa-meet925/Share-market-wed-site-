@@ -1,0 +1,30 @@
+/* src/components/StockTable.module.css */
+.wrapper {
+  overflow-x: auto;
+  padding: 1rem;
+  background: var(--bg-card, #fff);
+  border-radius: 8px;
+  box-shadow: var(--shadow, 0 2px 8px rgba(0,0,0,.1));
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table th,
+.table td {
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+}
+
+.table th {
+  background: var(--header-bg, #f0f4f8);
+  font-weight: 600;
+}
+
+.table tr:hover {
+  background: var(--row-hover, #f9fafb);
+}

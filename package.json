@@ -1,0 +1,32 @@
+{
+  "name": "share-market",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node start-dev.js",
+    "dev:client": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "start:proxy": "node server.js",
+    "setup:yfinance": "node setup-yfinance.js"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^5.0.2",
+    "axios": "^1.4.0",
+    "dotenv": "^16.6.1",
+    "express": "^4.18.2",
+    "lightweight-charts": "^4.0.0",
+    "lucide-react": "^0.544.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^7.9.1",
+    "react-window": "^2.4.1",
+    "recharts": "^3.10.1",
+    "vite": "^7.1.5",
+    "ws": "^8.13.0"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^25.11.0"
+  }
+}

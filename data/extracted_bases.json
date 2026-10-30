@@ -1,0 +1,302 @@
+{
+  "RELIANCE": {
+    "price": 1260.1,
+    "previousClose": 1252.3,
+    "name": "Reliance Industries",
+    "sector": "Energy"
+  },
+  "TCS": {
+    "price": 4148.9,
+    "previousClose": 4171.05,
+    "name": "Tata Consultancy Services",
+    "sector": "IT"
+  },
+  "HDFCBANK": {
+    "price": 1681.3,
+    "previousClose": 1662.55,
+    "name": "HDFC Bank",
+    "sector": "Banking"
+  },
+  "INFY": {
+    "price": 1546.25,
+    "previousClose": 1534.85,
+    "name": "Infosys",
+    "sector": "IT"
+  },
+  "ITC": {
+    "price": 486.95,
+    "previousClose": 490.05,
+    "name": "ITC Limited",
+    "sector": "FMCG"
+  },
+  "SBIN": {
+    "price": 812.7,
+    "previousClose": 802.9,
+    "name": "State Bank of India",
+    "sector": "Banking"
+  },
+  "ICICIBANK": {
+    "price": 1242.6,
+    "previousClose": 1227.25,
+    "name": "ICICI Bank",
+    "sector": "Banking"
+  },
+  "MARUTI": {
+    "price": 12684.5,
+    "previousClose": 12781.3,
+    "name": "Maruti Suzuki",
+    "sector": "Auto"
+  },
+  "BHARTIARTL": {
+    "price": 1684.2,
+    "previousClose": 1662.65,
+    "name": "Bharti Airtel",
+    "sector": "Telecom"
+  },
+  "LT": {
+    "price": 3682.75,
+    "previousClose": 3664.45,
+    "name": "Larsen & Toubro",
+    "sector": "Construction"
+  },
+  "AXISBANK": {
+    "price": 1172.6,
+    "previousClose": 1181.05,
+    "name": "Axis Bank",
+    "sector": "Banking"
+  },
+  "KOTAKBANK": {
+    "price": 1988.4,
+    "previousClose": 1976.25,
+    "name": "Kotak Mahindra Bank",
+    "sector": "Banking"
+  },
+  "ADANIENT": {
+    "price": 2478.9,
+    "previousClose": 2510.5,
+    "name": "Adani Enterprises",
+    "sector": "Diversified"
+  },
+  "SUNPHARMA": {
+    "price": 1768.35,
+    "previousClose": 1748.45,
+    "name": "Sun Pharmaceutical",
+    "sector": "Pharma"
+  },
+  "TITAN": {
+    "price": 3562.1,
+    "previousClose": 3536.7,
+    "name": "Titan Company",
+    "sector": "Consumer"
+  },
+  "BAJFINANCE": {
+    "price": 7962.8,
+    "previousClose": 8031.25,
+    "name": "Bajaj Finance",
+    "sector": "Financial Services"
+  },
+  "WIPRO": {
+    "price": 548.2,
+    "previousClose": 543.35,
+    "name": "Wipro",
+    "sector": "IT"
+  },
+  "ASIANPAINT": {
+    "price": 2384.7,
+    "previousClose": 2398.9,
+    "name": "Asian Paints",
+    "sector": "Consumer"
+  },
+  "HINDALCO": {
+    "price": 714.6,
+    "previousClose": 705.85,
+    "name": "Hindalco Industries",
+    "sector": "Metals"
+  },
+  "ONGC": {
+    "price": 286.45,
+    "previousClose": 283.25,
+    "name": "Oil and Natural Gas Corporation",
+    "sector": "Energy"
+  },
+  "NTPC": {
+    "price": 418.3,
+    "previousClose": 420.9,
+    "name": "NTPC Limited",
+    "sector": "Power"
+  },
+  "LICI": {
+    "price": 952.4,
+    "previousClose": 957,
+    "name": "Life Insurance Corporation",
+    "sector": "Insurance"
+  },
+  "TATAMOTORS": {
+    "price": 782.5,
+    "previousClose": 771.2,
+    "name": "Tata Motors",
+    "sector": "Auto"
+  },
+  "HCLTECH": {
+    "price": 1682.3,
+    "previousClose": 1691,
+    "name": "HCL Technologies",
+    "sector": "IT"
+  },
+  "M&M": {
+    "price": 2862.7,
+    "previousClose": 2844.3,
+    "name": "Mahindra & Mahindra",
+    "sector": "Auto"
+  },
+  "ADANIPORTS": {
+    "price": 1342.6,
+    "previousClose": 1337.4,
+    "name": "Adani Ports & SEZ",
+    "sector": "Infrastructure"
+  },
+  "DRREDDY": {
+    "price": 6452.8,
+    "previousClose": 6485.3,
+    "name": "Dr. Reddy\\",
+    "sector": "Pharma"
+  },
+  "CIPLA": {
+    "price": 1523.4,
+    "previousClose": 1513.8,
+    "name": "Cipla",
+    "sector": "Pharma"
+  },
+  "BAJAJ-AUTO": {
+    "price": 9824.5,
+    "previousClose": 9781.7,
+    "name": "Bajaj Auto",
+    "sector": "Auto"
+  },
+  "TECHM": {
+    "price": 1642.1,
+    "previousClose": 1654.5,
+    "name": "Tech Mahindra",
+    "sector": "IT"
+  },
+  "TRENT": {
+    "price": 6284.2,
+    "previousClose": 6227.4,
+    "name": "Trent",
+    "sector": "Retail"
+  },
+  "TATASTEEL": {
+    "price": 152.3,
+    "previousClose": 153.5,
+    "name": "Tata Steel",
+    "sector": "Metals"
+  },
+  "JSWSTEEL": {
+    "price": 1012.4,
+    "previousClose": 1005.6,
+    "name": "JSW Steel",
+    "sector": "Metals"
+  },
+  "COALINDIA": {
+    "price": 412.3,
+    "previousClose": 409.2,
+    "name": "Coal India",
+    "sector": "Mining"
+  },
+  "POWERGRID": {
+    "price": 326.5,
+    "previousClose": 324.7,
+    "name": "Power Grid Corporation",
+    "sector": "Power"
+  },
+  "DLF": {
+    "price": 822.4,
+    "previousClose": 828.7,
+    "name": "DLF",
+    "sector": "Real Estate"
+  },
+  "INDIGO": {
+    "price": 4582.7,
+    "previousClose": 4554.3,
+    "name": "InterGlobe Aviation",
+    "sector": "Aviation"
+  },
+  "SBILIFE": {
+    "price": 1683.2,
+    "previousClose": 1672.7,
+    "name": "SBI Life Insurance",
+    "sector": "Insurance"
+  },
+  "HDFCLIFE": {
+    "price": 641.8,
+    "previousClose": 645.2,
+    "name": "HDFC Life Insurance",
+    "sector": "Insurance"
+  },
+  "DMART": {
+    "price": 3822.5,
+    "previousClose": 3840.8,
+    "name": "Avenue Supermarts",
+    "sector": "Retail"
+  },
+  "HINDUNILVR": {
+    "price": 2382.6,
+    "previousClose": 2377.2,
+    "name": "Hindustan Unilever",
+    "sector": "FMCG"
+  },
+  "NESTLEIND": {
+    "price": 2322.4,
+    "previousClose": 2334,
+    "name": "Nestle India",
+    "sector": "FMCG"
+  },
+  "HAL": {
+    "price": 4124.8,
+    "previousClose": 4089.2,
+    "name": "Hindustan Aeronautics",
+    "sector": "Defense & Engineering"
+  },
+  "BEL": {
+    "price": 286.4,
+    "previousClose": 283.6,
+    "name": "Bharat Electronics",
+    "sector": "Defense & Engineering"
+  },
+  "VEDL": {
+    "price": 441.6,
+    "previousClose": 444.5,
+    "name": "Vedanta",
+    "sector": "Metals"
+  },
+  "ULTRACEMCO": {
+    "price": 11205.3,
+    "previousClose": 11156.6,
+    "name": "UltraTech Cement",
+    "sector": "Cement"
+  },
+  "GRASIM": {
+    "price": 2682.4,
+    "previousClose": 2697.2,
+    "name": "Grasim Industries",
+    "sector": "Diversified"
+  },
+  "IOC": {
+    "price": 135.8,
+    "previousClose": 134.4,
+    "name": "Indian Oil Corporation",
+    "sector": "Energy"
+  },
+  "BPCL": {
+    "price": 311.4,
+    "previousClose": 313.2,
+    "name": "Bharat Petroleum",
+    "sector": "Energy"
+  },
+  "GODREJPROP": {
+    "price": 2752.8,
+    "previousClose": 2730.2,
+    "name": "Godrej Properties",
+    "sector": "Real Estate"
+  }
+}
