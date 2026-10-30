@@ -1,4 +1,4 @@
-# Share Market
+# Share-market-wed-site-
 
 A React + Vite share market dashboard with Indian indices, stocks, IPOs, commodities, portfolio, watchlist, orders, learning content, and calculators.
 
