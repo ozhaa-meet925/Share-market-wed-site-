@@ -104,7 +104,7 @@ const Watchlist = () => {
           flash: quote?.flash || null,
           lastTick: quote?.lastTick || null,
           quoteUpdatedAt: quote?.timestamp || null,
-          dataSource: isDemo ? 'Demo quote · not real' : isResearch ? `${quote.provider || 'Yahoo Finance via yfinance'} · research · not live` : quote?.provider || (isStale ? 'Last quote · stale' : 'Connect a live market provider'),
+          dataSource: isDemo ? 'Demo quote · not real' : isResearch ? `${quote.provider || 'Yahoo Finance research feed'} · research · not live` : quote?.provider || (isStale ? 'Last quote · stale' : 'Connect a live market provider'),
         };
       })
       .filter((stock) =>

@@ -159,7 +159,7 @@ const Markets = () => {
                 <small className={isLive || isDemo || isResearch ? positive ? 'gain' : 'loss' : ''}>
                   {(isLive || isDemo || isResearch) && quote.dp !== null ? `${isDemo ? 'Demo ' : ''}${isResearch ? 'Research ' : ''}${positive ? '+' : ''}${Number(quote.dp).toFixed(2)}% · ` : ''}{cue.unit}
                 </small>
-                <small>{isDemo ? 'Simulated demo feed · not real' : isResearch ? `Yahoo Finance via yfinance · research only · ${formatCueTime(quote.timestamp)}` : isLive ? `${quote.provider || 'Market provider'} · ${formatCueTime(quote.timestamp)}` : 'Connect a live market provider'}</small>
+                <small>{isDemo ? 'Simulated demo feed · not real' : isResearch ? `${quote.provider || 'Yahoo Finance research feed'} · research only · ${formatCueTime(quote.timestamp)}` : isLive ? `${quote.provider || 'Market provider'} · ${formatCueTime(quote.timestamp)}` : 'Connect a live market provider'}</small>
               </div>
             );
           })}

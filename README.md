@@ -17,8 +17,10 @@ npm run dev
 ```bash
 npm run build
 ```
-# ShareMarket
 
+## Vercel deployment
+
+The Vercel deployment serves the Vite app and routes `/api/*` requests to the Express market API. Without a live provider token, stock cards can use Yahoo Finance research quotes, clearly marked as delayed/not live. To enable live KUN quotes, add `MARKET_DATA_PROVIDER=kun` and an authorized `KUN_DATA_API_TOKEN` to the Vercel project's Environment Variables, then redeploy.
 ## Live stock prices
 
 Kunpeng Data is the default live quote provider. The [StockerAPI GitHub project](https://github.com/StockerAPI/india-stock-market-api) documents Kunpeng Data's hosted HTTP and WebSocket API; it is not a server to run locally. Create a Kunpeng Data member account and make sure its token is authorized for the India (`IN`) market and NSE exchange, then:

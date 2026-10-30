@@ -13,7 +13,7 @@ import {
   getKunQuotes,
   isKunDataConfigured,
 } from './kunDataProvider.js';
-import { getYahooResearchQuotes, isYahooResearchEnabled } from './yfinanceResearchProvider.js';
+import { getYahooResearchProviderName, getYahooResearchQuotes, isYahooResearchEnabled } from './yfinanceResearchProvider.js';
 
 dotenv.config();
 
@@ -1718,7 +1718,7 @@ app.get('/api/stock/batch', async (req, res) => {
     return res.json({
       provider: [
         Object.values(quotesWithResearch).some((quote) => quote.marketType === 'spot') ? 'goldprice.dev spot' : null,
-        hasResearchQuotes ? 'Yahoo Finance via yfinance · research' : null,
+        hasResearchQuotes ? `${getYahooResearchProviderName()} · research` : null,
       ].filter(Boolean).join(' + '),
       isLive: false,
       researchOnly: Object.values(quotesWithResearch).some((quote) => quote.isResearch === true),
@@ -1743,7 +1743,7 @@ app.get('/api/stock/batch', async (req, res) => {
       return res.json({
         provider: [
           Object.values(quotes).some((quote) => quote.isLive === true) ? 'Kunpeng Data' : null,
-          Object.values(quotes).some((quote) => quote.isResearch === true) ? 'Yahoo Finance via yfinance · research' : null,
+          Object.values(quotes).some((quote) => quote.isResearch === true) ? `${getYahooResearchProviderName()} · research` : null,
         ].filter(Boolean).join(' + '),
         isLive: Object.values(quotes).some((quote) => quote.isLive === true),
         researchOnly: Object.values(quotes).some((quote) => quote.isResearch === true),
@@ -2042,7 +2042,7 @@ app.get('/api/health', (req, res) => {
     apiKeyConfigured: liveDataAvailable,
     realTimeAvailable: liveDataAvailable,
     researchDataAvailable: isYahooResearchEnabled(),
-    researchProvider: isYahooResearchEnabled() ? 'Yahoo Finance via yfinance' : null,
+    researchProvider: isYahooResearchEnabled() ? getYahooResearchProviderName() : null,
     demoDataAvailable: false,
     provider: liveDataAvailable ? provider : null,
     configuredProvider: provider,
@@ -3450,13 +3450,17 @@ app.get('/api/fmp-test/:type', async (req, res) => {
     res.status(500).json({ error: err.message, code });
   }
 });
-const server = app.listen(PORT, () => {
-  console.log(`Live Market Proxy listening on http://localhost:${PORT}`);
-});
+export default app;
 
-const shutdown = () => {
-  closeKunDataConnection();
-  server.close(() => process.exit(0));
-};
-process.once('SIGINT', shutdown);
-process.once('SIGTERM', shutdown);
+if (process.env.VERCEL !== '1' && process.env.VERCEL_FUNCTIONS !== '1') {
+  const server = app.listen(PORT, () => {
+    console.log(`Live Market Proxy listening on http://localhost:${PORT}`);
+  });
+
+  const shutdown = () => {
+    closeKunDataConnection();
+    server.close(() => process.exit(0));
+  };
+  process.once('SIGINT', shutdown);
+  process.once('SIGTERM', shutdown);
+}

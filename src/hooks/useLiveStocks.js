@@ -101,7 +101,7 @@ export const useLiveStocks = (initialStocks, refreshMs = DEFAULT_REFRESH_MS) => 
             marketOpen,
             isStale: quote.isStale === true,
             dataSource: isResearch
-              ? `${quote.provider || 'Yahoo Finance via yfinance'} research quote · not live`
+              ? `${quote.provider || 'Yahoo Finance research feed'} research quote · not live`
               : `${quote.provider || 'Market provider'} live quote`,
             quoteUpdatedAt: quote.timestamp || new Date().toISOString(),
           };

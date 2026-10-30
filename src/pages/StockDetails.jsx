@@ -76,7 +76,7 @@ const StockDetails = () => {
           isStale: quote.isStale === true,
         }));
         setDataSource(isResearch
-          ? `${quote.provider || 'Yahoo Finance via yfinance'} research quote · not live`
+          ? `${quote.provider || 'Yahoo Finance research feed'} research quote · not live`
           : `${quote.provider || 'Market provider'} live quote`);
         setLastUpdated(new Date());
       } catch {
