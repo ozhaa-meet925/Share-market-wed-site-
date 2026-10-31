@@ -1,17 +1,7 @@
 import { useEffect, useState } from 'react';
-import { marketNews as fallbackNews } from '../data/marketNews';
 import { marketApi } from '../services/api';
 
-const REFRESH_MS = 15000;
-
-const ageToMinutes = (time) => {
-  const match = time?.match(/(\d+)\s*(min|hr|day)/i);
-  if (!match) return 0;
-  const amount = Number(match[1]);
-  if (match[2].toLowerCase() === 'hr') return amount * 60;
-  if (match[2].toLowerCase() === 'day') return amount * 1440;
-  return amount;
-};
+const REFRESH_MS = 2 * 60 * 1000;
 
 const relativeTime = (timestamp) => {
   if (!timestamp) return 'Recently';
@@ -30,7 +20,7 @@ const normalizeNews = (items) => items
     id: String(item.id || item.headline),
     tag: (!item.category || item.category.toLowerCase() === 'general') ? 'Market' : (item.category[0].toUpperCase() + item.category.slice(1)),
     title: item.headline,
-    summary: item.summary || 'Market news update from the live news feed.',
+    summary: item.summary || 'Open the publisher link to read the full story.',
     time: relativeTime(item.datetime),
     publishedAt: item.datetime,
     source: item.source || 'Market feed',
@@ -38,24 +28,32 @@ const normalizeNews = (items) => items
   }));
 
 export const useMarketNews = (refreshMs = REFRESH_MS) => {
-  const [news, setNews] = useState(() => fallbackNews.map((item) => {
-    const publishedAt = Math.floor(Date.now() / 1000) - ageToMinutes(item.time) * 60;
-    return { ...item, id: item.id || item.title, publishedAt, time: relativeTime(publishedAt) };
-  }));
+  const [news, setNews] = useState([]);
   const [isLive, setIsLive] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [provider, setProvider] = useState(null);
+  const [statusMessage, setStatusMessage] = useState('Connecting to live market news…');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
     const refresh = async () => {
       try {
-        const liveNews = normalizeNews(await marketApi.getMarketNews());
-        if (!active || !liveNews.length) return;
-        setNews(liveNews);
-        setIsLive(true);
-        setLastUpdated(new Date());
-      } catch {
-        if (active) setIsLive(false);
+        const payload = await marketApi.getMarketNews();
+        const feed = Array.isArray(payload) ? { data: payload, live: false } : payload;
+        const articles = normalizeNews(Array.isArray(feed?.data) ? feed.data : []);
+        if (!active) return;
+        setNews(articles);
+        setIsLive(feed?.live === true && articles.length > 0);
+        setLastUpdated(feed?.lastUpdated ? new Date(feed.lastUpdated) : null);
+        setProvider(feed?.provider || null);
+        setStatusMessage(feed?.note || (articles.length ? '' : 'No live market headlines are available right now.'));
+      } catch (error) {
+        if (!active) return;
+        setIsLive(false);
+        setStatusMessage(error.message || 'Could not connect to the live market news feed.');
+      } finally {
+        if (active) setIsLoading(false);
       }
     };
 
@@ -73,5 +71,5 @@ export const useMarketNews = (refreshMs = REFRESH_MS) => {
     };
   }, [refreshMs]);
 
-  return { news, isLive, lastUpdated };
+  return { news, isLive, lastUpdated, provider, statusMessage, isLoading };
 };

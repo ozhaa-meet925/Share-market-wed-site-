@@ -39,7 +39,7 @@ const MARKET_SIGNALS = [
 const CATEGORIES = ['All', 'Market', 'Stocks', 'IPO', 'Gold', 'Silver', 'Mutual Funds'];
 
 const News = () => {
-  const { news, isLive, lastUpdated } = useMarketNews();
+  const { news, isLive, lastUpdated, provider, statusMessage, isLoading } = useMarketNews();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [category, setCategory] = useState(() => searchParams.get('category') || 'All');
@@ -191,7 +191,7 @@ const News = () => {
       {/* 2. HEADER AREA WITH LIVE STATUS & TOTAL COUNT */}
       <header className="page-title">
         <div className="eyebrow">
-          <Zap size={15} /> Real-Time Financial Intelligence
+          <Zap size={15} /> Live Indian Market Headlines
         </div>
         <div className="news-header-row">
           <div>
@@ -201,12 +201,12 @@ const News = () => {
                 {isLive ? (
                   <>
                     <span className="live-dot" />
-                    Live Market Feed (Real-Time)
+                    Live news · {provider || 'Market feed'}
                   </>
                 ) : (
                   <>
                     <Activity size={13} />
-                    Demo Market News Fallback
+                    {isLoading ? 'Connecting to live market news…' : statusMessage || 'Live market news unavailable'}
                   </>
                 )}
                 {lastUpdated && (
@@ -307,15 +307,21 @@ const News = () => {
           ) : (
             <div className="panel news-empty" style={{ padding: '40px 20px', textAlign: 'center' }}>
               <p style={{ margin: '0 0 16px', fontSize: '1.05rem', color: '#64748b' }}>
-                No news articles match your current filters.
+                {news.length
+                  ? 'No news articles match your current filters.'
+                  : isLoading
+                    ? 'Fetching current headlines from the live news feed…'
+                    : statusMessage || 'No live market headlines are available right now.'}
               </p>
-              <button
-                type="button"
-                className="primary-button"
-                onClick={handleClearFilters}
-              >
-                Reset All Filters
-              </button>
+              {news.length > 0 && (
+                <button
+                  type="button"
+                  className="primary-button"
+                  onClick={handleClearFilters}
+                >
+                  Reset All Filters
+                </button>
+              )}
             </div>
           )}
         </main>

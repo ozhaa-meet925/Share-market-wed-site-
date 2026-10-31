@@ -1,13 +1,17 @@
-import { useEffect, useState } from 'react';
-import { ArrowLeft, Bookmark, CalendarDays, CheckCircle2, CircleDollarSign, FileText, Users } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { ArrowLeft, Bell, BellRing, Bookmark, Building2, CalendarDays, CheckCircle2, CircleDollarSign, FileText, Users } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { marketApi } from '../services/api';
+import { useIpoAlerts } from '../hooks/useIpoAlerts';
 import { useTrackedIpos } from '../hooks/useTrackedIpos';
 
 const detailRows = [
   ['Price band', 'priceBand'],
   ['Lot size', 'lotSize'],
   ['Issue size', 'issueSize'],
+  ['Fresh issue', 'freshIssue'],
+  ['Offer for sale (OFS)', 'offerForSale'],
+  ['Face value', 'faceValue'],
   ['Minimum investment', 'minInvestment'],
   ['Overall Subscription', 'subscription'],
   ['GMP', 'gmp'],
@@ -38,6 +42,60 @@ const disclosureItems = (value) => {
   if (typeof value === 'string' && value.trim()) return [value];
   return [];
 };
+const toIpoDateKey = (value) => {
+  const raw = String(value || '').trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  if (!raw || /^(—|not provided|n\/a)$/i.test(raw)) return '';
+  const timestamp = Date.parse(raw);
+  return Number.isFinite(timestamp)
+    ? new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(new Date(timestamp))
+    : '';
+};
+const escapeCalendarText = (value) => String(value || '')
+  .replace(/\\/g, '\\\\')
+  .replace(/\r?\n/g, '\\n')
+  .replace(/;/g, '\\;')
+  .replace(/,/g, '\\,');
+const foldCalendarLine = (line) => {
+  const folded = [];
+  let current = '';
+  let bytes = 0;
+  const encoder = new TextEncoder();
+  for (const character of line) {
+    const size = encoder.encode(character).length;
+    if (bytes + size > 75) {
+      folded.push(current);
+      current = ` ${character}`;
+      bytes = 1 + size;
+    } else {
+      current += character;
+      bytes += size;
+    }
+  }
+  folded.push(current);
+  return folded.join('\r\n');
+};
+const getFutureCalendarEvents = (ipo) => {
+  if (!ipo) return [];
+  const today = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(new Date());
+  return [
+    ['openDate', 'Issue opens'],
+    ['closeDate', 'Issue closes'],
+    ['allotmentDate', 'Allotment date'],
+    ['listingDate', 'Listing date'],
+  ].map(([field, title]) => ({ field, title, date: toIpoDateKey(ipo[field]) }))
+    .filter((event) => event.date && event.date >= today);
+};
+const toIcsDate = (dateKey) => dateKey.replaceAll('-', '');
+const nextIcsDate = (dateKey) => {
+  const date = new Date(`${dateKey}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + 1);
+  return toIcsDate(date.toISOString().slice(0, 10));
+};
 
 const IPODetails = () => {
   const { company } = useParams();
@@ -53,13 +111,60 @@ const IPODetails = () => {
   const [bidPrice, setBidPrice] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [applicationResult, setApplicationResult] = useState(null);
+  const [calendarMessage, setCalendarMessage] = useState('');
   const { isTracked, toggleTrackedIpo } = useTrackedIpos();
+  const notificationIpos = useMemo(() => (ipo ? [ipo] : []), [ipo]);
+  const ipoAlerts = useIpoAlerts(notificationIpos);
+  const calendarEvents = useMemo(() => getFutureCalendarEvents(ipo), [ipo]);
+
+  const downloadIpoCalendar = () => {
+    if (!ipo || calendarEvents.length === 0) {
+      setCalendarMessage('No future IPO dates are available from the provider to export.');
+      return;
+    }
+
+    const timeStamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+    const sourceUrl = ipo.sourceUrl || `${window.location.origin}${window.location.pathname}`;
+    const events = calendarEvents.flatMap((event) => [
+      'BEGIN:VEVENT',
+      `UID:${String(ipo.id || decodedName).replace(/[^a-zA-Z0-9-]/g, '-')}-${event.field}-${event.date}@sharemarket.app`,
+      `DTSTAMP:${timeStamp}`,
+      `DTSTART;VALUE=DATE:${toIcsDate(event.date)}`,
+      `DTEND;VALUE=DATE:${nextIcsDate(event.date)}`,
+      `SUMMARY:${escapeCalendarText(`${ipo.company || 'IPO'} · ${event.title}`)}`,
+      `DESCRIPTION:${escapeCalendarText(`Provider-reported IPO date. Review the latest issue details at ${sourceUrl}`)}`,
+      `URL:${sourceUrl}`,
+      'END:VEVENT',
+    ]);
+    const calendar = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//ShareMarket//IPO Calendar//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      ...events,
+      'END:VCALENDAR',
+      '',
+    ].map(foldCalendarLine).join('\r\n');
+    const blob = new Blob([calendar], { type: 'text/calendar;charset=utf-8' });
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const fileName = String(ipo.company || 'ipo').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    link.href = downloadUrl;
+    link.download = `${fileName || 'ipo'}-dates.ics`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+    setCalendarMessage(`${calendarEvents.length} provider-reported date${calendarEvents.length === 1 ? '' : 's'} added to the calendar file.`);
+  };
 
   useEffect(() => {
     let active = true;
     setIpo(null);
     setLoading(true);
     setDetailError('');
+    setCalendarMessage('');
 
     const fetchLiveDetails = async () => {
       try {
@@ -197,6 +302,25 @@ const IPODetails = () => {
           <Bookmark size={17} fill={isTracked(currentIpo.id) ? 'currentColor' : 'none'} />
           {isTracked(currentIpo.id) ? 'Tracking this IPO' : 'Track this IPO'}
         </button>
+        <button
+          className={`ipo-track-button${ipoAlerts.isAlerted(currentIpo.id) ? ' is-tracked' : ''}`}
+          type="button"
+          aria-pressed={ipoAlerts.isAlerted(currentIpo.id)}
+          onClick={() => ipoAlerts.toggleAlert(currentIpo)}
+        >
+          {ipoAlerts.isAlerted(currentIpo.id) ? <BellRing size={17} /> : <Bell size={17} />}
+          {ipoAlerts.isAlerted(currentIpo.id) ? 'Date alerts on' : 'Remind me'}
+        </button>
+        <button
+          className="ipo-calendar-download"
+          type="button"
+          onClick={downloadIpoCalendar}
+          disabled={calendarEvents.length === 0}
+          title={calendarEvents.length ? 'Download future IPO dates as a calendar file' : 'No future dates are available from the provider'}
+        >
+          <CalendarDays size={17} />
+          Add to calendar
+        </button>
         {currentIpo.status === 'Open' && currentIpo.source === 'upstox' && currentIpo.isLive === true && (
           <button id="apply" className="ipo-apply-button" type="button" onClick={() => setApplyOpen((open) => !open)}>
             {applyOpen ? 'Close application' : 'Apply via Upstox'}
@@ -204,6 +328,24 @@ const IPODetails = () => {
         )}
         <Link className="ipo-view-button" to="/ipo?ipo_view=applications">My applications</Link>
       </div>
+      {(calendarMessage || calendarEvents.length === 0) && (
+        <p className="ipo-calendar-message" role="status">
+          {calendarMessage || 'No future IPO dates are available from the provider to export.'}
+        </p>
+      )}
+
+      <section className="panel ipo-detail-panel ipo-company-overview">
+        <div className="section-heading">
+          <div>
+            <span className="ipo-detail-kicker">Company profile</span>
+            <h2>Company overview</h2>
+          </div>
+          <Building2 size={22} />
+        </div>
+        <p>{currentIpo.companyOverview
+          ? formatFactValue(currentIpo.companyOverview)
+          : 'A company overview was not included in this live IPO feed. Open the official prospectus for issuer background.'}</p>
+      </section>
 
       {applyOpen && currentIpo.status === 'Open' && currentIpo.source === 'upstox' && currentIpo.isLive === true && (
         <section className="panel ipo-detail-panel ipo-apply-panel" aria-labelledby="ipo-apply-heading">
@@ -316,11 +458,12 @@ const IPODetails = () => {
           ))}
           {[
             ['Industry', currentIpo.industry],
+            ['Lead manager(s)', currentIpo.leadManagers],
+            ['Competitors', currentIpo.competitors],
             ['Ticker symbol', currentIpo.symbol],
             ['ISIN', currentIpo.isin],
             ['Issue segment', currentIpo.segment],
             ['Listing exchange', currentIpo.listingExchange],
-            ['Face value', currentIpo.faceValue ? `₹${currentIpo.faceValue}` : ''],
             ['Minimum bid quantity', currentIpo.minimumQuantity],
             ['Daily bid window', currentIpo.dailyBidTimings],
             ['Registrar', currentIpo.registrar?.name || currentIpo.registrar?.registrar],
@@ -383,6 +526,12 @@ const IPODetails = () => {
               ? <ul>{disclosureItems(currentIpo.risks).map((item, index) => <li key={index}>{item}</li>)}</ul>
               : <p>The provider does not return structured risk summaries. Read the risk factors in the official prospectus before applying.</p>}
           </div>
+          <div>
+            <h3>Weaknesses</h3>
+            {disclosureItems(currentIpo.weaknesses || currentIpo.cons).length
+              ? <ul>{disclosureItems(currentIpo.weaknesses || currentIpo.cons).map((item, index) => <li key={index}>{item}</li>)}</ul>
+              : <p>Structured weaknesses are not included in this provider feed.</p>}
+          </div>
         </div>
         <div className="ipo-prospectus-links">
           {currentIpo.prospectusUrl && <a href={currentIpo.prospectusUrl} target="_blank" rel="noreferrer">Open Red Herring Prospectus</a>}
@@ -391,6 +540,37 @@ const IPODetails = () => {
           {currentIpo.sourceUrl && <a href={currentIpo.sourceUrl} target="_blank" rel="noreferrer">Open official {currentIpo.source === 'nse' ? 'NSE' : 'IPO'} source</a>}
           {!currentIpo.prospectusUrl && !currentIpo.draftProspectusUrl && <span>Prospectus link is not available from the provider yet.</span>}
         </div>
+      </section>
+
+      <section className="panel ipo-detail-panel ipo-review-panel">
+        <div className="section-heading">
+          <div>
+            <span className="ipo-detail-kicker">Provider research</span>
+            <h2>IPO review and industry analysis</h2>
+          </div>
+          <FileText size={22} />
+        </div>
+        <div className="ipo-disclosure-columns">
+          <div>
+            <h3>Review</h3>
+            <p>{currentIpo.review ? formatFactValue(currentIpo.review) : 'No independent IPO review is supplied by the connected provider.'}</p>
+            <h3>Expert analysis</h3>
+            <p>{currentIpo.expertAnalysis ? formatFactValue(currentIpo.expertAnalysis) : 'Expert analysis is not available in the provider response.'}</p>
+          </div>
+          <div>
+            <h3>Industry analysis</h3>
+            <p>{currentIpo.industryAnalysis ? formatFactValue(currentIpo.industryAnalysis) : 'Industry analysis is not available in the provider response.'}</p>
+            <h3>Competitors</h3>
+            {disclosureItems(currentIpo.competitors).length
+              ? <ul>{disclosureItems(currentIpo.competitors).map((item, index) => <li key={index}>{item}</li>)}</ul>
+              : <p>Competitor data is not supplied by the provider.</p>}
+          </div>
+        </div>
+        <div className="ipo-provider-assessment" role="note">
+          <span>Provider rating</span><strong>{currentIpo.rating ? formatFactValue(currentIpo.rating) : 'Not provided'}</strong>
+          <span>Apply / Avoid / Neutral</span><strong>{currentIpo.recommendation ? formatFactValue(currentIpo.recommendation) : 'No provider recommendation'}</strong>
+        </div>
+        <p className="ipo-detail-disclaimer">These fields only display provider-supplied information. Missing research is not inferred by the app.</p>
       </section>
 
       <section className="panel ipo-detail-panel">

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowUpRight, Building2, CalendarDays, Search, SlidersHorizontal, TrendingUp } from 'lucide-react';
+import { ArrowUpRight, BellRing, Building2, CalendarDays, Search, SlidersHorizontal, TrendingUp, X } from 'lucide-react';
 import IpoCard from '../components/IpoCard';
 import { useIpoFeed } from '../hooks/useIpoFeed';
 import { useIpoApplications } from '../hooks/useIpoApplications';
+import { useIpoAlerts } from '../hooks/useIpoAlerts';
 import { useTrackedIpos } from '../hooks/useTrackedIpos';
 import { marketApi } from '../services/api';
 const statusTabs = [
@@ -30,6 +31,72 @@ const formatRupees = (value) => Number(value || 0).toLocaleString('en-IN', {
   currency: 'INR',
   maximumFractionDigits: 2,
 });
+const numericValue = (value) => {
+  const match = String(value ?? '').replaceAll(',', '').match(/-?\d+(?:\.\d+)?/);
+  return match ? Number(match[0]) : null;
+};
+const compareNumberDescending = (firstValue, secondValue) => {
+  const first = numericValue(firstValue);
+  const second = numericValue(secondValue);
+  if (first == null && second == null) return 0;
+  if (first == null) return 1;
+  if (second == null) return -1;
+  return second - first;
+};
+const compareDate = (firstValue, secondValue, descending = false) => {
+  const first = dateValue(firstValue);
+  const second = dateValue(secondValue);
+  if (first == null && second == null) return 0;
+  if (first == null) return 1;
+  if (second == null) return -1;
+  return descending ? second - first : first - second;
+};
+const sortIpos = (items, sort) => [...items].sort((first, second) => {
+  if (sort === 'company') return String(first.company || '').localeCompare(String(second.company || ''));
+  if (sort === 'subscription') return compareNumberDescending(first.subscription, second.subscription);
+  if (sort === 'gmp') return compareNumberDescending(first.gmpValue || first.gmp, second.gmpValue || second.gmp);
+  if (sort === 'issue-size') return compareNumberDescending(first.issueSize, second.issueSize);
+  if (sort === 'closing') return compareDate(first.closeDate, second.closeDate);
+  return compareDate(first.openDate, second.openDate, true);
+});
+const dateValue = (value) => {
+  const timestamp = Date.parse(String(value || ''));
+  return Number.isFinite(timestamp) ? timestamp : null;
+};
+const dateKey = (value) => {
+  const raw = String(value || '').trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const timestamp = dateValue(raw);
+  return timestamp == null ? '' : new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(new Date(timestamp));
+};
+const getPriceBand = (ipo) => {
+  const matches = String(ipo.priceBand || '').match(/[\d,]+(?:\.\d+)?/g) || [];
+  const bandLow = numericValue(ipo.minimumPrice ?? ipo.minPrice) ?? numericValue(matches[0]);
+  const bandHigh = numericValue(ipo.maximumPrice) ?? numericValue(matches.at(-1)) ?? bandLow;
+  return [bandLow, bandHigh];
+};
+const rangeHasValue = (value, minimum, maximum) => {
+  if (minimum === '' && maximum === '') return true;
+  if (value == null || !Number.isFinite(Number(value))) return false;
+  return (minimum === '' || Number(value) >= Number(minimum))
+    && (maximum === '' || Number(value) <= Number(maximum));
+};
+const financialEntries = (financials) => {
+  if (Array.isArray(financials)) {
+    return financials.map((item, index) => Array.isArray(item)
+      ? [String(item[0] ?? index + 1), item[1]]
+      : [String(item?.name || item?.label || index + 1), item?.value ?? item]);
+  }
+  if (financials && typeof financials === 'object') return Object.entries(financials);
+  if (typeof financials === 'string' && financials.trim()) return [['Reported financials', financials]];
+  return [];
+};
+const displayMetric = (value) => {
+  if (value == null || value === '') return 'Not reported';
+  return typeof value === 'object' ? JSON.stringify(value) : String(value);
+};
 const maskUpi = (value) => {
   const [name, domain] = String(value || '').split('@');
   return name && domain ? `${name.slice(0, 2)}•••@${domain}` : 'Not available';
@@ -43,8 +110,9 @@ const IPO = () => {
     const requestedView = new URLSearchParams(window.location.search).get('ipo_view');
     return statusTabs.some((tab) => tab.key === requestedView) ? requestedView : 'all';
   });
-  const allKnownIpos = [...ipos, ...(feed.history || [])];
+  const allKnownIpos = useMemo(() => [...ipos, ...history], [history, ipos]);
   const { trackedIpos, toggleTrackedIpo, isTracked } = useTrackedIpos();
+  const ipoAlerts = useIpoAlerts(allKnownIpos);
   const applications = useIpoApplications(activeStatus === 'applications');
   const trackedItems = trackedIpos
     .map((tracked) => allKnownIpos.find((ipo) => ipo.id === tracked.id)
@@ -52,9 +120,25 @@ const IPO = () => {
   const [selectedSegments, setSelectedSegments] = useState(['Mainboard', 'SME']);
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState('latest');
+  const [filters, setFilters] = useState({
+    priceMin: '', priceMax: '', issueMin: '', issueMax: '', listingFrom: '', listingTo: '',
+  });
+  const activeFilterCount = Object.values(filters).filter(Boolean).length;
   const [historyPage, setHistoryPage] = useState(0);
+  const [compareIds, setCompareIds] = useState([]);
+  const compareIpos = compareIds
+    .map((id) => allKnownIpos.find((ipo) => String(ipo.id) === id))
+    .filter(Boolean);
+  const toggleCompare = (ipo) => {
+    const id = String(ipo?.id || '');
+    if (!id) return;
+    setCompareIds((current) => current.includes(id)
+      ? current.filter((item) => item !== id)
+      : current.length < 3 ? [...current, id] : current);
+  };
+  const isCompared = (ipo) => compareIds.includes(String(ipo?.id || ''));
 
-  useEffect(() => setHistoryPage(0), [activeStatus, query, selectedSegments, sort]);
+  useEffect(() => setHistoryPage(0), [activeStatus, filters, query, selectedSegments, sort]);
 
   const toggleSegment = (segment) => {
     setSelectedSegments((current) => (
@@ -69,26 +153,55 @@ const IPO = () => {
     const sourceIpos = activeStatus === 'closed' ? history : ipos;
     const result = sourceIpos.filter((ipo) => {
       const segment = ipo.segment || 'Mainboard';
+      const searchText = `${ipo.company || ''} ${ipo.symbol || ''}`.toLowerCase();
+      const [priceLow, priceHigh] = getPriceBand(ipo);
+      const issueSize = numericValue(ipo.issueSize);
+      const listingDate = dateKey(ipo.listingDate);
+      const listingFrom = filters.listingFrom;
+      const listingTo = filters.listingTo;
+      const priceRangeMatches = (filters.priceMin === '' && filters.priceMax === '')
+        || (priceLow != null && priceHigh != null
+          && (filters.priceMax === '' || priceLow <= Number(filters.priceMax))
+          && (filters.priceMin === '' || priceHigh >= Number(filters.priceMin)));
+      const listingDateMatches = (!listingFrom && !listingTo)
+        || (listingDate && (!listingFrom || listingDate >= listingFrom)
+          && (!listingTo || listingDate <= listingTo));
       return (activeStatus === 'tracked'
         ? isTracked(ipo.id)
         : matchesStatus(ipo, activeStatus))
         && selectedSegments.includes(segment)
-        && (!term || ipo.company.toLowerCase().includes(term));
+        && (!term || searchText.includes(term))
+        && priceRangeMatches
+        && rangeHasValue(issueSize, filters.issueMin, filters.issueMax)
+        && listingDateMatches;
     });
 
-    return [...result].sort((first, second) => {
-      if (sort === 'company') return first.company.localeCompare(second.company);
-      if (sort === 'subscription') return Number.parseFloat(second.subscription) - Number.parseFloat(first.subscription);
-      return 0;
-    });
-  }, [activeStatus, history, ipos, isTracked, query, selectedSegments, sort]);
+    return sortIpos(result, sort);
+  }, [activeStatus, filters, history, ipos, isTracked, query, selectedSegments, sort]);
 
   const pageIpos = activeStatus === 'tracked'
-    ? trackedItems.filter((ipo) => {
+    ? sortIpos(trackedItems.filter((ipo) => {
       const segment = ipo.segment || 'Mainboard';
+      const searchText = `${ipo.company || ''} ${ipo.symbol || ''}`.toLowerCase();
       const term = query.trim().toLowerCase();
-      return selectedSegments.includes(segment) && (!term || ipo.company.toLowerCase().includes(term));
-    })
+      const [priceLow, priceHigh] = getPriceBand(ipo);
+      const issueSize = numericValue(ipo.issueSize);
+      const listingDate = dateKey(ipo.listingDate);
+      const listingFrom = filters.listingFrom;
+      const listingTo = filters.listingTo;
+      const priceRangeMatches = (filters.priceMin === '' && filters.priceMax === '')
+        || (priceLow != null && priceHigh != null
+          && (filters.priceMax === '' || priceLow <= Number(filters.priceMax))
+          && (filters.priceMin === '' || priceHigh >= Number(filters.priceMin)));
+      const listingDateMatches = (!listingFrom && !listingTo)
+        || (listingDate && (!listingFrom || listingDate >= listingFrom)
+          && (!listingTo || listingDate <= listingTo));
+      return selectedSegments.includes(segment)
+        && (!term || searchText.includes(term))
+        && priceRangeMatches
+        && rangeHasValue(issueSize, filters.issueMin, filters.issueMax)
+        && listingDateMatches;
+    }), sort)
     : filteredIpos;
   const historyPageSize = 24;
   const historyPageCount = Math.max(1, Math.ceil(pageIpos.length / historyPageSize));
@@ -128,6 +241,7 @@ const IPO = () => {
       : ipos.length === 0 && feed.live
         ? 'Upstox currently reports no open or upcoming IPOs.'
         : 'No active IPOs match the selected filters.';
+  const compareFinancialLabels = [...new Set(compareIpos.flatMap((ipo) => financialEntries(ipo.financials).map(([label]) => label)))];
 
   return (
     <div className="page ipo-page">
@@ -177,6 +291,30 @@ const IPO = () => {
         <span>{feed.source === 'nse' ? 'NSE INDIA' : feed.source === 'upstox' ? 'UPSTOX' : feed.configured ? 'UPSTOX ERROR' : 'SETUP'}</span>
       </div>
 
+      <section className="ipo-alert-center" aria-labelledby="ipo-alerts-heading">
+        <div className="ipo-alert-center-copy">
+          <span className="ipo-alert-icon"><BellRing size={17} /></span>
+          <div>
+            <strong id="ipo-alerts-heading">IPO date reminders</strong>
+            <p>Enable browser alerts, then select “Alert me” on an IPO for opening, closing, allotment and listing dates.</p>
+          </div>
+        </div>
+        <div className="ipo-alert-center-actions">
+          <span>{ipoAlerts.alertIpos.length} IPO{ipoAlerts.alertIpos.length === 1 ? '' : 's'} selected</span>
+          <button type="button" onClick={ipoAlerts.enableBrowserAlerts}>
+            {ipoAlerts.permission === 'granted' ? 'Browser alerts enabled' : 'Enable browser alerts'}
+          </button>
+        </div>
+        {(ipoAlerts.message || ipoAlerts.permission === 'denied' || ipoAlerts.permission === 'unsupported') && (
+          <p className="ipo-alert-status" role="status">
+            {ipoAlerts.message || (ipoAlerts.permission === 'denied'
+              ? 'Browser alerts are blocked in site settings.'
+              : 'This browser does not support notifications.')}
+          </p>
+        )}
+        <p className="ipo-alert-delivery-note">Browser reminders run while this page is open. Email and background push delivery need a secure notification service, which is not configured.</p>
+      </section>
+
       <nav className="ipo-status-tabs" aria-label="IPO status">
         {statusTabs.map((tab) => {
           const count = tab.key === 'tracked'
@@ -223,12 +361,120 @@ const IPO = () => {
           <SlidersHorizontal size={18} />
           <span>Sort By</span>
           <select value={sort} onChange={(event) => setSort(event.target.value)} aria-label="Sort IPOs">
-            <option value="latest">Latest</option>
+            <option value="latest">Opening date (latest)</option>
+            <option value="closing">Closing soon</option>
             <option value="company">Company (A-Z)</option>
+            <option value="gmp">GMP (High to Low)</option>
             <option value="subscription">Subscription (High to Low)</option>
+            <option value="issue-size">Issue size (High to Low)</option>
           </select>
         </label>
+
+        <details className="ipo-advanced-filters">
+          <summary>Price, issue size & listing date {activeFilterCount > 0 && <span>{activeFilterCount} active</span>}</summary>
+          <div className="ipo-advanced-filter-grid">
+            <label>Price band from (₹)
+              <input type="number" min="0" step="0.01" value={filters.priceMin} onChange={(event) => setFilters((current) => ({ ...current, priceMin: event.target.value }))} placeholder="Any" />
+            </label>
+            <label>Price band to (₹)
+              <input type="number" min="0" step="0.01" value={filters.priceMax} onChange={(event) => setFilters((current) => ({ ...current, priceMax: event.target.value }))} placeholder="Any" />
+            </label>
+            <label>Issue size minimum
+              <input type="number" min="0" step="any" value={filters.issueMin} onChange={(event) => setFilters((current) => ({ ...current, issueMin: event.target.value }))} placeholder="Any" />
+            </label>
+            <label>Issue size maximum
+              <input type="number" min="0" step="any" value={filters.issueMax} onChange={(event) => setFilters((current) => ({ ...current, issueMax: event.target.value }))} placeholder="Any" />
+            </label>
+            <label>Listing date from
+              <input type="date" value={filters.listingFrom} onChange={(event) => setFilters((current) => ({ ...current, listingFrom: event.target.value }))} />
+            </label>
+            <label>Listing date to
+              <input type="date" value={filters.listingTo} onChange={(event) => setFilters((current) => ({ ...current, listingTo: event.target.value }))} />
+            </label>
+          </div>
+          <div className="ipo-advanced-filter-footer">
+            <p>Price bands are matched by overlap. Issue-size values use the unit supplied by the feed.</p>
+            <button type="button" onClick={() => {
+              setFilters({ priceMin: '', priceMax: '', issueMin: '', issueMax: '', listingFrom: '', listingTo: '' });
+              setQuery('');
+              setSelectedSegments(['Mainboard', 'SME']);
+              setSort('latest');
+            }}>Clear filters</button>
+          </div>
+        </details>
       </section>
+
+      {compareIpos.length > 0 && (
+        <section className="ipo-compare-panel" aria-labelledby="ipo-compare-heading">
+          <div className="ipo-compare-heading">
+            <div>
+              <span>SIDE-BY-SIDE REVIEW · {compareIpos.length}/3</span>
+              <h2 id="ipo-compare-heading">Compare IPOs</h2>
+            </div>
+            <button type="button" onClick={() => setCompareIds([])}>
+              <X size={16} /> Clear comparison
+            </button>
+          </div>
+          <div className="ipo-compare-table-wrap">
+            <table className="ipo-compare-table">
+              <thead>
+                <tr>
+                  <th scope="col">Issue detail</th>
+                  {compareIpos.map((ipo) => (
+                    <th scope="col" key={ipo.id}>
+                      <span>{ipo.company}</span>
+                      <button type="button" aria-label={`Remove ${ipo.company} from comparison`} onClick={() => toggleCompare(ipo)}>
+                        <X size={15} />
+                      </button>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ['Status', (ipo) => labelStatus(ipo.status)],
+                  ['Segment', (ipo) => ipo.segment || 'Mainboard'],
+                  ['Industry', (ipo) => ipo.industry],
+                  ['Price band', (ipo) => ipo.priceBand],
+                  ['Lot size', (ipo) => ipo.lotSize ? `${Number(ipo.lotSize).toLocaleString('en-IN')} shares` : 'Not reported'],
+                  ['Minimum investment', (ipo) => ipo.minInvestment],
+                  ['Issue size', (ipo) => ipo.issueSize],
+                  ['Fresh issue', (ipo) => ipo.freshIssue],
+                  ['Offer for sale (OFS)', (ipo) => ipo.offerForSale],
+                  ['Subscription', (ipo) => ipo.subscription],
+                  ['GMP (unofficial)', (ipo) => ipo.gmpValue || ipo.gmp],
+                  ['Opens', (ipo) => ipo.openDate],
+                  ['Closes', (ipo) => ipo.closeDate],
+                  ['Allotment', (ipo) => ipo.allotmentDate],
+                  ['Listing', (ipo) => ipo.listingDate],
+                  ['Listing price', (ipo) => ipo.listingPrice == null ? '' : `₹${Number(ipo.listingPrice).toLocaleString('en-IN')}`],
+                  ['Listing return', (ipo) => ipo.listingGainPercent == null ? '' : `${Number(ipo.listingGainPercent).toFixed(2)}%`],
+                  ['Return since issue', (ipo) => ipo.gainFromIssuePercent == null ? '' : `${Number(ipo.gainFromIssuePercent).toFixed(2)}%`],
+                  ['Provider rating', (ipo) => ipo.rating],
+                  ['Provider recommendation', (ipo) => ipo.recommendation],
+                  ['Competitors', (ipo) => ipo.competitors],
+                ].map(([label, readValue]) => (
+                  <tr key={label}>
+                    <th scope="row">{label}</th>
+                    {compareIpos.map((ipo) => (
+                      <td key={ipo.id}>{displayMetric(readValue(ipo))}</td>
+                    ))}
+                  </tr>
+                ))}
+                {compareFinancialLabels.map((label) => (
+                  <tr key={`financial-${label}`}>
+                    <th scope="row">Financial · {label}</th>
+                    {compareIpos.map((ipo) => (
+                      <td key={ipo.id}>{displayMetric(financialEntries(ipo.financials).find(([key]) => key === label)?.[1])}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p>Figures come from the IPO feed. GMP is unofficial; “Not reported” means the provider did not supply that field.</p>
+        </section>
+      )}
 
       <div className="section-heading ipo-results-heading">
         <h2>{activeStatus === 'all' ? 'All Active IPOs' : activeStatus === 'closed' ? 'Listed & Closed IPOs' : statusTabs.find((tab) => tab.key === activeStatus).label}</h2>
@@ -302,7 +548,7 @@ const IPO = () => {
                 </span>
               </div>
               <div className="ipo-list">
-                {openIpos.map((ipo) => <IpoCard key={ipo.id || ipo.company} ipo={ipo} isTracked={isTracked(ipo.id)} onToggleTracked={toggleTrackedIpo} />)}
+                {openIpos.map((ipo) => <IpoCard key={ipo.id || ipo.company} ipo={ipo} isTracked={isTracked(ipo.id)} onToggleTracked={toggleTrackedIpo} isCompared={isCompared(ipo)} compareDisabled={compareIds.length >= 3 && !isCompared(ipo)} onToggleCompare={toggleCompare} isAlerted={ipoAlerts.isAlerted(ipo.id)} onToggleAlert={ipoAlerts.toggleAlert} />)}
               </div>
             </section>
           )}
@@ -317,7 +563,7 @@ const IPO = () => {
                 </span>
               </div>
               <div className="ipo-list">
-                {upcomingIpos.map((ipo) => <IpoCard key={ipo.id || ipo.company} ipo={ipo} isTracked={isTracked(ipo.id)} onToggleTracked={toggleTrackedIpo} />)}
+                {upcomingIpos.map((ipo) => <IpoCard key={ipo.id || ipo.company} ipo={ipo} isTracked={isTracked(ipo.id)} onToggleTracked={toggleTrackedIpo} isCompared={isCompared(ipo)} compareDisabled={compareIds.length >= 3 && !isCompared(ipo)} onToggleCompare={toggleCompare} isAlerted={ipoAlerts.isAlerted(ipo.id)} onToggleAlert={ipoAlerts.toggleAlert} />)}
               </div>
             </section>
           )}
@@ -325,7 +571,7 @@ const IPO = () => {
       ) : pageIpos.length ? (
         <>
           <div className="ipo-list">
-            {visibleIpos.map((ipo) => <IpoCard key={ipo.id || ipo.company} ipo={ipo} isTracked={isTracked(ipo.id)} onToggleTracked={toggleTrackedIpo} />)}
+            {visibleIpos.map((ipo) => <IpoCard key={ipo.id || ipo.company} ipo={ipo} isTracked={isTracked(ipo.id)} onToggleTracked={toggleTrackedIpo} isCompared={isCompared(ipo)} compareDisabled={compareIds.length >= 3 && !isCompared(ipo)} onToggleCompare={toggleCompare} isAlerted={ipoAlerts.isAlerted(ipo.id)} onToggleAlert={ipoAlerts.toggleAlert} />)}
           </div>
           {activeStatus === 'closed' && historyPageCount > 1 && (
             <nav className="ipo-history-pagination" aria-label="Listed and closed IPO pages">

@@ -1,4 +1,4 @@
-import { Bookmark, CalendarDays, Eye, Share2 } from 'lucide-react';
+import { ArrowLeftRight, Bell, BellRing, Bookmark, CalendarDays, Eye, Share2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const getSegment = (ipo) => ipo.segment || 'Mainboard';
@@ -30,7 +30,7 @@ const hasDisplayValue = (value) => value != null
   && String(value).trim() !== ''
   && !['—', 'not provided', 'not provided by api'].includes(String(value).trim().toLowerCase());
 
-const IpoCard = ({ ipo, compact = false, isTracked = false, onToggleTracked }) => {
+const IpoCard = ({ ipo, compact = false, isTracked = false, onToggleTracked, isCompared = false, compareDisabled = false, onToggleCompare, isAlerted = false, onToggleAlert }) => {
   const statusClass = `ipo-status-${ipo.status?.toLowerCase().replace(/\s+/g, '-')}`;
   const isClosedIssue = ['closed', 'listed'].includes(String(ipo.status || '').toLowerCase());
   const issuePeriod = isClosedIssue
@@ -126,7 +126,36 @@ const IpoCard = ({ ipo, compact = false, isTracked = false, onToggleTracked }) =
             <span className="ipo-company-segment">{getSegment(ipo)} Issue</span>
           </div>
         </div>
-        <span className={`status-badge ${statusClass}`}>{ipo.status} {liveIndicator}</span>
+        <div className="ipo-card-heading-actions">
+          {onToggleAlert && (
+            <button
+              className={`ipo-alert-toggle${isAlerted ? ' is-selected' : ''}`}
+              type="button"
+              aria-pressed={isAlerted}
+              aria-label={`${isAlerted ? 'Remove' : 'Set'} date reminders for ${ipo.company} IPO`}
+              title={isAlerted ? 'Turn off date reminders' : 'Remind me on issue dates'}
+              onClick={() => onToggleAlert(ipo)}
+            >
+              {isAlerted ? <BellRing size={14} /> : <Bell size={14} />}
+              <span>{isAlerted ? 'Alert on' : 'Alert me'}</span>
+            </button>
+          )}
+          {onToggleCompare && (
+            <button
+              className={`ipo-compare-toggle${isCompared ? ' is-selected' : ''}`}
+              type="button"
+              aria-pressed={isCompared}
+              aria-label={`${isCompared ? 'Remove' : 'Add'} ${ipo.company} ${isCompared ? 'from' : 'to'} comparison`}
+              title={compareDisabled ? 'Compare up to three IPOs at a time' : isCompared ? 'Remove from comparison' : 'Compare this IPO'}
+              disabled={compareDisabled}
+              onClick={() => onToggleCompare(ipo)}
+            >
+              <ArrowLeftRight size={14} />
+              <span>{isCompared ? 'Selected' : 'Compare'}</span>
+            </button>
+          )}
+          <span className={`status-badge ${statusClass}`}>{ipo.status} {liveIndicator}</span>
+        </div>
       </div>
 
       <div className="ipo-primary-details">

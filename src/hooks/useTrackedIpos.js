@@ -12,9 +12,10 @@ const readTrackedIpos = () => {
 };
 
 const trackedSnapshotFields = [
-  'company', 'status', 'segment', 'priceBand', 'lotSize', 'issueSize', 'minInvestment',
+  'company', 'symbol', 'status', 'segment', 'priceBand', 'minimumPrice', 'maximumPrice', 'lotSize', 'issueSize', 'minInvestment',
   'openDate', 'closeDate', 'allotmentDate', 'listingDate', 'subscription', 'gmp',
-  'gmpValue', 'retailFormatted', 'qibFormatted', 'totalApplications',
+  'gmpValue', 'retailFormatted', 'qibFormatted', 'totalApplications', 'financials', 'listingPrice',
+  'listingGainPercent', 'gainFromIssuePercent', 'industry', 'competitors', 'rating', 'recommendation',
 ];
 
 export const useTrackedIpos = () => {

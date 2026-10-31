@@ -827,188 +827,168 @@ const generateFallbackCandles = (cleanSymbol) => {
   };
 };
 
-const fallbackNews = [
-  {
-    id: 1,
-    headline: 'RBI Monetary Policy: MPC retains repo rate at 6.5%, projects FY27 GDP growth at 7.2%',
-    summary: 'The Reserve Bank of India maintained liquidity support while highlighting resilient credit expansion, steady urban consumption, and robust manufacturing PMI.',
-    source: 'Economic Times',
-    datetime: Math.floor(Date.now() / 1000) - 300,
-    category: 'general',
-    url: '/news',
-  },
-  {
-    id: 2,
-    headline: 'Nifty IT surges 2.4% as TCS and Infosys secure multi-billion dollar AI transformation deals',
-    summary: 'Enterprise demand for generative AI migration, cloud modernization, and ERP refreshes accelerates revenue visibility for top Indian IT exporters.',
-    source: 'LiveMint',
-    datetime: Math.floor(Date.now() / 1000) - 900,
-    category: 'Stocks',
-    url: '/news',
-  },
-  {
-    id: 3,
-    headline: 'Tata Technologies arm files draft red herring prospectus with SEBI for Rs 4,500 crore mega IPO',
-    summary: 'The issue comprises an offer for sale alongside fresh equity capital infusion targeted at EV software R&D and global design studio expansions.',
-    source: 'MoneyControl',
-    datetime: Math.floor(Date.now() / 1000) - 1800,
-    category: 'IPO',
-    url: '/news',
-  },
-  {
-    id: 4,
-    headline: 'Gold prices breach Rs 78,500 per 10 grams amid global central bank buying and geopolitical hedge',
-    summary: 'Spot gold surged to fresh historic peaks on MCX as continued bullion accumulation by sovereign central banks bolstered long-term retail demand.',
-    source: 'Business Standard',
-    datetime: Math.floor(Date.now() / 1000) - 2700,
-    category: 'Gold',
-    url: '/news',
-  },
-  {
-    id: 5,
-    headline: 'Silver crosses Rs 92,000/kg on unprecedented industrial consumption across solar PV and EV sectors',
-    summary: 'Rising photovoltaic manufacturing demand coupled with tightening global mine supply drove domestic silver contracts to aggressive multi-year highs.',
-    source: 'Financial Express',
-    datetime: Math.floor(Date.now() / 1000) - 3600,
-    category: 'Silver',
-    url: '/news',
-  },
-  {
-    id: 6,
-    headline: 'Mutual Fund SIP monthly inflows register record Rs 24,150 crore in September; retail folio count tops 19 crore',
-    summary: 'AMFI data shows systematic investment contributions reaching historic records, driven by persistent domestic household allocation toward diversified equity schemes.',
-    source: 'NDTV Profit',
-    datetime: Math.floor(Date.now() / 1000) - 5400,
-    category: 'Mutual Funds',
-    url: '/news',
-  },
-  {
-    id: 7,
-    headline: 'HDFC Bank and ICICI Bank lead Bank Nifty rally as net interest margins stabilize and asset quality shines',
-    summary: "India's largest private lenders logged robust deposit franchise momentum with gross NPA ratios declining to historic cyclical lows.",
-    source: 'Zee Business',
-    datetime: Math.floor(Date.now() / 1000) - 7200,
-    category: 'Stocks',
-    url: '/news',
-  },
-  {
-    id: 8,
-    headline: 'FIIs turn net buyers injecting Rs 4,280 crore while DIIs pump Rs 3,950 crore into Indian equities',
-    summary: 'Institutional liquidity supported domestic benchmark indices Nifty 50 and Sensex towards fresh record milestones across high-beta sectors.',
-    source: 'The Hindu Business Line',
-    datetime: Math.floor(Date.now() / 1000) - 9000,
-    category: 'general',
-    url: '/news',
-  },
-  {
-    id: 9,
-    headline: 'Swiggy IPO subscribed 3.8 times on final day with aggressive QIB demand and strong anchor participation',
-    summary: 'The quick-commerce and food delivery giant attracted Rs 11,327 crore in bids, led by marquee sovereign wealth funds and domestic mutual funds.',
-    source: 'Economic Times',
-    datetime: Math.floor(Date.now() / 1000) - 10800,
-    category: 'IPO',
-    url: '/news',
-  },
-  {
-    id: 10,
-    headline: 'Auto sector posts double-digit festive wholesale dispatch growth led by Maruti, Mahindra, and Tata Motors',
-    summary: 'SUV demand resilience, expanding EV portfolio penetration, and positive rural farm harvest cashflows fueled vehicle deliveries across OEM dealer networks.',
-    source: 'LiveMint',
-    datetime: Math.floor(Date.now() / 1000) - 12600,
-    category: 'Stocks',
-    url: '/news',
-  },
-  {
-    id: 11,
-    headline: 'Sovereign Gold Bonds deliver 13.8% CAGR returns upon maturity as domestic physical premiums stay elevated',
-    summary: 'RBI redemption tranches reward long-term bullion investors tax-free capital gains alongside bi-annual sovereign coupon distributions.',
-    source: 'MoneyControl',
-    datetime: Math.floor(Date.now() / 1000) - 14400,
-    category: 'Gold',
-    url: '/news',
-  },
-  {
-    id: 12,
-    headline: 'Flexi-cap and Large-and-Midcap funds see strongest net inflows as investors balance growth and volatility',
-    summary: 'Fund managers recalibrate active portfolio weights into domestic manufacturing, capital goods, and healthcare counters amidst valuation disparity.',
-    source: 'Business Standard',
-    datetime: Math.floor(Date.now() / 1000) - 18000,
-    category: 'Mutual Funds',
-    url: '/news',
-  },
-  {
-    id: 13,
-    headline: "Sun Pharma and Dr Reddy's rally on US FDA clearance for key injectable formulations and biosimilar launches",
-    summary: 'Indian pharmaceutical majors expand specialty and complex generic footprints across US and European markets with favorable pricing dynamics.',
-    source: 'NDTV Profit',
-    datetime: Math.floor(Date.now() / 1000) - 21600,
-    category: 'Stocks',
-    url: '/news',
-  },
-  {
-    id: 14,
-    headline: 'SEBI introduces new framework for index derivatives eligibility to protect retail options traders',
-    summary: 'The market regulator raised minimum contract sizes and rationalized weekly expiry contracts per exchange to curb speculative derivative leverage.',
-    source: 'The Hindu Business Line',
-    datetime: Math.floor(Date.now() / 1000) - 25200,
-    category: 'general',
-    url: '/news',
-  },
-  {
-    id: 15,
-    headline: 'MCX Silver delivery stocks hit 6-month low as electronics and AI hardware demand tightens availability',
-    summary: 'Physical warehouses report sharp drawdown in bullion bars as high-conductivity electronics manufacturing outpaces quarterly imports.',
-    source: 'Zee Business',
-    datetime: Math.floor(Date.now() / 1000) - 28800,
-    category: 'Silver',
-    url: '/news',
-  },
-  {
-    id: 16,
-    headline: 'Hyundai Motor India makes landmark market debut after raising historic Rs 27,870 crore in public offering',
-    summary: 'India largest ever initial public offering establishes strong institutional backing, signaling confidence in domestic automotive manufacturing.',
-    source: 'Financial Express',
-    datetime: Math.floor(Date.now() / 1000) - 32400,
-    category: 'IPO',
-    url: '/news',
-  },
-  {
-    id: 17,
-    headline: 'Small-cap fund NAVs rebound 3.2% as institutional managers cherry-pick quality cyclical beneficiaries',
-    summary: 'Following recent valuation corrections, fund houses deploy cash reserves into defense engineering, infrastructure, and renewable power contractors.',
-    source: 'Economic Times',
-    datetime: Math.floor(Date.now() / 1000) - 39600,
-    category: 'Mutual Funds',
-    url: '/news',
-  },
-  {
-    id: 18,
-    headline: 'Reliance Industries outlines Rs 75,000 crore capital expenditure roadmap for new energy and 5G monetisation',
-    summary: 'Jio Infocomm ARPU expansion and green hydrogen giga-factory commissioning schedule provide strong medium-term earnings visibility for the conglomerate.',
-    source: 'LiveMint',
-    datetime: Math.floor(Date.now() / 1000) - 46800,
-    category: 'Stocks',
-    url: '/news',
-  },
-  {
-    id: 19,
-    headline: "India's manufacturing PMI climbs to 57.5 signaling fastest output and order book expansion in 16 months",
-    summary: 'Export orders and domestic consumption indices both showed marked acceleration, encouraging industrial capacity additions across corporate India.',
-    source: 'MoneyControl',
-    datetime: Math.floor(Date.now() / 1000) - 57600,
-    category: 'general',
-    url: '/news',
-  },
-  {
-    id: 20,
-    headline: 'Jewellery retailers report 25% surge in festive advance bookings despite elevated gold prices',
-    summary: 'Consumer preference for hallmarked 22K and 18K bridal jewellery remains resilient with wedding season demand driving physical gold retail sales.',
-    source: 'The Hindu Business Line',
-    datetime: Math.floor(Date.now() / 1000) - 72000,
-    category: 'Gold',
-    url: '/news',
-  },
-];
+const NEWS_FEED_CACHE_MS = 2 * 60 * 1000;
+const NEWS_FEED_STALE_MS = 30 * 60 * 1000;
+const NEWS_ARTICLE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+let marketNewsCache = null;
+let marketNewsRequest = null;
+
+const decodeXmlEntities = (value) => String(value || '')
+  .replace(/&#x([\da-f]+);/gi, (_, code) => String.fromCodePoint(Number.parseInt(code, 16)))
+  .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number.parseInt(code, 10)))
+  .replace(/&amp;/g, '&')
+  .replace(/&lt;/g, '<')
+  .replace(/&gt;/g, '>')
+  .replace(/&quot;/g, '"')
+  .replace(/&apos;|&#39;/g, "'");
+
+const readXmlTag = (xml, tag) => {
+  const match = xml.match(new RegExp(`<${tag}\\b[^>]*>([\\s\\S]*?)</${tag}>`, 'i'));
+  if (!match) return '';
+  return decodeXmlEntities(match[1].replace(/^<!\[CDATA\[([\s\S]*)\]\]>$/i, '$1').replace(/<[^>]*>/g, ' ').trim());
+};
+
+const classifyNewsHeadline = (headline) => {
+  const text = headline.toLowerCase();
+  if (/\bipo\b|initial public offering|allotment|listing debut/.test(text)) return 'IPO';
+  if (/\bgold\b|bullion/.test(text)) return 'Gold';
+  if (/\bsilver\b/.test(text)) return 'Silver';
+  if (/mutual fund|\bsip\b/.test(text)) return 'Mutual Funds';
+  if (/\bstocks?\b|\bshares?\b|\bnifty\b|\bsensex\b|\bbse\b|\bnse\b/.test(text)) return 'Stocks';
+  return 'general';
+};
+
+const normalizeFinnhubNews = (items) => (Array.isArray(items) ? items : [])
+  .filter((item) => item.headline && item.url && Number.isFinite(Number(item.datetime)))
+  .map((item) => ({
+    id: String(item.id || item.url),
+    headline: item.headline,
+    summary: '',
+    source: item.source || 'Finnhub',
+    datetime: Number(item.datetime),
+    category: classifyNewsHeadline(item.headline),
+    url: item.url,
+  }));
+
+const fetchGoogleMarketNews = async () => {
+  const queries = ['Indian stock market', 'India IPO'];
+  const feeds = await Promise.all(queries.map((q) => axios.get('https://news.google.com/rss/search', {
+    params: { q, hl: 'en-IN', gl: 'IN', ceid: 'IN:en' },
+    headers: { 'User-Agent': 'ShareMarket/1.0 market-news-reader' },
+    timeout: 12000,
+    responseType: 'text',
+  }).then((response) => String(response.data || ''))));
+  const now = Date.now();
+  const items = feeds.flatMap((xml) => [...xml.matchAll(/<item\b[^>]*>([\s\S]*?)<\/item>/gi)].map(([, itemXml]) => {
+      const headline = readXmlTag(itemXml, 'title');
+      const sourceMatch = itemXml.match(/<source\b[^>]*>([\s\S]*?)<\/source>/i);
+      const source = sourceMatch ? decodeXmlEntities(sourceMatch[1].trim()) : 'Google News';
+      const publishedAt = Date.parse(readXmlTag(itemXml, 'pubDate'));
+      const url = readXmlTag(itemXml, 'link');
+      if (!headline || !url || !Number.isFinite(publishedAt)
+        || publishedAt > now + 6 * 60 * 60 * 1000 || now - publishedAt > NEWS_ARTICLE_MAX_AGE_MS) return null;
+      const sourceSuffix = ` - ${source}`;
+      const displayHeadline = headline.toLowerCase().endsWith(sourceSuffix.toLowerCase())
+        ? headline.slice(0, -sourceSuffix.length).trim()
+        : headline;
+      return {
+        id: url,
+        headline: displayHeadline,
+        summary: '',
+        source,
+        datetime: Math.floor(publishedAt / 1000),
+        category: classifyNewsHeadline(displayHeadline),
+        url,
+      };
+    }));
+  return [...new Map(items.filter(Boolean).map((item) => [item.url, item])).values()]
+    .filter(Boolean)
+    .sort((a, b) => b.datetime - a.datetime)
+    .slice(0, 40);
+};
+
+const makeNewsFeedResponse = (data, options = {}) => ({
+  data,
+  live: Boolean(options.live),
+  stale: Boolean(options.stale),
+  configured: Boolean(options.configured),
+  provider: options.provider || null,
+  lastUpdated: options.lastUpdated || null,
+  note: options.note || '',
+});
+
+const getMarketNewsFeed = async () => {
+  const now = Date.now();
+  if (marketNewsCache && now - marketNewsCache.cachedAt < NEWS_FEED_CACHE_MS) {
+    return makeNewsFeedResponse(marketNewsCache.data, {
+      live: true,
+      configured: marketNewsCache.configured,
+      provider: marketNewsCache.provider,
+      lastUpdated: new Date(marketNewsCache.cachedAt).toISOString(),
+      note: `Updated from ${marketNewsCache.provider}.`,
+    });
+  }
+  if (marketNewsRequest) return marketNewsRequest;
+
+  marketNewsRequest = (async () => {
+    const providerErrors = [];
+    const providers = [];
+    if (process.env.FINNHUB_API_KEY) providers.push({
+      name: 'Finnhub',
+      fetch: async () => {
+        const response = await axios.get('https://finnhub.io/api/v1/news', {
+          params: { category: 'general', token: process.env.FINNHUB_API_KEY },
+          timeout: 10000,
+        });
+        return normalizeFinnhubNews(response.data);
+      },
+    });
+    providers.push({ name: 'Google News RSS', fetch: fetchGoogleMarketNews });
+
+    for (const provider of providers) {
+      try {
+        const data = await provider.fetch();
+        if (!data.length) throw new Error('The provider returned no recent market headlines.');
+        const configured = provider.name === 'Google News RSS' || Boolean(process.env.FINNHUB_API_KEY);
+        marketNewsCache = { data, provider: provider.name, configured, cachedAt: Date.now() };
+        return makeNewsFeedResponse(data, {
+          live: true,
+          configured,
+          provider: provider.name,
+          lastUpdated: new Date(marketNewsCache.cachedAt).toISOString(),
+          note: provider.name === 'Google News RSS'
+            ? 'Live headlines from Google News RSS with links to the listed publishers.'
+            : 'Live headlines from Finnhub.',
+        });
+      } catch (error) {
+        providerErrors.push(`${provider.name}: ${error.message}`);
+      }
+    }
+
+    const cachedAge = marketNewsCache ? Date.now() - marketNewsCache.cachedAt : Infinity;
+    if (marketNewsCache && cachedAge < NEWS_FEED_STALE_MS) {
+      return makeNewsFeedResponse(marketNewsCache.data, {
+        live: false,
+        stale: true,
+        configured: marketNewsCache.configured,
+        provider: marketNewsCache.provider,
+        lastUpdated: new Date(marketNewsCache.cachedAt).toISOString(),
+        note: 'Showing recently cached headlines because the latest provider refresh failed.',
+      });
+    }
+
+    console.warn('Market news providers unavailable:', providerErrors.join(' | '));
+    return makeNewsFeedResponse([], {
+      live: false,
+      configured: Boolean(process.env.FINNHUB_API_KEY),
+      note: 'Live market headlines are temporarily unavailable. Please refresh shortly.',
+    });
+  })().finally(() => {
+    marketNewsRequest = null;
+  });
+
+  return marketNewsRequest;
+};
 
 const toAlphaVantageSymbol = (symbol) => {
   if (symbol.includes('.')) return symbol;
@@ -2088,18 +2068,8 @@ app.post('/api/payments/verify', (req, res) => {
 });
 
 app.get('/api/news/market', async (req, res) => {
-  const category = req.query.category || 'general';
-  if (process.env.FINNHUB_API_KEY) {
-    try {
-      const response = await axios.get('https://finnhub.io/api/v1/news', {
-        params: { category, token: process.env.FINNHUB_API_KEY },
-      });
-      return res.json(response.data);
-    } catch {
-      // Fallback below
-    }
-  }
-  res.json(fallbackNews);
+  res.set('Cache-Control', 'private, max-age=30');
+  res.json(await getMarketNewsFeed());
 });
 
 app.get('/api/stocks/list', async (req, res) => {
@@ -2746,6 +2716,19 @@ const mapUpstoxIpo = (item, fallbackStatus = 'upcoming') => {
     segment: item.issue_type === 'sme' ? 'SME' : 'Mainboard',
     totalApplications: null,
     industry: item.industry || '',
+    companyOverview: item.company_overview || item.company_description || item.description || '',
+    freshIssue: item.fresh_issue || item.fresh_issue_size || item.freshIssue || '',
+    offerForSale: item.offer_for_sale || item.offer_for_sale_size || item.ofs || item.offerForSale || '',
+    leadManagers: item.lead_managers || item.book_running_lead_managers || item.leadManager || [],
+    competitors: item.competitors || item.comparable_companies || [],
+    industryAnalysis: item.industry_analysis || '',
+    review: item.ipo_review || item.review || '',
+    expertAnalysis: item.expert_analysis || item.analyst_summary || '',
+    rating: item.ipo_rating || item.rating || '',
+    recommendation: item.recommendation || item.verdict || '',
+    pros: item.pros || [],
+    cons: item.cons || [],
+    weaknesses: item.weaknesses || item.cons || [],
     listingPrice: item.listing_price ?? null,
     listingExchange: item.listing_exchange || '',
     prospectusUrl: item.rhp_url || '',
@@ -2754,7 +2737,7 @@ const mapUpstoxIpo = (item, fallbackStatus = 'upcoming') => {
     investors: Array.isArray(item.investors) ? item.investors : [],
     financials: item.financials || item.company_financials || null,
     useOfProceeds: item.use_of_proceeds || item.objects_of_issue || item.issue_objectives || null,
-    strengths: Array.isArray(item.strengths) ? item.strengths : [],
+    strengths: Array.isArray(item.strengths) ? item.strengths : Array.isArray(item.pros) ? item.pros : [],
     risks: Array.isArray(item.risks) ? item.risks : [],
     dailyBidTimings: item.daily_start_time && item.daily_end_time
       ? `${item.daily_start_time.slice(0, 5)}–${item.daily_end_time.slice(0, 5)} IST`
