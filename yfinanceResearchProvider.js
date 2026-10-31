@@ -199,28 +199,56 @@ export const getYahooResearchQuotes = async (symbols) => {
     .map((item) => [`${item.exchange}:${item.key}`, item])).values()];
   if (!requests.length) return {};
 
-  const cacheKey = requests.map((item) => `${item.exchange}:${item.key}`).sort().join(',');
-  const cached = quoteCache.get(cacheKey);
-  if (cached && Date.now() - cached.savedAt < CACHE_TTL_MS) return cached.quotes;
-  if (pendingRequests.has(cacheKey)) return pendingRequests.get(cacheKey);
+  const quotes = {};
+  const waiting = [];
+  const missing = [];
+  const now = Date.now();
 
-  const pending = (async () => {
-    const quotes = {};
-    for (let offset = 0; offset < requests.length; offset += 100) {
-      const chunk = requests.slice(offset, offset + 100);
-      const fetched = process.env.VERCEL === '1' || process.env.VERCEL_FUNCTIONS === '1'
-        ? await runYahooChartBatch(chunk)
-        : await runWorker(chunk);
-      for (const [symbol, rawQuote] of Object.entries(fetched)) {
-        const quote = normalizeQuote(rawQuote);
-        if (quote) quotes[symbol] = quote;
-      }
+  for (const request of requests) {
+    const symbolKey = `${request.exchange}:${request.key}`;
+    const cached = quoteCache.get(symbolKey);
+    if (cached && now - cached.savedAt < CACHE_TTL_MS) {
+      quotes[request.key] = cached.quote;
+      continue;
     }
-    quoteCache.set(cacheKey, { quotes, savedAt: Date.now() });
-    if (quoteCache.size > 100) quoteCache.delete(quoteCache.keys().next().value);
-    return quotes;
-  })().finally(() => pendingRequests.delete(cacheKey));
 
-  pendingRequests.set(cacheKey, pending);
-  return pending;
+    const pending = pendingRequests.get(symbolKey);
+    if (pending) waiting.push(pending.then((quote) => [request.key, quote]));
+    else missing.push(request);
+  }
+
+  if (missing.length) {
+    const pendingBatch = (async () => {
+      const fetchedQuotes = {};
+      for (let offset = 0; offset < missing.length; offset += 100) {
+        const chunk = missing.slice(offset, offset + 100);
+        const fetched = process.env.VERCEL === '1' || process.env.VERCEL_FUNCTIONS === '1'
+          ? await runYahooChartBatch(chunk)
+          : await runWorker(chunk);
+        for (const request of chunk) {
+          const quote = normalizeQuote(fetched[request.key]);
+          if (!quote) continue;
+          fetchedQuotes[request.key] = quote;
+          quoteCache.set(`${request.exchange}:${request.key}`, { quote, savedAt: Date.now() });
+        }
+      }
+      while (quoteCache.size > 5000) quoteCache.delete(quoteCache.keys().next().value);
+      return fetchedQuotes;
+    })();
+
+    for (const request of missing) {
+      const symbolKey = `${request.exchange}:${request.key}`;
+      let pendingQuote = pendingBatch.then((fetchedQuotes) => fetchedQuotes[request.key] || null);
+      pendingQuote = pendingQuote.finally(() => {
+        if (pendingRequests.get(symbolKey) === pendingQuote) pendingRequests.delete(symbolKey);
+      });
+      pendingRequests.set(symbolKey, pendingQuote);
+      waiting.push(pendingQuote.then((quote) => [request.key, quote]));
+    }
+  }
+
+  for (const [symbol, quote] of await Promise.all(waiting)) {
+    if (quote) quotes[symbol] = quote;
+  }
+  return quotes;
 };

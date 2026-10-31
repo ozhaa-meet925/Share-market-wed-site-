@@ -245,7 +245,7 @@ const Portfolio = () => {
             <Briefcase size={17} /> Holdings & Positions ({holdingsData.length})
           </h3>
           <span className="live-status-mini">
-            <span className="live-dot" /> {liveStocks.filter((stock) => stock.isDemo).length ? 'Simulated demo values · not real market data' : `${liveStocks.filter((stock) => stock.isLive).length}/${holdingsData.length} Upstox quotes`}
+            <span className="live-dot" /> {liveStocks.filter((stock) => stock.isDemo).length ? 'Simulated demo values · not real market data' : `${liveStocks.filter((stock) => stock.isLive).length}/${holdingsData.length} live provider quotes`}
           </span>
         </div>
 

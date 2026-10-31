@@ -1,15 +1,85 @@
-import { CalendarDays, Eye, Share2 } from 'lucide-react';
+import { Bookmark, CalendarDays, Eye, Share2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const getSegment = (ipo) => ipo.segment || 'Mainboard';
+const getInitials = (company = '') => String(company)
+  .trim()
+  .split(/\s+/)
+  .filter(Boolean)
+  .slice(0, 2)
+  .map((word) => word[0].toUpperCase())
+  .join('') || 'IPO';
+const getCompanyMark = (company) => {
+  const initials = getInitials(company);
+  const seed = [...String(company || 'IPO')].reduce((value, character) => value + character.charCodeAt(0), 0);
+  const palettes = [
+    ['#0b7653', '#42b883'],
+    ['#2554a5', '#5b91ed'],
+    ['#8d4e16', '#e1a44f'],
+    ['#713b89', '#b47acb'],
+  ];
+  const [start, end] = palettes[seed % palettes.length];
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${start}"/><stop offset="1" stop-color="${end}"/></linearGradient></defs><rect width="96" height="96" rx="22" fill="url(#g)"/><text x="48" y="54" fill="white" font-family="Arial,sans-serif" font-size="${initials.length > 1 ? 30 : 40}" font-weight="700" text-anchor="middle" dominant-baseline="middle">${initials}</text></svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+};
 const displayDate = (value) => {
   if (!value || value === '—') return '—';
   return /\b20\d{2}\b/.test(value) ? value : `${value} ${new Date().getFullYear()}`;
 };
+const hasDisplayValue = (value) => value != null
+  && String(value).trim() !== ''
+  && !['—', 'not provided', 'not provided by api'].includes(String(value).trim().toLowerCase());
 
-const IpoCard = ({ ipo, compact = false }) => {
-  const statusClass = `ipo-status-${ipo.status.toLowerCase().replace(/\s+/g, '-')}`;
-  const issuePeriod = `${displayDate(ipo.openDate)} - ${displayDate(ipo.closeDate)}`;
+const IpoCard = ({ ipo, compact = false, isTracked = false, onToggleTracked }) => {
+  const statusClass = `ipo-status-${ipo.status?.toLowerCase().replace(/\s+/g, '-')}`;
+  const isClosedIssue = ['closed', 'listed'].includes(String(ipo.status || '').toLowerCase());
+  const issuePeriod = isClosedIssue
+    ? `${ipo.status === 'Listed' ? 'Listed' : 'Closed'} ${displayDate(ipo.listingDate || ipo.closeDate)}`
+    : `${displayDate(ipo.openDate)} - ${displayDate(ipo.closeDate)}`;
+  const logoSrc = ipo.logoUrl || ipo.logo || getCompanyMark(ipo.company);
+  const summaryItems = [
+    [isClosedIssue ? 'Status date' : 'Issue dates', issuePeriod],
+    [ipo.priceBandLabel || 'Price band', String(ipo.priceBand || '').replaceAll('Rs ', '₹')],
+    ['Lot size', ipo.lotSize ? `${ipo.lotSize} shares` : ''],
+    [ipo.issueSizeLabel || 'Issue size', ipo.issueSize],
+  ].filter(([, value]) => hasDisplayValue(value));
+  const detailItems = [];
+  const gmp = ipo.gmpValue || ipo.gmp;
+  if (hasDisplayValue(gmp)) detailItems.push(['GMP', gmp, 'gain']);
+  if (hasDisplayValue(ipo.minInvestment)) {
+    detailItems.push(['Minimum investment', ipo.minInvestment.replace('Rs ', '₹')]);
+  }
+  if (hasDisplayValue(ipo.allotmentDate)) detailItems.push(['Allotment date', displayDate(ipo.allotmentDate)]);
+  if (!isClosedIssue && hasDisplayValue(ipo.listingDate)) detailItems.push(['Listing date', displayDate(ipo.listingDate)]);
+  if (ipo.status === 'Listed' && ipo.listingPrice != null) {
+    detailItems.push(['Listing day close', `₹${Number(ipo.listingPrice).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`]);
+  }
+  if (ipo.status === 'Listed' && ipo.gainFromIssuePercent != null) {
+    const returnPercent = Number(ipo.gainFromIssuePercent);
+    detailItems.push(['Return since issue', `${returnPercent.toFixed(2)}%`, returnPercent >= 0 ? 'gain' : 'loss']);
+  }
+  if (hasDisplayValue(ipo.subscription)) detailItems.push(['Subscription', ipo.subscription, 'gain']);
+  if (Number(ipo.totalApplications) > 0) {
+    detailItems.push(['Applications', Number(ipo.totalApplications).toLocaleString('en-IN')]);
+  } else if (ipo.retailFormatted || ipo.qibFormatted) {
+    detailItems.push(['Retail / QIB', `${ipo.retailFormatted || '0.00x'} / ${ipo.qibFormatted || '0.00x'}`]);
+  }
+
+  const liveIndicator = ipo.isLive === true && !ipo.stale
+    ? <span className="live-dot" aria-label="Live provider data" title="Live provider data" />
+    : null;
+  const trackingButton = onToggleTracked && ipo.id ? (
+    <button
+      className={`ipo-track-button${isTracked ? ' is-tracked' : ''}`}
+      type="button"
+      aria-pressed={isTracked}
+      aria-label={`${isTracked ? 'Stop tracking' : 'Track'} ${ipo.company} IPO`}
+      title={`${isTracked ? 'Stop tracking' : 'Track'} this IPO`}
+      onClick={() => onToggleTracked(ipo)}
+    >
+      <Bookmark size={17} fill={isTracked ? 'currentColor' : 'none'} />
+    </button>
+  ) : null;
 
   if (compact) {
     return (
@@ -19,11 +89,11 @@ const IpoCard = ({ ipo, compact = false }) => {
             <strong>{ipo.company}</strong>
             <span>{ipo.priceBand}</span>
           </div>
-          <span className={`status-badge ${statusClass}`}>{ipo.status}</span>
+          <span className={`status-badge ${statusClass}`}>{ipo.status} {liveIndicator}</span>
         </div>
         <div className="ipo-grid">
           <span>Lot Size <b>{ipo.lotSize}</b></span>
-          <span>Issue Size <b>{ipo.issueSize}</b></span>
+          <span>{ipo.issueSizeLabel || 'Issue Size'} <b>{ipo.issueSize}</b></span>
           <span>Subscription <b>{ipo.subscription}</b></span>
           <span><CalendarDays size={15} /> {issuePeriod}</span>
         </div>
@@ -40,45 +110,41 @@ const IpoCard = ({ ipo, compact = false }) => {
   return (
     <article className="ipo-card ipo-card-expanded">
       <div className="ipo-card-heading">
-        <div>
-          <h2>{ipo.company}</h2>
-          <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            {getSegment(ipo)} Issue
-          </span>
+        <div className="ipo-company-brand">
+          <img
+            className="ipo-logo"
+            src={logoSrc}
+            alt={`${ipo.company} company mark`}
+            loading="eager"
+            onError={(event) => {
+              event.currentTarget.onerror = null;
+              event.currentTarget.src = getCompanyMark(ipo.company);
+            }}
+          />
+          <div>
+            <h2>{ipo.company}</h2>
+            <span className="ipo-company-segment">{getSegment(ipo)} Issue</span>
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className={`status-badge ${statusClass}`}>{ipo.status}</span>
-        </div>
+        <span className={`status-badge ${statusClass}`}>{ipo.status} {liveIndicator}</span>
       </div>
 
       <div className="ipo-primary-details">
-        <div className="ipo-logo" aria-hidden="true">{ipo.company.slice(0, 1)}</div>
         <div className="ipo-summary-grid">
-          <span>Date <b>{issuePeriod}</b></span>
-          <span>Price Band <b>{ipo.priceBand.replaceAll('Rs ', '₹')}</b></span>
-          <span>Lot Size <b>{ipo.lotSize ? `${ipo.lotSize} shares` : 'Not provided'}</b></span>
-          <span>Issue Size <b>{ipo.issueSize}</b></span>
+          {summaryItems.map(([label, value]) => <span key={label}>{label}<b>{value}</b></span>)}
         </div>
       </div>
 
-      <div className="ipo-divider" />
-
-      <div className="ipo-detail-rows">
-        <span>GMP <b className={ipo.gmpValue === 'Not provided' ? '' : 'gain'}>{ipo.gmpValue || ipo.gmp || 'Not provided by API'}</b></span>
-        <span>Min Investment <b>{ipo.minInvestment ? ipo.minInvestment.replace('Rs ', '₹') : 'Not provided'}</b></span>
-        <span>Allotment Date <b>{displayDate(ipo.allotmentDate)}</b></span>
-        <span>Listing Date <b>{displayDate(ipo.listingDate)}</b></span>
-        <span>
-          Subscription{' '}
-          {ipo.status === 'Open' && <span className="live-dot" style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#00D09C', marginLeft: '4px' }} />}
-          <b className="gain">{ipo.subscription}</b>
-        </span>
-        {ipo.totalApplications ? (
-          <span>Applications <b>{Number(ipo.totalApplications).toLocaleString('en-IN')}</b></span>
-        ) : (ipo.retailFormatted || ipo.qibFormatted) ? (
-          <span>Retail / QIB <b>{ipo.retailFormatted || '0.00x'} / {ipo.qibFormatted || '0.00x'}</b></span>
-        ) : null}
-      </div>
+      {detailItems.length > 0 && (
+        <>
+          <div className="ipo-divider" />
+          <div className="ipo-detail-rows">
+            {detailItems.map(([label, value, valueClass]) => (
+              <span key={label}>{label} {label === 'Subscription' && ipo.isLive === true && liveIndicator}<b className={valueClass || ''}>{value}</b></span>
+            ))}
+          </div>
+        </>
+      )}
 
       <div className="ipo-actions">
         <Link
@@ -88,7 +154,22 @@ const IpoCard = ({ ipo, compact = false }) => {
         >
           <Eye size={17} /> View
         </Link>
-        <button className="ipo-share-button" type="button" aria-label={`Share ${ipo.company} IPO`} onClick={shareIpo}><Share2 size={18} /></button>
+        {ipo.status === 'Open' && ipo.source === 'upstox' && ipo.isLive === true && !ipo.stale && <Link
+          className="ipo-apply-button"
+          to={`/ipo/${encodeURIComponent(ipo.id || ipo.company)}#apply`}
+          aria-label={`Apply for ${ipo.company} IPO`}
+        >
+          Apply
+        </Link>}
+        {trackingButton}
+        <button
+          className="ipo-share-button"
+          type="button"
+          aria-label={`Share ${ipo.company} IPO`}
+          onClick={shareIpo}
+        >
+          <Share2 size={18} />
+        </button>
       </div>
     </article>
   );

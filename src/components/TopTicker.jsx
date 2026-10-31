@@ -5,7 +5,7 @@ import { stocks as stockSeed } from '../data/stocks';
 import { getMarketStatus } from '../utils/marketHours';
 
 const TopTicker = () => {
-  const { stocks } = useLiveStocks(stockSeed, 1000);
+  const { stocks } = useLiveStocks(stockSeed);
   const [marketStatus, setMarketStatus] = useState(getMarketStatus());
 
   useEffect(() => {
@@ -34,13 +34,15 @@ const TopTicker = () => {
                 </span>
                 {item.isDemo ? (
                   <span className="ticker-change">Demo · simulated</span>
+                ) : item.isResearch ? (
+                  <span className="ticker-change">Research · not live{item.isStale ? ' · stale' : ''}</span>
                 ) : item.isLive && Number.isFinite(Number(item.changePercent)) ? (
                   <span className={`ticker-change ${positive ? 'positive' : 'negative'}`}>
                     {positive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
                     {positive ? '+' : ''}{Number(item.changePercent).toFixed(2)}%
                   </span>
                 ) : (
-                  <span className="ticker-change">{item.isStale ? 'Last quote · stale' : 'Connect free Upstox token'}</span>
+                  <span className="ticker-change">{item.isStale ? 'Last quote · stale' : 'Live quote required'}</span>
                 )}
               </div>
             );

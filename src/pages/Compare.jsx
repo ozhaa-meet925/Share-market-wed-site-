@@ -12,6 +12,8 @@ const formatProviderName = (provider) => {
     alpha_vantage: 'Alpha Vantage',
     upstox: 'Upstox',
     zerodha: 'Zerodha Kite',
+    kun: 'Kunpeng Data',
+    groww: 'Groww',
   };
   return knownProviders[String(provider || '').toLowerCase()]
     || String(provider || 'Market provider').replaceAll('_', ' ');
@@ -90,10 +92,10 @@ export const Compare = () => {
           ? `Last quote · ${formatProviderName(quoteProvider)} · refresh failed`
           : `Live quote · ${formatProviderName(quoteProvider)}`)
         : quoteState.hasError
-          ? 'Connect free Upstox token'
+          ? quoteState.setupMessage || 'The configured market provider could not return quotes.'
           : quoteState.isLoading
-            ? 'Checking Upstox quote'
-            : 'Connect free Upstox token',
+            ? 'Checking market provider'
+            : quoteState.setupMessage || 'Live quote required',
       quoteUpdatedAt: quoteDate,
       hasVerifiedDayRange: quoteIsVerified && Number(quote?.h) > 0 && Number(quote?.l) > 0,
     };
@@ -226,7 +228,7 @@ export const Compare = () => {
                           className="trade-th-btn"
                           onClick={() => setTradingStock(stock)}
                           disabled={!stock.quoteIsLive}
-                          title={stock.quoteIsLive ? 'Trade using the current Upstox quote' : 'A current Upstox quote is required'}
+                          title={stock.quoteIsLive ? 'Trade using the current live quote' : 'A current live quote is required'}
                         >
                           Trade Now
                         </button>
@@ -373,7 +375,7 @@ export const Compare = () => {
                   <td key={stock.symbol} className="param-value">
                     <div className="compare-metric-stack">
                       <strong>Unavailable</strong>
-                      <span className="metric-provenance">Upstox quote does not include the 52-week range field</span>
+                      <span className="metric-provenance">The selected live quote does not include 52-week range data</span>
                     </div>
                   </td>
                 ))}
@@ -420,7 +422,7 @@ export const Compare = () => {
         </div>
         <p>
           Comparing <strong>{selectedStocks.map((s) => s.symbol).join(', ')}</strong>. Quotes show their provider and update time above.
-          Market capitalization, P/E, and dividend yield are demo estimates. Prices without a configured provider use the simulated demo feed and are not real market data. Add the free Upstox Analytics Token locally to switch to provider quotes.
+          Market capitalization, P/E, and dividend yield are estimates. Live comparison prices require a configured market provider. Charts use illustrative previews when provider history is unavailable.
         </p>
       </section>
 

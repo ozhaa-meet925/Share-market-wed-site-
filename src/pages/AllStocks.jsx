@@ -4,7 +4,7 @@ import StockCard from '../components/StockCard';
 import { useStockCatalog } from '../hooks/useStockCatalog';
 import { marketApi } from '../services/api';
 
-const QUOTE_REFRESH_MS = 1000;
+const QUOTE_REFRESH_MS = 5000;
 const RESEARCH_REFRESH_MS = 60_000;
 
 const toFiniteNumber = (value) => {

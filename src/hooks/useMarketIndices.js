@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { marketApi } from '../services/api';
 
-const REFRESH_MS = 1000;
+const LIVE_REFRESH_MS = 5000;
+const RESEARCH_REFRESH_MS = 60_000;
 
 export const useMarketIndices = (symbols) => {
   const symbolsKey = [...new Set(symbols.filter(Boolean))].join(',');
@@ -15,8 +16,10 @@ export const useMarketIndices = (symbols) => {
 
     let active = true;
     let requestPending = false;
+    let intervalId;
+    let quotesEnabled = false;
     const refresh = async () => {
-      if (requestPending) return;
+      if (!quotesEnabled || requestPending) return;
       requestPending = true;
       try {
         const payload = await marketApi.getBatchQuotes(requestedSymbols);
@@ -59,11 +62,27 @@ export const useMarketIndices = (symbols) => {
       }
     };
 
-    refresh();
-    const intervalId = window.setInterval(refresh, REFRESH_MS);
+    const start = async () => {
+      try {
+        const health = await marketApi.getHealth();
+        if (!active) return;
+
+        const hasCommodityFallback = requestedSymbols.some((symbol) => /^(MCX:)?(GOLD|SILVER|COPPER)$/i.test(symbol));
+        if (!health.realTimeAvailable && !health.researchDataAvailable && !hasCommodityFallback) return;
+
+        quotesEnabled = true;
+        refresh();
+        const refreshMs = health.realTimeAvailable ? LIVE_REFRESH_MS : RESEARCH_REFRESH_MS;
+        intervalId = window.setInterval(refresh, refreshMs);
+      } catch {
+        // Keep the market page readable when the provider health endpoint is unavailable.
+      }
+    };
+
+    start();
     return () => {
       active = false;
-      window.clearInterval(intervalId);
+      if (intervalId) window.clearInterval(intervalId);
     };
   }, [symbolsKey]);
 

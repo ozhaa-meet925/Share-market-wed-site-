@@ -132,8 +132,9 @@ const LiveTerminal = () => {
   })));
   const [indexList, setIndexList] = useState(() => initialIndices.map((index) => ({ ...index, quote: null })));
   const [selectedSymbol, setSelectedSymbol] = useState('RELIANCE');
-  const [streamSpeed, setStreamSpeed] = useState(1000);
+  const [streamSpeed, setStreamSpeed] = useState(5000);
   const [soundEnabled, setSoundEnabled] = useState(false);
+  const [providerStatus, setProviderStatus] = useState('Checking live provider');
   const [activeFilter, setActiveFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [clockTime, setClockTime] = useState(() => new Date());
@@ -144,6 +145,10 @@ const LiveTerminal = () => {
   const [quickOrderMsg, setQuickOrderMsg] = useState('');
   const [alertTarget, setAlertTarget] = useState('');
   const [alertSuccess, setAlertSuccess] = useState('');
+  const soundEnabledRef = useRef(soundEnabled);
+  const selectedSymbolRef = useRef(selectedSymbol);
+  soundEnabledRef.current = soundEnabled;
+  selectedSymbolRef.current = selectedSymbol;
 
   const selectedStock = useMemo(
     () => stockList.find((s) => s.symbol === selectedSymbol) || stockList[0],
@@ -170,12 +175,13 @@ const LiveTerminal = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Provider quotes are preferred; the API marks its no-credential fallback as simulated demo data.
+  // Only poll the quote API when a live provider is available.
   useEffect(() => {
     if (streamSpeed === 0) return; // Paused
 
     let active = true;
     let requestPending = false;
+    let intervalId;
 
     const tickAll = async () => {
       if (requestPending) return;
@@ -192,7 +198,7 @@ const LiveTerminal = () => {
           }
           const price = Number(quote.c);
           const direction = stock.price === null || price === stock.price ? stock.lastTick : price > stock.price ? 'up' : 'down';
-          if (soundEnabled && stock.symbol === selectedSymbol && stock.price !== null && price !== stock.price) playTickAudio(price > stock.price);
+          if (soundEnabledRef.current && stock.symbol === selectedSymbolRef.current && stock.price !== null && price !== stock.price) playTickAudio(price > stock.price);
           return {
             ...stock,
             price,
@@ -205,7 +211,7 @@ const LiveTerminal = () => {
             isLive: quote.isLive === true && quote.isDemo !== true,
             isDemo: quote.isDemo === true,
             isStale: false,
-            dataSource: quote.provider || 'Upstox',
+            dataSource: quote.provider || 'Live provider',
             flash: stock.price === null || price === stock.price ? null : direction,
             lastTick: direction,
           };
@@ -221,23 +227,44 @@ const LiveTerminal = () => {
       }
     };
 
-    tickAll();
-    const interval = setInterval(tickAll, streamSpeed);
+    const start = async () => {
+      try {
+        const health = await marketApi.getHealth();
+        if (!active) return;
+        const providerName = health.provider || health.configuredProvider || 'Market provider';
+        setProviderStatus(health.realTimeAvailable
+          ? `${providerName} live`
+          : `${providerName} token required`);
+        if (!health.realTimeAvailable) return;
+
+        tickAll();
+        intervalId = setInterval(tickAll, streamSpeed);
+      } catch {
+        if (active) setProviderStatus('Market API unavailable');
+      }
+    };
+
+    start();
     return () => {
       active = false;
-      clearInterval(interval);
+      if (intervalId) clearInterval(intervalId);
     };
-  }, [streamSpeed, soundEnabled, selectedSymbol]);
+  }, [streamSpeed]);
 
   // Fetch Level-2 Market Depth & Trade Tape for selected symbol
   useEffect(() => {
     let active = true;
+    let requestPending = false;
+    let intervalId;
 
     const fetchDepthAndTape = async () => {
+      if (requestPending) return;
+      requestPending = true;
       const [depthResult, tapeResult] = await Promise.allSettled([
         marketApi.getMarketDepth(selectedSymbol),
         marketApi.getRecentTrades(selectedSymbol),
       ]);
+      requestPending = false;
       if (!active) return;
 
       const depth = depthResult.status === 'fulfilled' ? depthResult.value : null;
@@ -250,13 +277,24 @@ const LiveTerminal = () => {
       setTradeTapeSymbol(selectedSymbol);
     };
 
-    fetchDepthAndTape();
-    const interval = setInterval(fetchDepthAndTape, Math.max(1500, streamSpeed));
+    const start = async () => {
+      if (streamSpeed === 0) return;
+      try {
+        const health = await marketApi.getHealth();
+        if (!active || !health.realTimeAvailable) return;
+        fetchDepthAndTape();
+        intervalId = setInterval(fetchDepthAndTape, Math.max(5000, streamSpeed));
+      } catch {
+        // Keep illustrative depth visible when the live provider is not reachable.
+      }
+    };
+
+    start();
     return () => {
       active = false;
-      clearInterval(interval);
+      if (intervalId) clearInterval(intervalId);
     };
-  }, [selectedSymbol, streamSpeed, selectedStock.price]);
+  }, [selectedSymbol, streamSpeed]);
 
   // Market breadth uses only fresh provider quotes.
   const liveStocks = stockList.filter((stock) => (stock.isLive || stock.isDemo) && stock.change !== null);
@@ -301,7 +339,7 @@ const LiveTerminal = () => {
           <div className="live-status-pill">
             <span className="live-dot pulse" />
             <Radio size={15} />
-            <strong>{selectedStock.isDemo ? 'SIMULATED DEMO · NOT REAL' : selectedStock.isLive ? 'UPSTOX LIVE' : 'UPSTOX TOKEN REQUIRED'}</strong>
+            <strong>{selectedStock.isDemo ? 'SIMULATED DEMO · NOT REAL' : selectedStock.isLive ? providerStatus : providerStatus.toUpperCase()}</strong>
           </div>
           <h1>NSE / BSE Live Tracking Terminal</h1>
         </div>
@@ -316,25 +354,25 @@ const LiveTerminal = () => {
             <SlidersHorizontal size={14} />
             <span>Speed:</span>
             <button
-              className={streamSpeed === 1500 ? 'active' : ''}
-              onClick={() => setStreamSpeed(1500)}
-              title="Fast (1.5s)"
-            >
-              1.5s
-            </button>
-            <button
-              className={streamSpeed === 2500 ? 'active' : ''}
-              onClick={() => setStreamSpeed(2500)}
-              title="Normal (2.5s)"
-            >
-              2.5s
-            </button>
-            <button
               className={streamSpeed === 5000 ? 'active' : ''}
               onClick={() => setStreamSpeed(5000)}
-              title="Relaxed (5s)"
+              title="Fast (5s)"
             >
               5s
+            </button>
+            <button
+              className={streamSpeed === 10000 ? 'active' : ''}
+              onClick={() => setStreamSpeed(10000)}
+              title="Normal (10s)"
+            >
+              10s
+            </button>
+            <button
+              className={streamSpeed === 20000 ? 'active' : ''}
+              onClick={() => setStreamSpeed(20000)}
+              title="Relaxed (20s)"
+            >
+              20s
             </button>
             <button
               className={streamSpeed === 0 ? 'active' : ''}
@@ -431,7 +469,7 @@ const LiveTerminal = () => {
                 <p>{selectedStock.name}</p>
               </div>
               <div className="stock-hero-price-box">
-                <span className="hero-price-label">{selectedStock.isDemo ? 'Demo price · not real' : selectedStock.isLive ? 'Upstox price' : 'Connect free Upstox token'}</span>
+                <span className="hero-price-label">{selectedStock.isDemo ? 'Demo price · not real' : selectedStock.isLive ? `${selectedStock.dataSource || 'Live provider'} price` : providerStatus}</span>
                 <strong className={`hero-price-val ${selectedStock.flash ? `flash-${selectedStock.flash}` : ''}`}>
                   {formatCurrency(selectedStock.price)}
                 </strong>
@@ -669,7 +707,7 @@ const LiveTerminal = () => {
                         {formatCurrency(stk.price)}
                       </b>
                       <span className={stk.isLive || stk.isDemo ? isGain ? 'gain' : 'loss' : ''}>
-                        {stk.isDemo ? 'Demo · simulated' : stk.isLive && stk.change !== null ? `${isGain ? '+' : ''}${stk.change} (${isGain ? '+' : ''}${stk.changePercent}%)` : 'Connect free Upstox token'}
+                        {stk.isDemo ? 'Demo · simulated' : stk.isLive && stk.change !== null ? `${isGain ? '+' : ''}${stk.change} (${isGain ? '+' : ''}${stk.changePercent}%)` : 'Live quote required'}
                       </span>
                     </div>
                   </div>

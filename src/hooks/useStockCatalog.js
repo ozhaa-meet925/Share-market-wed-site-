@@ -49,18 +49,6 @@ function detectSector(symbol, name) {
   return 'Diversified';
 }
 
-const toCatalogStock = (item) => {
-  const rawSymbol = String(item.symbol || item.displaySymbol || '');
-  const exchangePrefix = rawSymbol.match(/^(NSE|BSE):/i)?.[1];
-  const symbol = rawSymbol.replace(/^(NSE|BSE):/i, '');
-  const exchange = String(item.exchange || exchangePrefix || 'NSE').toUpperCase();
-  const seeded = seededStocks.find((stock) => stock.symbol === symbol);
-  return clearCurrentQuote({
-    ...(seeded || createCatalogStock(symbol, item.description || item.name || item.displaySymbol || symbol)),
-    exchange,
-  });
-};
-
 const clearCurrentQuote = (stock) => ({
   ...stock,
   price: null,
@@ -78,6 +66,20 @@ const clearCurrentQuote = (stock) => ({
   isStale: false,
   dataSource: 'Live quote required',
 });
+
+const toCatalogStock = (item) => {
+  const rawSymbol = String(item.symbol || item.displaySymbol || '');
+  const exchangePrefix = rawSymbol.match(/^(NSE|BSE):/i)?.[1];
+  const symbol = rawSymbol.replace(/^(NSE|BSE):/i, '');
+  const exchange = String(item.exchange || exchangePrefix || 'NSE').toUpperCase();
+  const seeded = seededStocks.find((stock) => stock.symbol === symbol);
+  return clearCurrentQuote({
+    ...(seeded || createCatalogStock(symbol, item.description || item.name || item.displaySymbol || symbol)),
+    exchange,
+  });
+};
+
+const baseCatalog = companyCatalog.map(toCatalogStock);
 
 export function createCatalogStock(symbol, name, customSector = null) {
   return {
@@ -103,8 +105,7 @@ export function createCatalogStock(symbol, name, customSector = null) {
 }
 
 export const useStockCatalog = () => {
-  const localCatalog = companyCatalog.map(toCatalogStock);
-  const [catalog, setCatalog] = useState(() => mergeCatalog(localCatalog));
+  const [catalog, setCatalog] = useState(() => mergeCatalog(baseCatalog));
   const [isLiveCatalog, setIsLiveCatalog] = useState(false);
 
   // Listen to custom stock added events
@@ -149,9 +150,8 @@ export const useStockCatalog = () => {
 
 function mergeCatalog(items = []) {
   const custom = getCustomStocks();
-  const localCatalog = companyCatalog.map(toCatalogStock);
   const unique = new Map();
-  [...custom, ...items, ...localCatalog, ...seededStocks].map(clearCurrentQuote).forEach((stock) => {
+  [...custom, ...items, ...baseCatalog, ...seededStocks].map(clearCurrentQuote).forEach((stock) => {
     if (stock && stock.symbol && !unique.has(stock.symbol)) {
       unique.set(stock.symbol, stock);
     }

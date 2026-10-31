@@ -10,9 +10,9 @@ import WatchlistPanel from '../components/Watchlist';
 import PortfolioPanel from '../components/Portfolio';
 import { indices, nifty } from '../data/nifty';
 import { stocks as stockSeed } from '../data/stocks';
-import { ipos } from '../data/ipo';
 import NewsCard from '../components/NewsCard';
 import IpoCard from '../components/IpoCard';
+import { useIpoFeed } from '../hooks/useIpoFeed';
 import { useLiveStocks } from '../hooks/useLiveStocks';
 import { useMarketNews } from '../hooks/useMarketNews';
 import { useStockCatalog } from '../hooks/useStockCatalog';
@@ -31,6 +31,12 @@ const Home = () => {
   const { stocks, lastUpdated } = useLiveStocks(stockSeed);
   const { quotes: indexQuotes, histories: indexHistories, lastUpdated: indexUpdated } = useMarketIndices(marketIndexSymbols);
   const { news } = useMarketNews();
+  const ipoFeed = useIpoFeed();
+  const liveIpos = ipoFeed.data || [];
+  const homeIpos = [
+    liveIpos.find((ipo) => String(ipo.status).toLowerCase() === 'open'),
+    liveIpos.find((ipo) => ['upcoming', 'open soon'].includes(String(ipo.status).toLowerCase())),
+  ].filter(Boolean);
   const [selectedSymbol, setSelectedSymbol] = useState(stockSeed[0].symbol);
   const liveStockMap = new Map(stocks.map((stock) => [stock.symbol, stock]));
   const catalogStocks = catalog.map((stock) => liveStockMap.get(stock.symbol) || stock);
@@ -152,8 +158,15 @@ const Home = () => {
             <Link to="/ipo">View calendar</Link>
           </div>
           <div className="ipo-list compact-ipo-list">
-            {ipos.slice(0, 2).map((ipo) => <IpoCard key={ipo.company} ipo={ipo} compact />)}
+            {homeIpos.map((ipo) => <IpoCard key={ipo.id || ipo.company} ipo={ipo} compact />)}
           </div>
+          <p className={`home-ipo-feed-status${ipoFeed.live ? ' is-live' : ''}`} role="status">
+            {ipoFeed.live
+              ? 'Live Upstox IPO data · refreshes every minute.'
+              : ipoFeed.loading
+                ? 'Loading live IPO listings…'
+                : ipoFeed.message || 'Configure the live IPO provider to see current listings.'}
+          </p>
           <div className="section-heading spaced-heading">
             <div>
               <span className="home-section-kicker">MARKET UPDATES</span>

@@ -5,7 +5,7 @@ import { marketApi } from '../services/api';
 
 const ranges = ['1D', '1W', '1M', '6M', '1Y', 'More'];
 const rangeDays = { '1D': 2, '1W': 10, '1M': 45, '6M': 200, '1Y': 380, More: 1825 };
-const QUOTE_REFRESH_MS = 1000;
+const QUOTE_REFRESH_MS = 5000;
 
 const toHeikinAshi = (candles) => {
   let previousOpen;

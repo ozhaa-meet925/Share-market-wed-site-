@@ -13,7 +13,7 @@ const TopGainers = () => {
         <h1>Top Gainers</h1>
       </div>
       <div className="stock-grid">
-        {gainers.length ? gainers.map((stock) => <StockCard key={stock.symbol} stock={stock} />) : <div className="panel">Top gainer quotes are unavailable. Add the free Upstox Analytics Token to .env.</div>}
+        {gainers.length ? gainers.map((stock) => <StockCard key={stock.symbol} stock={stock} />) : <div className="panel">Top gainer quotes are unavailable. Configure a live market data provider to load current prices.</div>}
       </div>
     </div>
   );

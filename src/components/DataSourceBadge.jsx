@@ -35,7 +35,7 @@ const DataSourceBadge = () => {
     return (
       <div className="data-source-badge" style={{ '--badge-color': '#d97706' }}>
         <WifiOff size={13} />
-        <span className="data-source-label">Add free Upstox token</span>
+        <span className="data-source-label">Live market provider required</span>
       </div>
     );
   }

@@ -18,6 +18,7 @@ const Nifty = () => {
   const hasQuote = Number(quote?.c) > 0;
   const isLive = quote?.isLive === true && hasQuote;
   const isDemo = quote?.isDemo === true && hasQuote;
+  const isResearch = quote?.isResearch === true && hasQuote;
   const history = histories.get('NIFTY') || [];
   const contributors = stocks.filter((stock) => nifty.contributors.includes(stock.symbol) && (stock.isLive || stock.isDemo));
   const tracked = stocks.filter((stock) => (stock.isLive || stock.isDemo) && stock.changePercent !== null);
@@ -39,14 +40,14 @@ const Nifty = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <span>Benchmark Index</span>
               <span className={`live-status-pill ${isLive ? '' : 'neutral-pill'}`}>
-              <span className="live-dot" /> {isDemo ? 'SIMULATED DEMO · NOT REAL' : isLive ? 'UPSTOX LIVE QUOTE' : quote?.isStale ? 'LAST QUOTE · STALE' : 'QUOTE UNAVAILABLE'}
+              <span className="live-dot" /> {isDemo ? 'SIMULATED DEMO · NOT REAL' : isLive ? `${quote.provider || 'LIVE PROVIDER'} LIVE QUOTE`.toUpperCase() : isResearch ? `RESEARCH QUOTE · ${quote.isStale ? 'STALE' : 'NOT LIVE'}` : quote?.isStale ? 'LAST QUOTE · STALE' : 'QUOTE UNAVAILABLE'}
             </span>
             <span className="pill neutral-pill">NSE</span>
           </div>
           <h1>NIFTY 50</h1>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div className="live-updated"><Clock size={14} /> {lastUpdated ? `Received ${lastUpdated.toLocaleTimeString('en-IN')}` : 'Add free Upstox token to .env'}</div>
+          <div className="live-updated"><Clock size={14} /> {lastUpdated ? `${isResearch ? 'Research data received' : 'Received'} ${lastUpdated.toLocaleTimeString('en-IN')}` : 'Live quote required'}</div>
           <Link to="/sensex" className="secondary-button" style={{ fontSize: '0.82rem', padding: '6px 12px', minHeight: 'auto' }}>View SENSEX →</Link>
         </div>
       </div>
@@ -56,9 +57,9 @@ const Nifty = () => {
           <div className="panel detail-panel">
             <div className="quote-line">
               <div>
-                <span>{isDemo ? 'Simulated demo value · not real' : 'Current value · Upstox'}</span>
+                <span>{isDemo ? 'Simulated demo value · not real' : isResearch ? `Research value · not live · ${quote.provider || 'Yahoo Finance'}` : isLive ? `Current value · ${quote.provider || 'Live provider'}` : 'Current value · live provider required'}</span>
                 <h2>{hasQuote ? `₹${formatNumber(quote.c)}` : 'Quote unavailable'}</h2>
-                <span>{isDemo ? 'Demo value only · not for trading' : isLive ? 'Latest provider quote' : quote?.isStale ? 'Last provider quote; refresh failed' : 'Connect free Upstox token'}</span>
+                <span>{isDemo ? 'Demo value only · not for trading' : isResearch ? `Research quote · not live${quote.isStale ? ' · stale' : ''}` : isLive ? 'Latest provider quote' : quote?.isStale ? 'Last provider quote; refresh failed' : 'Live quote required'}</span>
               </div>
               <div className="align-right">
                 {change !== null && changePercent !== null ? (
@@ -72,8 +73,8 @@ const Nifty = () => {
             </div>
 
             <div style={{ margin: '14px 0 10px' }}>
-              <div className="section-heading"><strong>Session price snapshots</strong><span>Collected from Upstox during this visit</span></div>
-              {history.length > 1 ? <Chart data={history} positive={positive} height={240} showXAxis /> : <div className="chart-empty-state">Chart will appear after Upstox returns multiple current quotes.</div>}
+              <div className="section-heading"><strong>Session price snapshots</strong><span>Collected from available provider quotes</span></div>
+              {history.length > 1 ? <Chart data={history} positive={positive} height={240} showXAxis /> : <div className="chart-empty-state">Chart will appear after multiple provider quotes are available.</div>}
             </div>
 
             <div className="day-range-wrapper" style={{ margin: '14px 0' }}>
@@ -96,7 +97,7 @@ const Nifty = () => {
           </div>
 
           <div className="panel market-breadth-panel">
-            <div className="section-heading"><h3><Activity size={18} /> NIFTY tracked-stock breadth</h3><span>Calculated from current Upstox quotes</span></div>
+            <div className="section-heading"><h3><Activity size={18} /> NIFTY tracked-stock breadth</h3><span>Calculated from current live provider quotes</span></div>
             {tracked.length ? (
               <>
                 <div className="breadth-summary">
@@ -106,12 +107,12 @@ const Nifty = () => {
                 </div>
                 <div className="breadth-bar-container"><div className="breadth-bar-advances" style={{ width: `${advancePercent}%` }} /><div className="breadth-bar-declines" style={{ width: `${100 - advancePercent}%` }} /></div>
               </>
-            ) : <p>Market breadth appears after the free Upstox token is connected.</p>}
+            ) : <p>Market breadth appears after live provider quotes are available.</p>}
           </div>
         </div>
 
         <div className="side-stack">
-          <div className="section-heading"><div><h3>Tracked contributors</h3><span>Only Upstox priced shares</span></div></div>
+          <div className="section-heading"><div><h3>Tracked contributors</h3><span>Only live provider priced shares</span></div></div>
           <div className="stock-grid one-column">
             {contributors.length ? contributors.map((stock) => <StockCard key={stock.symbol} stock={stock} />) : <div className="panel">Contributor quotes unavailable.</div>}
           </div>

@@ -82,7 +82,7 @@ const StockDetails = () => {
       } catch {
         if (active) {
           setLiveStock((current) => current.price ? { ...current, isLive: false, isStale: true } : current);
-          setDataSource((current) => current.includes('Upstox') ? 'Last Upstox quote · refresh failed' : 'Connect free Upstox token');
+          setDataSource((current) => current.includes('quote') ? `${current} · refresh failed` : 'Live quote unavailable; configure a market provider');
         }
       }
     };

@@ -21,6 +21,16 @@ npm run build
 ## Vercel deployment
 
 The Vercel deployment serves the Vite app and routes `/api/*` requests to the Express market API. Without a live provider token, stock cards can use Yahoo Finance research quotes, clearly marked as delayed/not live. To enable live KUN quotes, add `MARKET_DATA_PROVIDER=kun` and an authorized `KUN_DATA_API_TOKEN` to the Vercel project's Environment Variables, then redeploy.
+
+## Live IPO listings, tracking, and applications
+
+The IPO page reads open and upcoming IPOs from Upstox, checks all result pages, and refreshes every minute. If Upstox is unavailable or rejects its token, the API falls back to the current and forthcoming issue feed published by NSE India and labels that source on screen. Closed or expired issues leave the active calendar; tracked issues keep their last-known details. The home page uses the same provider feed, and the UI never shows bundled sample IPOs as live data.
+
+For listings, create an Upstox Analytics Token and set `UPSTOX_ACCESS_TOKEN` in `.env` locally or in the hosting provider's server-side environment variables. This read-only token can retrieve IPO listings and details. A user can also use their own secure OAuth session as the read-only feed token after connecting.
+
+Applying and tracking broker applications requires a separate Upstox OAuth app because the Analytics Token cannot submit bids. Configure `UPSTOX_CLIENT_ID`, `UPSTOX_CLIENT_SECRET`, `UPSTOX_REDIRECT_URI`, and a private random `IPO_SESSION_SECRET` on the server. Add the exact callback URL `<site-origin>/api/ipo/auth/callback` to the Upstox app. Keep all four values server-side and never commit `.env`. The site redirects each user to Upstox login; it stores that user's broker token in an encrypted, HttpOnly cookie and sends an application only after the user reviews and confirms the bid. The user must still approve the UPI mandate in their UPI app. The IPO page's **My Applications** view polls Upstox for mandate, exchange, and allotment status.
+
+IPO details include issue size, price band, dates, category subscriptions, registrar information, and available prospectus links. The upstream IPO detail API does not provide structured audited financial statements, use-of-proceeds breakdowns, strengths, or risk summaries for every issue; the app marks missing fields and links to the official RHP/DRHP when available instead of inventing those details.
 ## Live stock prices
 
 Kunpeng Data is the default live quote provider. The [StockerAPI GitHub project](https://github.com/StockerAPI/india-stock-market-api) documents Kunpeng Data's hosted HTTP and WebSocket API; it is not a server to run locally. Create a Kunpeng Data member account and make sure its token is authorized for the India (`IN`) market and NSE exchange, then:

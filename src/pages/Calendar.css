@@ -1755,8 +1755,20 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .calendar-dashboard .calendar-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .calendar-heading-copy,
+  .calendar-heading-actions {
+    width: 100%;
+    min-width: 0;
+  }
+
   .calendar-heading-actions {
     flex-wrap: wrap;
+    justify-content: space-between;
   }
 
   .calendar-reminders-toggle,

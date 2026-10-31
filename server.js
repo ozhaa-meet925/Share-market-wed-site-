@@ -2445,509 +2445,48 @@ app.get('/api/stock/history', async (req, res) => {
 });
 
 // ── LIVE IPO ENGINE & SUBSCRIPTION TICKER ──────────────────────────────────
-const initialIposData = [
-  // ── CURRENT WORKING / OPEN IPOS ───────────────────────────────────────
-  {
-    company: 'Nova Finserv',
-    priceBand: 'Rs 410 - Rs 432',
-    minPrice: 410,
-    cutOffPrice: 432,
-    lotSize: 34,
-    issueSize: 'Rs 1,420 Cr',
-    minInvestment: 'Rs 14,688',
-    openDate: '12 Oct',
-    closeDate: '16 Oct',
-    allotmentDate: '17 Oct',
-    listingDate: '21 Oct',
-    subscription: 3.42,
-    qib: 4.85,
-    nii: 3.20,
-    retail: 2.75,
-    gmp: '+14%',
-    gmpValue: 'Rs 60',
-    status: 'Open',
-    segment: 'Mainboard',
-    totalApplications: 124800,
-  },
-  {
-    company: 'Medix Labs',
-    priceBand: 'Rs 155 - Rs 162',
-    minPrice: 155,
-    cutOffPrice: 162,
-    lotSize: 92,
-    issueSize: 'Rs 620 Cr',
-    minInvestment: 'Rs 14,904',
-    openDate: '13 Oct',
-    closeDate: '17 Oct',
-    allotmentDate: '18 Oct',
-    listingDate: '22 Oct',
-    subscription: 5.84,
-    qib: 8.12,
-    nii: 6.45,
-    retail: 4.15,
-    gmp: '+6%',
-    gmpValue: 'Rs 9.50',
-    status: 'Open',
-    segment: 'Mainboard',
-    totalApplications: 289540,
-  },
-  {
-    company: 'Bharat Renewables',
-    priceBand: 'Rs 188 - Rs 198',
-    minPrice: 188,
-    cutOffPrice: 198,
-    lotSize: 75,
-    issueSize: 'Rs 980 Cr',
-    minInvestment: 'Rs 14,850',
-    openDate: '14 Oct',
-    closeDate: '18 Oct',
-    allotmentDate: '20 Oct',
-    listingDate: '24 Oct',
-    subscription: 4.22,
-    qib: 5.40,
-    nii: 3.90,
-    retail: 3.65,
-    gmp: '+11%',
-    gmpValue: 'Rs 22',
-    status: 'Open',
-    segment: 'Mainboard',
-    totalApplications: 194120,
-  },
-  {
-    company: 'Waaree Energies',
-    priceBand: 'Rs 1,427 - Rs 1,503',
-    minPrice: 1427,
-    cutOffPrice: 1503,
-    lotSize: 9,
-    issueSize: 'Rs 4,321 Cr',
-    minInvestment: 'Rs 13,527',
-    openDate: '14 Oct',
-    closeDate: '17 Oct',
-    allotmentDate: '18 Oct',
-    listingDate: '22 Oct',
-    subscription: 8.76,
-    qib: 12.40,
-    nii: 9.80,
-    retail: 5.90,
-    gmp: '+95%',
-    gmpValue: 'Rs 1,425',
-    status: 'Open',
-    segment: 'Mainboard',
-    totalApplications: 412900,
-  },
-  {
-    company: 'Quantum Microtech',
-    priceBand: 'Rs 112 - Rs 118',
-    minPrice: 112,
-    cutOffPrice: 118,
-    lotSize: 1200,
-    issueSize: 'Rs 48 Cr',
-    minInvestment: 'Rs 1,41,600',
-    openDate: '13 Oct',
-    closeDate: '16 Oct',
-    allotmentDate: '17 Oct',
-    listingDate: '21 Oct',
-    subscription: 14.50,
-    qib: 18.20,
-    nii: 16.10,
-    retail: 9.40,
-    gmp: '+28%',
-    gmpValue: 'Rs 33',
-    status: 'Open',
-    segment: 'SME',
-    totalApplications: 58200,
-  },
-
-  // ── UPCOMING IPOS (OCTOBER & NOVEMBER 2026) ──────────────────────
-  {
-    company: 'Hyundai Motor India',
-    priceBand: 'Rs 1,865 - Rs 1,960',
-    minPrice: 1865,
-    cutOffPrice: 1960,
-    lotSize: 7,
-    issueSize: 'Rs 27,870 Cr',
-    minInvestment: 'Rs 13,720',
-    openDate: '15 Oct',
-    closeDate: '17 Oct',
-    allotmentDate: '18 Oct',
-    listingDate: '22 Oct',
-    subscription: 0.0,
-    qib: 0.0,
-    nii: 0.0,
-    retail: 0.0,
-    gmp: '+5%',
-    gmpValue: 'Rs 95',
-    status: 'Upcoming',
-    segment: 'Mainboard',
-    totalApplications: 0,
-  },
-  {
-    company: 'Swiggy Limited',
-    priceBand: 'Rs 371 - Rs 390',
-    minPrice: 371,
-    cutOffPrice: 390,
-    lotSize: 38,
-    issueSize: 'Rs 11,327 Cr',
-    minInvestment: 'Rs 14,820',
-    openDate: '20 Oct',
-    closeDate: '23 Oct',
-    allotmentDate: '24 Oct',
-    listingDate: '29 Oct',
-    subscription: 0.0,
-    qib: 0.0,
-    nii: 0.0,
-    retail: 0.0,
-    gmp: '+12%',
-    gmpValue: 'Rs 46',
-    status: 'Upcoming',
-    segment: 'Mainboard',
-    totalApplications: 0,
-  },
-  {
-    company: 'Deepak Builders & Engineers',
-    priceBand: 'Rs 192 - Rs 203',
-    minPrice: 192,
-    cutOffPrice: 203,
-    lotSize: 73,
-    issueSize: 'Rs 260 Cr',
-    minInvestment: 'Rs 14,819',
-    openDate: '21 Oct',
-    closeDate: '23 Oct',
-    allotmentDate: '24 Oct',
-    listingDate: '28 Oct',
-    subscription: 0.0,
-    qib: 0.0,
-    nii: 0.0,
-    retail: 0.0,
-    gmp: '+30%',
-    gmpValue: 'Rs 61',
-    status: 'Upcoming',
-    segment: 'Mainboard',
-    totalApplications: 0,
-  },
-  {
-    company: 'Godavari Biorefineries',
-    priceBand: 'Rs 334 - Rs 352',
-    minPrice: 334,
-    cutOffPrice: 352,
-    lotSize: 42,
-    issueSize: 'Rs 555 Cr',
-    minInvestment: 'Rs 14,784',
-    openDate: '23 Oct',
-    closeDate: '25 Oct',
-    allotmentDate: '28 Oct',
-    listingDate: '30 Oct',
-    subscription: 0.0,
-    qib: 0.0,
-    nii: 0.0,
-    retail: 0.0,
-    gmp: '+10%',
-    gmpValue: 'Rs 35',
-    status: 'Upcoming',
-    segment: 'Mainboard',
-    totalApplications: 0,
-  },
-  {
-    company: 'NTPC Green Energy',
-    priceBand: 'Rs 102 - Rs 108',
-    minPrice: 102,
-    cutOffPrice: 108,
-    lotSize: 138,
-    issueSize: 'Rs 10,000 Cr',
-    minInvestment: 'Rs 14,904',
-    openDate: '24 Oct',
-    closeDate: '28 Oct',
-    allotmentDate: '29 Oct',
-    listingDate: '3 Nov',
-    subscription: 0.0,
-    qib: 0.0,
-    nii: 0.0,
-    retail: 0.0,
-    gmp: '+15%',
-    gmpValue: 'Rs 16',
-    status: 'Upcoming',
-    segment: 'Mainboard',
-    totalApplications: 0,
-  },
-  {
-    company: 'Afcons Infrastructure',
-    priceBand: 'Rs 440 - Rs 463',
-    minPrice: 440,
-    cutOffPrice: 463,
-    lotSize: 32,
-    issueSize: 'Rs 5,430 Cr',
-    minInvestment: 'Rs 14,816',
-    openDate: '25 Oct',
-    closeDate: '29 Oct',
-    allotmentDate: '30 Oct',
-    listingDate: '4 Nov',
-    subscription: 0.0,
-    qib: 0.0,
-    nii: 0.0,
-    retail: 0.0,
-    gmp: '+18%',
-    gmpValue: 'Rs 83',
-    status: 'Upcoming',
-    segment: 'Mainboard',
-    totalApplications: 0,
-  },
-  {
-    company: 'Astra Solar',
-    priceBand: 'Rs 265 - Rs 280',
-    minPrice: 265,
-    cutOffPrice: 280,
-    lotSize: 53,
-    issueSize: 'Rs 860 Cr',
-    minInvestment: 'Rs 14,840',
-    openDate: '26 Oct',
-    closeDate: '30 Oct',
-    allotmentDate: '31 Oct',
-    listingDate: '5 Nov',
-    subscription: 0.0,
-    qib: 0.0,
-    nii: 0.0,
-    retail: 0.0,
-    gmp: '+8%',
-    gmpValue: 'Rs 22',
-    status: 'Upcoming',
-    segment: 'SME',
-    totalApplications: 0,
-  },
-  {
-    company: 'Urban Infra Trust',
-    priceBand: 'Rs 92 - Rs 98',
-    minPrice: 92,
-    cutOffPrice: 98,
-    lotSize: 150,
-    issueSize: 'Rs 740 Cr',
-    minInvestment: 'Rs 14,700',
-    openDate: '28 Oct',
-    closeDate: '31 Oct',
-    allotmentDate: '3 Nov',
-    listingDate: '7 Nov',
-    subscription: 0.0,
-    qib: 0.0,
-    nii: 0.0,
-    retail: 0.0,
-    gmp: '+5%',
-    gmpValue: 'Rs 5',
-    status: 'Upcoming',
-    segment: 'Mainboard',
-    totalApplications: 0,
-  },
-  {
-    company: 'ACME Solar Holdings',
-    priceBand: 'Rs 275 - Rs 289',
-    minPrice: 275,
-    cutOffPrice: 289,
-    lotSize: 51,
-    issueSize: 'Rs 2,900 Cr',
-    minInvestment: 'Rs 14,739',
-    openDate: '29 Oct',
-    closeDate: '31 Oct',
-    allotmentDate: '4 Nov',
-    listingDate: '6 Nov',
-    subscription: 0.0,
-    qib: 0.0,
-    nii: 0.0,
-    retail: 0.0,
-    gmp: '+14%',
-    gmpValue: 'Rs 40',
-    status: 'Upcoming',
-    segment: 'Mainboard',
-    totalApplications: 0,
-  },
-  {
-    company: 'Sagility India',
-    priceBand: 'Rs 28 - Rs 30',
-    minPrice: 28,
-    cutOffPrice: 30,
-    lotSize: 500,
-    issueSize: 'Rs 2,106 Cr',
-    minInvestment: 'Rs 15,000',
-    openDate: '30 Oct',
-    closeDate: '4 Nov',
-    allotmentDate: '5 Nov',
-    listingDate: '7 Nov',
-    subscription: 0.0,
-    qib: 0.0,
-    nii: 0.0,
-    retail: 0.0,
-    gmp: '+7%',
-    gmpValue: 'Rs 2.10',
-    status: 'Upcoming',
-    segment: 'Mainboard',
-    totalApplications: 0,
-  },
-  {
-    company: 'Tata Autocomp Systems',
-    priceBand: 'Rs 580 - Rs 610',
-    minPrice: 580,
-    cutOffPrice: 610,
-    lotSize: 24,
-    issueSize: 'Rs 2,800 Cr',
-    minInvestment: 'Rs 14,640',
-    openDate: '2 Nov',
-    closeDate: '6 Nov',
-    allotmentDate: '7 Nov',
-    listingDate: '11 Nov',
-    subscription: 0.0,
-    qib: 0.0,
-    nii: 0.0,
-    retail: 0.0,
-    gmp: '+24%',
-    gmpValue: 'Rs 145',
-    status: 'Upcoming',
-    segment: 'Mainboard',
-    totalApplications: 0,
-  },
-  {
-    company: 'Lenskart Solutions',
-    priceBand: 'Rs 420 - Rs 445',
-    minPrice: 420,
-    cutOffPrice: 445,
-    lotSize: 33,
-    issueSize: 'Rs 3,200 Cr',
-    minInvestment: 'Rs 14,685',
-    openDate: '8 Nov',
-    closeDate: '12 Nov',
-    allotmentDate: '13 Nov',
-    listingDate: '17 Nov',
-    subscription: 0.0,
-    qib: 0.0,
-    nii: 0.0,
-    retail: 0.0,
-    gmp: '+18%',
-    gmpValue: 'Rs 80',
-    status: 'Upcoming',
-    segment: 'Mainboard',
-    totalApplications: 0,
-  },
-  {
-    company: 'HDB Financial Services',
-    priceBand: 'Rs 740 - Rs 775',
-    minPrice: 740,
-    cutOffPrice: 775,
-    lotSize: 19,
-    issueSize: 'Rs 12,500 Cr',
-    minInvestment: 'Rs 14,725',
-    openDate: '15 Nov',
-    closeDate: '19 Nov',
-    allotmentDate: '20 Nov',
-    listingDate: '24 Nov',
-    subscription: 0.0,
-    qib: 0.0,
-    nii: 0.0,
-    retail: 0.0,
-    gmp: '+20%',
-    gmpValue: 'Rs 155',
-    status: 'Upcoming',
-    segment: 'Mainboard',
-    totalApplications: 0,
-  },
-
-  // ── CLOSED / RECENTLY LISTED IPOS ──────────────────────────────────
-  {
-    company: 'FinEdge Technologies',
-    priceBand: 'Rs 520 - Rs 548',
-    minPrice: 520,
-    cutOffPrice: 548,
-    lotSize: 27,
-    issueSize: 'Rs 1,860 Cr',
-    minInvestment: 'Rs 14,796',
-    openDate: '28 Sep',
-    closeDate: '2 Oct',
-    allotmentDate: '3 Oct',
-    listingDate: '7 Oct',
-    subscription: 18.42,
-    qib: 24.50,
-    nii: 19.80,
-    retail: 11.20,
-    gmp: '+22%',
-    gmpValue: 'Rs 120',
-    status: 'Closed',
-    segment: 'Mainboard',
-    totalApplications: 840120,
-  },
-  {
-    company: 'GreenGrid Power',
-    priceBand: 'Rs 310 - Rs 326',
-    minPrice: 310,
-    cutOffPrice: 326,
-    lotSize: 46,
-    issueSize: 'Rs 1,125 Cr',
-    minInvestment: 'Rs 14,996',
-    openDate: '20 Sep',
-    closeDate: '24 Sep',
-    allotmentDate: '25 Sep',
-    listingDate: '29 Sep',
-    subscription: 12.76,
-    qib: 16.40,
-    nii: 14.10,
-    retail: 8.50,
-    gmp: '+16%',
-    gmpValue: 'Rs 52',
-    status: 'Listed',
-    segment: 'Mainboard',
-    totalApplications: 620400,
-  },
-  {
-    company: 'CarePoint Hospitals',
-    priceBand: 'Rs 214 - Rs 226',
-    minPrice: 214,
-    cutOffPrice: 226,
-    lotSize: 66,
-    issueSize: 'Rs 680 Cr',
-    minInvestment: 'Rs 14,916',
-    openDate: '15 Sep',
-    closeDate: '19 Sep',
-    allotmentDate: '20 Sep',
-    listingDate: '24 Sep',
-    subscription: 8.35,
-    qib: 10.20,
-    nii: 9.15,
-    retail: 5.70,
-    gmp: '+11%',
-    gmpValue: 'Rs 25',
-    status: 'Listed',
-    segment: 'SME',
-    totalApplications: 410300,
-  },
-  {
-    company: 'BluePeak Retail',
-    priceBand: 'Rs 146 - Rs 154',
-    minPrice: 146,
-    cutOffPrice: 154,
-    lotSize: 96,
-    issueSize: 'Rs 510 Cr',
-    minInvestment: 'Rs 14,784',
-    openDate: '10 Sep',
-    closeDate: '14 Sep',
-    allotmentDate: '15 Sep',
-    listingDate: '19 Sep',
-    subscription: 5.14,
-    qib: 6.80,
-    nii: 5.40,
-    retail: 3.25,
-    gmp: '+6%',
-    gmpValue: 'Rs 9',
-    status: 'Closed',
-    segment: 'SME',
-    totalApplications: 275000,
-  },
-];
-
-const liveIposState = initialIposData.map((ipo) => ({ ...ipo }));
-
 const UPSTOX_IPO_API_URL = 'https://api.upstox.com/v2/ipos';
 const UPSTOX_IPO_CACHE_TTL_MS = 60_000;
-const UPSTOX_IPO_STATUSES = ['open', 'upcoming'];
-const isActiveIpo = (ipo) => ['open', 'upcoming', 'open soon'].includes(
-  String(ipo.status || '').trim().toLowerCase(),
-);
+const UPSTOX_IPO_STATUSES = ['open', 'upcoming', 'closed', 'listed'];
+const NSE_IPO_PAGE_URL = 'https://www.nseindia.com/market-data/all-upcoming-issues-ipo';
+const NSE_IPO_CURRENT_URL = 'https://www.nseindia.com/api/ipo-current-issue';
+const NSE_IPO_UPCOMING_URL = 'https://www.nseindia.com/api/all-upcoming-issues?category=ipo';
+const NSE_IPO_TRACKER_URL = 'https://www.nseindia.com/api/NextApi/apiClient?functionName=getIPOTrackerSummary';
+const NSE_IPO_TRACKER_PAGE_URL = 'https://www.nseindia.com/ipo-tracker?type=ipo_year';
+const NSE_IPO_CACHE_TTL_MS = 60_000;
+const hasIpoApplicationEnded = (ipo, now = Date.now()) => {
+  const date = String(ipo.applicationEndDateISO || '');
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (!match) return false;
+  const [, year, month, day] = match;
+  const endOfApplication = Date.UTC(Number(year), Number(month) - 1, Number(day), 18, 30);
+  return new Date(endOfApplication).toISOString().slice(0, 10) === date && now >= endOfApplication;
+};
+const isActiveIpo = (ipo) => {
+  const status = String(ipo.status || '').trim().toLowerCase();
+  return ['open', 'upcoming', 'open soon'].includes(status)
+    && !hasIpoApplicationEnded(ipo);
+};
 const getActiveIpos = (ipos) => ipos.filter(isActiveIpo);
 let upstoxIpoCache = null;
 let upstoxIpoRequest = null;
+
+const fetchUpstoxIposByStatus = async (status, token) => {
+  const fetchPage = (pageNumber) => axios.get(UPSTOX_IPO_API_URL, {
+    params: { status, page_number: pageNumber, records: 30 },
+    headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+    timeout: 12_000,
+  });
+
+  const firstPage = await fetchPage(1);
+  const totalPages = Math.max(1, Number(firstPage.data?.meta_data?.page?.total_pages) || 1);
+  const pagesToFetch = ['open', 'upcoming'].includes(status) ? totalPages : 1;
+  const remainingPages = await Promise.all(
+    Array.from({ length: pagesToFetch - 1 }, (_, index) => fetchPage(index + 2)),
+  );
+
+  return [firstPage, ...remainingPages].flatMap((response) => response.data?.data || []);
+};
 
 const formatIpoDate = (value) => {
   if (!value) return '—';
@@ -2962,6 +2501,199 @@ const formatIpoDate = (value) => {
 };
 
 const formatIpoAmount = (value) => Number(value).toLocaleString('en-IN');
+
+let nseIpoCache = null;
+let nseIpoRequest = null;
+
+const parseNseIpoDate = (value) => {
+  const match = /^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/.exec(String(value || '').trim());
+  if (!match) return '';
+  const monthIndex = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+    .indexOf(match[2].toLowerCase());
+  if (monthIndex < 0) return '';
+  return `${match[3]}-${String(monthIndex + 1).padStart(2, '0')}-${match[1].padStart(2, '0')}`;
+};
+
+const mapNseIpo = (item) => {
+  const status = String(item.status || '').toLowerCase();
+  if (!['active', 'forthcoming'].includes(status)) return null;
+  const applicationEndDateISO = parseNseIpoDate(item.issueEndDate);
+  const applicationStartDateISO = parseNseIpoDate(item.issueStartDate);
+  const priceValues = String(item.priceBand || item.issuePrice || '')
+    .match(/[\d,]+(?:\.\d+)?/g)?.map((value) => Number(value.replaceAll(',', '')))
+    .filter(Number.isFinite) || [];
+  const minimumPrice = priceValues.length ? priceValues[0] : null;
+  const maximumPrice = priceValues.length > 1 ? priceValues.at(-1) : minimumPrice;
+  const priceBand = minimumPrice === null
+    ? 'Not announced'
+    : maximumPrice !== minimumPrice
+      ? `₹${formatIpoAmount(minimumPrice)} – ₹${formatIpoAmount(maximumPrice)}`
+      : `₹${formatIpoAmount(minimumPrice)}`;
+  const lotSize = Number(String(item.lotSize || '').replaceAll(',', '')) || null;
+  const offeredShares = Number(String(item.issueSize || item.noOfSharesOffered || '').replaceAll(',', '')) || null;
+  const subscriptionValue = Number(item.noOfTime || item.noOfTimes);
+  const symbol = String(item.symbol || '').trim();
+  const company = String(item.companyName || item.company || symbol || 'IPO issue').trim();
+  const idSlug = (symbol || company).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const issueStatus = status === 'active' ? 'Open' : 'Upcoming';
+
+  return {
+    id: `nse-${idSlug}`,
+    symbol,
+    company,
+    priceBand,
+    minPrice: minimumPrice,
+    minimumPrice,
+    maximumPrice,
+    cutOffPrice: maximumPrice,
+    lotSize,
+    minimumQuantity: lotSize,
+    issueSize: offeredShares ? `${formatIpoAmount(offeredShares)} shares` : 'Not provided',
+    issueSizeLabel: 'Shares offered',
+    minInvestment: lotSize && maximumPrice
+      ? `₹${formatIpoAmount(lotSize * maximumPrice)}`
+      : '',
+    openDate: formatIpoDate(applicationStartDateISO),
+    closeDate: formatIpoDate(applicationEndDateISO),
+    applicationEndDateISO,
+    allotmentDate: 'Not provided',
+    listingDate: 'Not provided',
+    subscription: Number.isFinite(subscriptionValue) && subscriptionValue > 0
+      ? `${subscriptionValue.toFixed(2)}x`
+      : 'Not provided',
+    qibFormatted: '',
+    niiFormatted: '',
+    retailFormatted: '',
+    gmp: '',
+    gmpValue: 'Not provided',
+    status: issueStatus,
+    segment: String(item.series || '').toUpperCase() === 'SME' ? 'SME' : 'Mainboard',
+    totalApplications: null,
+    issueExchange: item.isBse === '1' ? 'BSE' : 'NSE',
+    listingExchange: item.isBse === '1' ? 'BSE' : 'NSE',
+    source: 'nse',
+    sourceUrl: NSE_IPO_PAGE_URL,
+    isLive: true,
+    investors: [],
+    registrar: null,
+    financials: null,
+    useOfProceeds: null,
+    strengths: [],
+    risks: [],
+  };
+};
+
+const mapNseListedIpo = (item) => {
+  const symbol = String(item.SYMBOL || '').trim();
+  const company = String(item.COMPANYNAME || symbol || 'Listed IPO').trim();
+  const issuePrice = Number(item.ISSUE_PRICE);
+  const listingDateMatch = /^(\d{2})-(\d{2})-(\d{4})$/.exec(String(item.LISTED_ON || ''));
+  const listingDateISO = listingDateMatch
+    ? `${listingDateMatch[3]}-${listingDateMatch[2]}-${listingDateMatch[1]}`
+    : '';
+  const idSlug = (symbol || company).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+  return {
+    id: `nse-${idSlug}`,
+    symbol,
+    company,
+    priceBand: Number.isFinite(issuePrice) ? `₹${formatIpoAmount(issuePrice)}` : 'Not provided',
+    priceBandLabel: 'Issue price',
+    minPrice: Number.isFinite(issuePrice) ? issuePrice : null,
+    minimumPrice: Number.isFinite(issuePrice) ? issuePrice : null,
+    maximumPrice: Number.isFinite(issuePrice) ? issuePrice : null,
+    cutOffPrice: Number.isFinite(issuePrice) ? issuePrice : null,
+    lotSize: null,
+    minimumQuantity: null,
+    issueSize: 'Not provided',
+    issueSizeLabel: 'Issue size',
+    minInvestment: '',
+    openDate: 'Not provided',
+    closeDate: 'Not provided',
+    allotmentDate: 'Not provided',
+    listingDate: formatIpoDate(listingDateISO),
+    subscription: 'Not provided',
+    gmp: '',
+    gmpValue: 'Not provided',
+    status: 'Listed',
+    segment: String(item.MARKETTYPE || '').toUpperCase().includes('SME') ? 'SME' : 'Mainboard',
+    listingExchange: 'NSE',
+    listingPrice: Number(item.LISTED_DAY_CLOSE) || null,
+    currentPrice: Number(item.LTP || item.CURRENT_PRICE) || null,
+    listingGain: Number(item.LISTED_DAY_GAIN) || 0,
+    listingGainPercent: Number(item.LISTED_DAY_GAIN_PER) || 0,
+    gainFromIssue: Number(item.GAIN_LOSS) || 0,
+    gainFromIssuePercent: Number(item.GAIN_LOSS_PER) || 0,
+    source: 'nse',
+    sourceUrl: NSE_IPO_TRACKER_PAGE_URL,
+    isLive: true,
+  };
+};
+
+const getNseIpoFeed = async () => {
+  if (nseIpoCache && Date.now() - nseIpoCache.fetchedAt < NSE_IPO_CACHE_TTL_MS) {
+    return { ...nseIpoCache, data: getActiveIpos(nseIpoCache.data) };
+  }
+  if (nseIpoRequest) return nseIpoRequest;
+
+  nseIpoRequest = (async () => {
+    const headers = {
+      Accept: 'application/json,text/plain,*/*',
+      Referer: NSE_IPO_PAGE_URL,
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36',
+    };
+    const [currentResponse, upcomingResponse, trackerResponse] = await Promise.all([
+      axios.get(NSE_IPO_CURRENT_URL, { headers, timeout: 12_000 }),
+      axios.get(NSE_IPO_UPCOMING_URL, { headers, timeout: 12_000 }),
+      axios.get(NSE_IPO_TRACKER_URL, { headers: { ...headers, Referer: NSE_IPO_TRACKER_PAGE_URL }, timeout: 12_000 }),
+    ]);
+    if (!Array.isArray(currentResponse.data) || !Array.isArray(upcomingResponse.data)
+      || !Array.isArray(trackerResponse.data?.data)) {
+      throw new Error('NSE returned an invalid IPO feed.');
+    }
+
+    const issuesBySymbol = new Map();
+    for (const item of [...upcomingResponse.data, ...currentResponse.data]) {
+      const key = String(item.symbol || item.companyName || '').trim().toLowerCase();
+      if (!key) continue;
+      const previous = issuesBySymbol.get(key) || {};
+      issuesBySymbol.set(key, {
+        ...previous,
+        ...Object.fromEntries(Object.entries(item).filter(([, value]) => value !== null && value !== undefined && value !== '')),
+      });
+    }
+
+    const mappedIssues = [...issuesBySymbol.values()].map(mapNseIpo).filter(Boolean);
+    const fetchedAt = Date.now();
+    const data = getActiveIpos(mappedIssues)
+      .sort((first, second) => (first.status === 'Open' ? 0 : 1) - (second.status === 'Open' ? 0 : 1));
+    const historyById = new Map(
+      trackerResponse.data.data
+        .map(mapNseListedIpo)
+        .filter((ipo) => ipo.symbol)
+        .map((ipo) => [ipo.id, ipo]),
+    );
+    const activeIds = new Set(data.map((ipo) => ipo.id));
+    for (const ipo of [...(nseIpoCache?.data || []), ...mappedIssues]) {
+      if (!activeIds.has(ipo.id) && hasIpoApplicationEnded(ipo)) {
+        historyById.set(ipo.id, { ...ipo, status: 'Closed', isLive: false, stale: true });
+      }
+    }
+    nseIpoCache = {
+      data,
+      history: [...historyById.values()],
+      fetchedAt,
+      lastUpdated: new Date(fetchedAt).toISOString(),
+    };
+    return nseIpoCache;
+  })();
+
+  try {
+    return await nseIpoRequest;
+  } finally {
+    nseIpoRequest = null;
+  }
+};
 
 const mapUpstoxIpo = (item, fallbackStatus = 'upcoming') => {
   const timeline = item.timeline || {};
@@ -2984,6 +2716,7 @@ const mapUpstoxIpo = (item, fallbackStatus = 'upcoming') => {
     symbol: item.symbol || '',
     isin: item.isin || '',
     company: (item.name || item.symbol || 'Unnamed IPO').replace(/\s+IPO$/i, ''),
+    logoUrl: [item.logo_url, item.logoUrl, item.logo].find((value) => typeof value === 'string' && value.trim()) || '',
     priceBand,
     minPrice: minimumPrice,
     cutOffPrice: Number(item.cut_off_price) || maximumPrice || minimumPrice || null,
@@ -2992,8 +2725,15 @@ const mapUpstoxIpo = (item, fallbackStatus = 'upcoming') => {
       ? `₹${formatIpoAmount(item.issue_size)} Cr`
       : '—',
     minInvestment: minimumInvestment,
+    minimumQuantity: Number(item.minimum_quantity) || null,
+    faceValue: Number(item.face_value) || null,
+    dailyStartTime: item.daily_start_time || '',
+    dailyEndTime: item.daily_end_time || '',
+    minimumPrice,
+    maximumPrice,
     openDate: formatIpoDate(timeline.application_start_date || item.bidding_start_date),
     closeDate: formatIpoDate(timeline.application_end_date || item.bidding_end_date),
+    applicationEndDateISO: timeline.application_end_date || item.bidding_end_date || '',
     allotmentDate: formatIpoDate(timeline.allotment_date),
     listingDate: formatIpoDate(timeline.listing_date),
     subscription: totalSubscription !== null && Number.isFinite(totalSubscription) ? `${totalSubscription.toFixed(2)}x` : '—',
@@ -3008,39 +2748,48 @@ const mapUpstoxIpo = (item, fallbackStatus = 'upcoming') => {
     industry: item.industry || '',
     listingPrice: item.listing_price ?? null,
     listingExchange: item.listing_exchange || '',
-    prospectusUrl: item.rhp_url || item.drhp_url || '',
+    prospectusUrl: item.rhp_url || '',
+    draftProspectusUrl: item.drhp_url || '',
     registrar: item.registrar_info || null,
+    investors: Array.isArray(item.investors) ? item.investors : [],
+    financials: item.financials || item.company_financials || null,
+    useOfProceeds: item.use_of_proceeds || item.objects_of_issue || item.issue_objectives || null,
+    strengths: Array.isArray(item.strengths) ? item.strengths : [],
+    risks: Array.isArray(item.risks) ? item.risks : [],
+    dailyBidTimings: item.daily_start_time && item.daily_end_time
+      ? `${item.daily_start_time.slice(0, 5)}–${item.daily_end_time.slice(0, 5)} IST`
+      : '',
     source: 'upstox',
     isLive: true,
   };
 };
 
-const getUpstoxIpoFeed = async () => {
+const getUpstoxIpoFeed = async (accessToken = process.env.UPSTOX_ACCESS_TOKEN) => {
   if (upstoxIpoCache && Date.now() - upstoxIpoCache.fetchedAt < UPSTOX_IPO_CACHE_TTL_MS) {
     return upstoxIpoCache;
   }
   if (upstoxIpoRequest) return upstoxIpoRequest;
 
   upstoxIpoRequest = (async () => {
-    const token = process.env.UPSTOX_ACCESS_TOKEN;
+    const token = accessToken;
     if (!token) throw new Error('UPSTOX_ACCESS_TOKEN is not configured.');
 
-    const responses = await Promise.all(UPSTOX_IPO_STATUSES.map((status) => axios.get(UPSTOX_IPO_API_URL, {
-      params: { status, page_number: 1, records: 30 },
-      headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
-      timeout: 12_000,
-    })));
+    const statusLists = await Promise.all(
+      UPSTOX_IPO_STATUSES.map((status) => fetchUpstoxIposByStatus(status, token)),
+    );
 
     const uniqueIpos = new Map();
-    for (const [index, response] of responses.entries()) {
-      for (const item of response.data?.data || []) {
+    for (const [index, items] of statusLists.entries()) {
+      for (const item of items) {
         if (item.id) uniqueIpos.set(item.id, mapUpstoxIpo(item, UPSTOX_IPO_STATUSES[index]));
       }
     }
 
+    const allIpos = [...uniqueIpos.values()];
     const fetchedAt = Date.now();
     upstoxIpoCache = {
-      data: getActiveIpos([...uniqueIpos.values()]),
+      data: getActiveIpos(allIpos),
+      history: allIpos.filter((ipo) => ['closed', 'listed'].includes(String(ipo.status).toLowerCase())),
       fetchedAt,
       lastUpdated: new Date(fetchedAt).toISOString(),
     };
@@ -3054,17 +2803,6 @@ const getUpstoxIpoFeed = async () => {
   }
 };
 
-const formatDemoIpos = () => liveIposState.map((ipo) => ({
-  ...ipo,
-  subscription: `${Number(ipo.subscription).toFixed(2)}x`,
-  qibFormatted: `${Number(ipo.qib).toFixed(2)}x`,
-  niiFormatted: `${Number(ipo.nii).toFixed(2)}x`,
-  retailFormatted: `${Number(ipo.retail).toFixed(2)}x`,
-  source: 'demo',
-  isLive: false,
-}));
-
-// 1-second simulated live subscription & application updates for OPEN IPOs
 // Zerodha (Kite Connect) batch quote proxy
 app.get('/api/zerodha/quotes', async (req, res) => {
   const symbols = (req.query.symbols || '').split(',').filter(Boolean);
@@ -3159,23 +2897,6 @@ app.get('/api/rapid/quotes', async (req, res) => {
     res.json(fallback);
   }
 });
-// Existing Zerodha route remains above
-setInterval(() => {
-  for (const ipo of liveIposState) {
-    if (ipo.status === 'Open') {
-      // Add small incoming bids per second
-      const newApps = Math.floor(1 + Math.random() * 8);
-      ipo.totalApplications += newApps;
-
-      const subDelta = Number((Math.random() * 0.004).toFixed(3));
-      ipo.subscription = Number((ipo.subscription + subDelta).toFixed(2));
-      ipo.retail = Number((ipo.retail + subDelta * 0.6).toFixed(2));
-      ipo.qib = Number((ipo.qib + subDelta * 1.3).toFixed(2));
-      ipo.nii = Number((ipo.nii + subDelta * 0.9).toFixed(2));
-    }
-  }
-}, 1000);
-
 // Calendar events are proxied server-side so provider credentials never reach the browser.
 app.get('/api/calendar', async (req, res) => {
   const kind = String(req.query.kind || '').toLowerCase();
@@ -3300,29 +3021,52 @@ app.get('/api/calendar', async (req, res) => {
   }
 });
 
-// GET /api/ipos - Upstox IPO feed with an explicitly labelled local demo fallback.
+// GET /api/ipos - Provider-only open and upcoming IPO feed.
 app.get('/api/ipos', async (req, res) => {
-  if (!process.env.UPSTOX_ACCESS_TOKEN) {
-    const data = getActiveIpos(formatDemoIpos());
+  const accessToken = userIpoToken(req) || process.env.UPSTOX_ACCESS_TOKEN;
+  const sendNseFeed = async (reason) => {
+    const feed = await getNseIpoFeed();
     return res.json({
       success: true,
-      count: data.length,
-      data,
-      source: 'demo',
-      live: false,
-      configured: false,
-      lastUpdated: new Date().toISOString(),
-      message: 'Add UPSTOX_ACCESS_TOKEN to .env and restart the server to load the live IPO feed.',
+      count: feed.data.length,
+      data: feed.data,
+      history: feed.history,
+      source: 'nse',
+      live: true,
+      configured: Boolean(accessToken),
+      lastUpdated: feed.lastUpdated,
+      refreshIntervalMs: NSE_IPO_CACHE_TTL_MS,
+      message: `${reason} Showing current and forthcoming issues from NSE India.`,
     });
+  };
+
+  if (!accessToken) {
+    try {
+      return await sendNseFeed('Upstox is not configured.');
+    } catch (error) {
+      console.error('NSE IPO feed request failed:', error.response?.status || error.message);
+      return res.json({
+        success: true,
+        count: 0,
+        data: [],
+        history: [],
+        source: 'unavailable',
+        live: false,
+        configured: false,
+        lastUpdated: new Date().toISOString(),
+        message: 'Live IPO listings are unavailable from both NSE India and Upstox.',
+      });
+    }
   }
 
   try {
-    const feed = await getUpstoxIpoFeed();
+    const feed = await getUpstoxIpoFeed(accessToken);
     const data = feed.data;
     return res.json({
       success: true,
       count: data.length,
       data,
+      history: feed.history || [],
       source: 'upstox',
       live: true,
       configured: true,
@@ -3330,112 +3074,375 @@ app.get('/api/ipos', async (req, res) => {
       refreshIntervalMs: UPSTOX_IPO_CACHE_TTL_MS,
     });
   } catch (error) {
-    if (upstoxIpoCache?.data?.length) {
-      const data = upstoxIpoCache.data;
-      return res.json({
-        success: true,
-        count: data.length,
-        data,
-        source: 'upstox',
-        live: false,
-        stale: true,
-        configured: true,
-        lastUpdated: upstoxIpoCache.lastUpdated,
-        message: 'Showing the last successful Upstox IPO feed; the latest refresh failed.',
-      });
+    console.error('Upstox IPO feed request failed:', error.response?.status || error.message);
+    try {
+      return await sendNseFeed(`Upstox returned ${error.response?.status || 'an error'}.`);
+    } catch (nseError) {
+      console.error('NSE IPO feed request failed:', nseError.response?.status || nseError.message);
     }
 
-    console.error('Upstox IPO feed request failed:', error.response?.status || error.message);
-    const data = getActiveIpos(formatDemoIpos());
+    if (upstoxIpoCache) {
+      const data = getActiveIpos(upstoxIpoCache.data).map((ipo) => ({ ...ipo, isLive: false, stale: true }));
+      const history = (upstoxIpoCache.history || []).map((ipo) => ({ ...ipo, isLive: false, stale: true }));
+      if (data.length || history.length) {
+        return res.json({
+          success: true,
+          count: data.length,
+          data,
+          history,
+          source: 'upstox',
+          live: false,
+          stale: true,
+          configured: true,
+          lastUpdated: upstoxIpoCache.lastUpdated,
+          message: 'Both current IPO providers failed. Showing the last successful Upstox update.',
+        });
+      }
+    }
+
     return res.json({
       success: true,
-      count: data.length,
-      data,
-      source: 'demo',
+      count: 0,
+      data: [],
+      history: [],
+      source: 'unavailable',
       live: false,
       configured: true,
       lastUpdated: new Date().toISOString(),
-      message: 'Upstox could not refresh the IPO feed. Check that the access token is valid; demo data is shown.',
+      message: 'Live IPO listings are unavailable from both NSE India and Upstox. No sample listings are being shown.',
     });
   }
 });
 
-// GET /api/ipo/:company - Full Upstox detail, looked up by IPO ID or company name.
+app.get('/api/ipo/orders', async (req, res) => {
+  const token = userIpoToken(req);
+  if (!token) return res.status(401).json({ error: 'Connect your Upstox account to view and track your IPO applications.', code: 'ipo_account_not_connected' });
+  try {
+    const getPage = (pageNumber) => axios.get(IPO_ORDER_API_URL, {
+      params: { page_number: pageNumber, records: 30 },
+      headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+      timeout: 12_000,
+    });
+    const firstPage = await getPage(1);
+    const totalPages = Math.max(1, Number(firstPage.data?.meta_data?.page?.total_pages) || 1);
+    const rest = await Promise.all(Array.from({ length: totalPages - 1 }, (_, index) => getPage(index + 2)));
+    return res.json({
+      data: [firstPage, ...rest].flatMap((response) => response.data?.data || []),
+      lastUpdated: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Upstox IPO application list failed:', error.response?.status || error.message);
+    return res.status(error.response?.status || 502).json({ error: 'Could not load your IPO applications from Upstox.', code: 'ipo_orders_unavailable' });
+  }
+});
+
+// GET /api/ipo/:company - Upstox details or live NSE listing details.
 app.get('/api/ipo/:company', async (req, res) => {
   const lookup = decodeURIComponent(req.params.company).toLowerCase();
+  const accessToken = userIpoToken(req) || process.env.UPSTOX_ACCESS_TOKEN;
+  const isNseIssue = lookup.startsWith('nse-');
 
-  if (process.env.UPSTOX_ACCESS_TOKEN) {
+  if (accessToken && !isNseIssue) {
     try {
-      const feed = await getUpstoxIpoFeed();
-      const listedIpo = feed.data.find((ipo) => (
+      const feed = await getUpstoxIpoFeed(accessToken);
+      const listedIpo = [...feed.data, ...(feed.history || [])].find((ipo) => (
         ipo.id?.toLowerCase() === lookup || ipo.company.toLowerCase() === lookup
       ));
-      if (!listedIpo) return res.status(404).json({ error: 'IPO not found in this list.' });
-      if (listedIpo.source === 'manual') {
-        return res.json({ ...listedIpo, lastUpdate: new Date().toISOString() });
+      const ipoId = listedIpo?.id || (/^[a-z0-9-]{2,120}$/i.test(lookup) ? lookup : '');
+      if (ipoId) {
+        const response = await axios.get(`${UPSTOX_IPO_API_URL}/${encodeURIComponent(ipoId)}`, {
+          headers: { Accept: 'application/json', Authorization: `Bearer ${accessToken}` },
+          timeout: 12_000,
+        });
+        if (response.data?.status === 'success' && response.data?.data) {
+          return res.json({
+            ...mapUpstoxIpo(response.data.data),
+            source: 'upstox',
+            isLive: true,
+            lastUpdate: new Date().toISOString(),
+          });
+        }
       }
-      const ipoId = listedIpo.id;
-      const response = await axios.get(`${UPSTOX_IPO_API_URL}/${encodeURIComponent(ipoId)}`, {
-        headers: { Accept: 'application/json', Authorization: `Bearer ${process.env.UPSTOX_ACCESS_TOKEN}` },
-        timeout: 12_000,
-      });
-      if (response.data?.status !== 'success' || !response.data?.data) {
-        return res.status(502).json({ error: 'Upstox returned an invalid IPO detail response.' });
-      }
-      return res.json({
-        ...mapUpstoxIpo(response.data.data),
-        source: 'upstox',
-        isLive: true,
-        lastUpdate: new Date().toISOString(),
-      });
     } catch (error) {
       console.error('Upstox IPO details request failed:', error.response?.status || error.message);
-      return res.status(error.response?.status === 404 ? 404 : 502).json({
-        error: error.response?.status === 404 ? 'IPO not found in the Upstox feed.' : 'Could not load IPO details from Upstox.',
-      });
     }
   }
 
-  const found = getActiveIpos(formatDemoIpos()).find((ipo) => (
-    ipo.company.toLowerCase() === lookup || ipo.id?.toLowerCase() === lookup
-  ));
-  if (!found) return res.status(404).json({ error: 'IPO not found' });
-  return res.json({
-    ...found,
-    lastUpdate: new Date().toISOString(),
-  });
+  try {
+    const feed = await getNseIpoFeed();
+    const nseLookup = lookup.replace(/^nse-/, '');
+    const ipo = feed.data.find((item) => (
+      item.id.toLowerCase() === lookup
+      || item.symbol.toLowerCase() === nseLookup
+      || item.company.toLowerCase() === lookup
+    )) || (feed.history || []).find((item) => (
+      item.id.toLowerCase() === lookup
+      || item.symbol.toLowerCase() === nseLookup
+      || item.company.toLowerCase() === lookup
+    ));
+    if (!ipo) return res.status(404).json({ error: 'IPO not found in the current, forthcoming, or listed NSE issue feeds.' });
+    return res.json({ ...ipo, lastUpdate: feed.lastUpdated });
+  } catch (error) {
+    console.error('NSE IPO details request failed:', error.response?.status || error.message);
+    return res.status(accessToken ? 502 : 503).json({
+      error: 'Could not load this IPO from NSE India or Upstox.',
+      code: 'ipo_details_unavailable',
+    });
+  }
 });
 
-// POST /api/ipo/apply - Real-time IPO application
-app.post('/api/ipo/apply', (req, res) => {
-  const { company, lots = 1, upiId } = req.body;
-  const ipo = liveIposState.find((i) => i.company.toLowerCase() === (company || '').toLowerCase());
-  if (!ipo) {
-    return res.status(404).json({ error: 'IPO not found' });
+const IPO_ORDER_API_URL = `${UPSTOX_IPO_API_URL}/orders`;
+const IPO_AUTH_COOKIE = 'sharemarket_ipo_upstox_session';
+const IPO_STATE_COOKIE = 'sharemarket_ipo_upstox_state';
+const hasStrongIpoSessionSecret = () => Buffer.byteLength(process.env.IPO_SESSION_SECRET || '', 'utf8') >= 32;
+const ipoSessionKey = () => hasStrongIpoSessionSecret()
+  ? crypto.createHash('sha256').update(process.env.IPO_SESSION_SECRET).digest()
+  : null;
+const getRequestCookie = (req, name) => {
+  const prefix = `${name}=`;
+  const cookie = String(req.headers.cookie || '').split(';').map((value) => value.trim()).find((value) => value.startsWith(prefix));
+  return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : '';
+};
+const appendCookie = (res, name, value, { maxAge = 0, httpOnly = true, path = '/api/ipo', secure = false } = {}) => {
+  const parts = [`${name}=${encodeURIComponent(value)}`, `Path=${path}`, 'SameSite=Lax', `Max-Age=${maxAge}`];
+  if (httpOnly) parts.push('HttpOnly');
+  if (secure) parts.push('Secure');
+  res.append('Set-Cookie', parts.join('; '));
+};
+const requestIsSecure = (req) => req.get('x-forwarded-proto') === 'https' || req.secure;
+const clearIpoCookie = (req, res, name) => appendCookie(res, name, '', {
+  maxAge: 0,
+  path: name === IPO_STATE_COOKIE ? '/api/ipo/auth' : '/api/ipo',
+  secure: requestIsSecure(req),
+});
+const sealIpoAccessToken = (token) => {
+  const key = ipoSessionKey();
+  if (!key) throw new Error('IPO_SESSION_SECRET is not configured.');
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+  const ciphertext = Buffer.concat([cipher.update(token, 'utf8'), cipher.final()]);
+  return [iv, cipher.getAuthTag(), ciphertext].map((value) => value.toString('base64url')).join('.');
+};
+const unsealIpoAccessToken = (req) => {
+  try {
+    const key = ipoSessionKey();
+    if (!key) return '';
+    const [ivPart, tagPart, ciphertextPart] = getRequestCookie(req, IPO_AUTH_COOKIE).split('.');
+    if (!ivPart || !tagPart || !ciphertextPart) return '';
+    const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(ivPart, 'base64url'));
+    decipher.setAuthTag(Buffer.from(tagPart, 'base64url'));
+    return Buffer.concat([
+      decipher.update(Buffer.from(ciphertextPart, 'base64url')),
+      decipher.final(),
+    ]).toString('utf8');
+  } catch {
+    return '';
   }
-  if (ipo.status !== 'Open') {
-    return res.status(400).json({ error: `Cannot apply: IPO status is ${ipo.status}` });
+};
+const userIpoToken = (req) => unsealIpoAccessToken(req);
+const safeReturnPath = (value) => typeof value === 'string' && value.startsWith('/') && !value.startsWith('//')
+  ? value.slice(0, 500)
+  : '/ipo';
+const verifyIpoOAuthState = (storedValue, state) => {
+  const [storedState, returnEncoded, signature] = storedValue.split('.');
+  const secret = process.env.IPO_SESSION_SECRET;
+  if (!secret || !storedState || !returnEncoded || !signature || storedState !== state) return null;
+  const payload = `${storedState}.${returnEncoded}`;
+  const expected = crypto.createHmac('sha256', secret).update(payload).digest('base64url');
+  const actualBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expected);
+  if (actualBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(actualBuffer, expectedBuffer)) return null;
+  try {
+    return safeReturnPath(Buffer.from(returnEncoded, 'base64url').toString('utf8'));
+  } catch {
+    return null;
   }
+};
+const ipoOAuthIsConfigured = () => Boolean(
+  process.env.UPSTOX_CLIENT_ID
+  && process.env.UPSTOX_CLIENT_SECRET
+  && process.env.UPSTOX_REDIRECT_URI
+  && hasStrongIpoSessionSecret(),
+);
+const requireSameOrigin = (req, res) => {
+  const source = req.get('origin') || req.get('referer');
+  const host = req.get('x-forwarded-host') || req.get('host');
+  if (!source || !host) {
+    res.status(403).json({ error: 'The request origin could not be verified.', code: 'invalid_request_origin' });
+    return false;
+  }
+  try {
+    if (new URL(source).host !== host) throw new Error('origin mismatch');
+  } catch {
+    res.status(403).json({ error: 'The request origin could not be verified.', code: 'invalid_request_origin' });
+    return false;
+  }
+  return true;
+};
 
-  // Update live subscription stats
-  ipo.totalApplications += 1;
-  const lotDelta = (lots * 0.001);
-  ipo.subscription = Number((ipo.subscription + lotDelta).toFixed(2));
-  ipo.retail = Number((ipo.retail + lotDelta).toFixed(2));
+app.get('/api/ipo/auth/status', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json({ configured: ipoOAuthIsConfigured(), connected: Boolean(userIpoToken(req)) });
+});
 
-  const investment = lots * ipo.lotSize * ipo.cutOffPrice;
-  res.json({
-    success: true,
-    message: `IPO application submitted for ${ipo.company}`,
-    application: {
-      company: ipo.company,
-      lots,
-      amount: `Rs ${investment.toLocaleString('en-IN')}`,
-      upiId: upiId || 'N/A',
-      status: 'Submitted',
-      timestamp: new Date().toISOString(),
-    },
+app.get('/api/ipo/auth/connect', (req, res) => {
+  if (!ipoOAuthIsConfigured()) {
+    return res.status(503).json({
+      error: 'Configure UPSTOX_CLIENT_ID, UPSTOX_CLIENT_SECRET, UPSTOX_REDIRECT_URI, and IPO_SESSION_SECRET on the server to enable secure broker login.',
+      code: 'ipo_oauth_not_configured',
+    });
+  }
+  const redirectUri = new URL(process.env.UPSTOX_REDIRECT_URI);
+  const returnTo = safeReturnPath(String(req.query.return_to || '/ipo'));
+  const state = crypto.randomBytes(24).toString('hex');
+  const returnEncoded = Buffer.from(returnTo).toString('base64url');
+  const payload = `${state}.${returnEncoded}`;
+  const signature = crypto.createHmac('sha256', process.env.IPO_SESSION_SECRET).update(payload).digest('base64url');
+  appendCookie(res, IPO_STATE_COOKIE, `${payload}.${signature}`, {
+    maxAge: 600,
+    path: '/api/ipo/auth',
+    secure: requestIsSecure(req),
   });
+  const login = new URL('https://api.upstox.com/v2/login/authorization/dialog');
+  login.searchParams.set('response_type', 'code');
+  login.searchParams.set('client_id', process.env.UPSTOX_CLIENT_ID);
+  login.searchParams.set('redirect_uri', redirectUri.toString());
+  login.searchParams.set('state', state);
+  return res.redirect(302, login.toString());
+});
+
+app.get('/api/ipo/auth/callback', async (req, res) => {
+  const returnTo = verifyIpoOAuthState(getRequestCookie(req, IPO_STATE_COOKIE), String(req.query.state || ''));
+  clearIpoCookie(req, res, IPO_STATE_COOKIE);
+  const redirectUri = process.env.UPSTOX_REDIRECT_URI;
+  if (!returnTo || !ipoOAuthIsConfigured() || !redirectUri) {
+    return res.status(400).send('Upstox login could not be verified. Return to the IPO page and connect again.');
+  }
+  if (req.query.error || !req.query.code) {
+    const failure = new URL(returnTo, new URL(redirectUri).origin);
+    failure.searchParams.set('ipo_auth', 'failed');
+    return res.redirect(302, failure.toString());
+  }
+
+  try {
+    const tokenResponse = await axios.post(
+      'https://api.upstox.com/v2/login/authorization/token',
+      new URLSearchParams({
+        code: String(req.query.code),
+        client_id: process.env.UPSTOX_CLIENT_ID,
+        client_secret: process.env.UPSTOX_CLIENT_SECRET,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code',
+      }).toString(),
+      { headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' }, timeout: 12_000 },
+    );
+    const accessToken = tokenResponse.data?.access_token;
+    if (!accessToken) throw new Error('Upstox did not return an access token.');
+    appendCookie(res, IPO_AUTH_COOKIE, sealIpoAccessToken(accessToken), {
+      maxAge: 8 * 60 * 60,
+      secure: requestIsSecure(req),
+    });
+    const destination = new URL(returnTo, new URL(redirectUri).origin);
+    destination.searchParams.set('ipo_auth', 'connected');
+    return res.redirect(302, destination.toString());
+  } catch (error) {
+    console.error('Upstox IPO authorization failed:', error.response?.status || error.message);
+    const destination = new URL(returnTo, new URL(redirectUri).origin);
+    destination.searchParams.set('ipo_auth', 'failed');
+    return res.redirect(302, destination.toString());
+  }
+});
+
+app.post('/api/ipo/auth/logout', (req, res) => {
+  if (!requireSameOrigin(req, res)) return;
+  clearIpoCookie(req, res, IPO_AUTH_COOKIE);
+  res.json({ connected: false });
+});
+
+// Submits only after the logged-in user confirms their bid; the broker token stays in an encrypted HttpOnly cookie.
+app.post('/api/ipo/apply', async (req, res) => {
+  if (!requireSameOrigin(req, res)) return;
+  const token = userIpoToken(req);
+  if (!token) return res.status(401).json({ error: 'Connect your Upstox account before applying.', code: 'ipo_account_not_connected' });
+
+  const { id, upi, category = 'IND', lots = 1, price } = req.body || {};
+  if (typeof id !== 'string' || !/^[a-z0-9-]{2,120}$/i.test(id)) {
+    return res.status(400).json({ error: 'Select a valid IPO from the live feed.', code: 'invalid_ipo_id' });
+  }
+  if (typeof upi !== 'string' || !/^[\w.-]{2,256}@[\w.-]{2,64}$/.test(upi.trim())) {
+    return res.status(400).json({ error: 'Enter a valid UPI ID.', code: 'invalid_upi' });
+  }
+  if (!['IND', 'HNI'].includes(category)) {
+    return res.status(400).json({ error: 'Choose Individual or HNI investor category.', code: 'invalid_ipo_category' });
+  }
+  const lotCount = Number(lots);
+  const bidPrice = Number(price);
+  if (!Number.isInteger(lotCount) || lotCount < 1 || lotCount > 100 || !Number.isFinite(bidPrice)) {
+    return res.status(400).json({ error: 'Enter a valid lot count and bid price.', code: 'invalid_ipo_bid' });
+  }
+
+  try {
+    const detailsResponse = await axios.get(`${UPSTOX_IPO_API_URL}/${encodeURIComponent(id)}`, {
+      headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+      timeout: 12_000,
+    });
+    const details = detailsResponse.data?.data;
+    if (!details || detailsResponse.data?.status !== 'success') throw new Error('Upstox returned invalid IPO details.');
+    if (String(details.status).toLowerCase() !== 'open'
+      || hasIpoApplicationEnded(mapUpstoxIpo(details, 'open'))) {
+      return res.status(409).json({ error: 'This IPO is no longer open for applications.', code: 'ipo_not_open' });
+    }
+    const quantity = Number(details.lot_size) * lotCount;
+    const minimumQuantity = Number(details.minimum_quantity) || Number(details.lot_size);
+    const minimumPrice = Number(details.minimum_price);
+    const maximumPrice = Number(details.maximum_price);
+    const cutOffPrice = Number(details.cut_off_price);
+    const quantityValid = quantity >= minimumQuantity && quantity % Number(details.lot_size) === 0;
+    const priceValid = (bidPrice >= minimumPrice && bidPrice <= maximumPrice)
+      || (cutOffPrice > 0 && bidPrice === cutOffPrice);
+    if (!quantityValid || !priceValid) {
+      return res.status(400).json({
+        error: `Bid does not match current issue rules. Quantity must be at least ${minimumQuantity}; price must be ₹${minimumPrice}–₹${maximumPrice}${cutOffPrice ? ` or cut-off ₹${cutOffPrice}` : ''}.`,
+        code: 'ipo_bid_outside_issue_rules',
+      });
+    }
+    if (Array.isArray(details.investors) && details.investors.length
+      && !details.investors.some((investor) => String(investor.category).toUpperCase() === category)) {
+      return res.status(400).json({ error: 'This issue does not offer the selected investor category.', code: 'ipo_category_not_supported' });
+    }
+
+    const response = await axios.post(IPO_ORDER_API_URL, {
+      id,
+      upi: upi.trim(),
+      category,
+      bids: [{ quantity, price: bidPrice }],
+    }, {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      timeout: 15_000,
+    });
+    const orderId = response.data?.data?.order_id;
+    if (response.data?.status !== 'success' || !orderId) {
+      return res.status(502).json({ error: response.data?.message || 'Upstox did not confirm the IPO application.', code: 'ipo_application_unconfirmed' });
+    }
+    return res.json({
+      success: true,
+      orderId,
+      quantity,
+      bidPrice,
+      amount: quantity * bidPrice,
+      message: 'Application submitted to Upstox. Approve the UPI mandate in your UPI app to block funds and complete it.',
+    });
+  } catch (error) {
+    console.error('Upstox IPO application failed:', error.response?.status || error.message);
+    return res.status(error.response?.status || 502).json({
+      error: error.response?.data?.errors?.[0]?.message || 'Upstox could not submit this IPO application.',
+      code: 'ipo_application_failed',
+    });
+  }
 });
 
 app.get('/api/fmp-test/:type', async (req, res) => {

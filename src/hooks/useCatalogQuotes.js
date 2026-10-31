@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { marketApi } from '../services/api';
 
-const LIVE_REFRESH_MS = 1000;
+const LIVE_REFRESH_MS = 5000;
 const RESEARCH_REFRESH_MS = 60_000;
 
 export const useCatalogQuotes = (stocks) => {

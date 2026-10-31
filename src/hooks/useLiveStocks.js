@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { marketApi } from '../services/api';
 
-const DEFAULT_REFRESH_MS = 1000;
+const DEFAULT_REFRESH_MS = 5000;
 const RESEARCH_REFRESH_MS = 60_000;
 const roundPrice = (value) => Number(Number(value).toFixed(2));
 
