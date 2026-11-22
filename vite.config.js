@@ -7,7 +7,20 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/api': apiTarget,
+      '/api': {
+        target: apiTarget,
+        changeOrigin: false,
+      },
+    },
+  },
+  preview: {
+    port: 4000,
+    proxy: {
+      '/api': {
+        target: apiTarget,
+        changeOrigin: false,
+        ws: true,
+      },
     },
   },
 });

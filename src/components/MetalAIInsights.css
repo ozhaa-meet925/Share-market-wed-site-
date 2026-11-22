@@ -1,0 +1,281 @@
+/* AI metals insight panel — tokens follow the app theme */
+.metal-ai-insight {
+  margin: 28px 0;
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg, 14px);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.metal-ai-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.metal-ai-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--gold-soft, rgba(212, 175, 55, 0.16));
+  color: var(--gold, #b8860b);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.metal-ai-head h3 {
+  margin: 10px 0 4px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.metal-ai-basis {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-3);
+}
+
+.metal-ai-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 7px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.metal-ai-refresh:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.metal-ai-refresh .spinning {
+  animation: metal-ai-spin 0.9s linear infinite;
+}
+
+@keyframes metal-ai-spin {
+  to { transform: rotate(360deg); }
+}
+
+.metal-ai-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 0.85rem;
+}
+
+.metal-ai-state.is-error {
+  background: var(--warn-soft, rgba(240, 182, 88, 0.16));
+  color: var(--text);
+}
+
+.metal-ai-grid {
+  display: grid;
+  grid-template-columns: minmax(200px, 0.9fr) minmax(280px, 1.6fr);
+  gap: 16px;
+}
+
+.metal-ai-trend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.metal-ai-trend-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.metal-ai-trend strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.2rem;
+}
+
+.metal-ai-trend.tone-bullish strong { color: var(--gain); }
+.metal-ai-trend.tone-bearish strong { color: var(--loss); }
+.metal-ai-trend.tone-neutral strong { color: var(--flat); }
+
+.metal-ai-trend-price {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.metal-ai-trend .is-gain { color: var(--gain); font-size: 0.82rem; font-weight: 700; }
+.metal-ai-trend .is-loss { color: var(--loss); font-size: 0.82rem; font-weight: 700; }
+
+.metal-ai-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.metal-ai-metrics > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--line-soft);
+}
+
+.metal-ai-metrics span {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  font-weight: 700;
+}
+
+.metal-ai-metrics strong {
+  font-size: 0.95rem;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.metal-ai-range {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--text-2);
+}
+
+.metal-ai-summary {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+.metal-ai-signals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.metal-ai-chip {
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--text-2);
+}
+
+.metal-ai-chip.bullish,
+.metal-ai-chip.above-sma20,
+.metal-ai-chip.above-sma50,
+.metal-ai-chip.above-20-bar-resistance,
+.metal-ai-chip.near-52w-high {
+  background: var(--gain-soft);
+  color: var(--gain);
+}
+
+.metal-ai-chip.bearish,
+.metal-ai-chip.below-sma20,
+.metal-ai-chip.below-sma50,
+.metal-ai-chip.below-20-bar-support,
+.metal-ai-chip.near-52w-low,
+.metal-ai-chip.overbought {
+  background: var(--loss-soft);
+  color: var(--loss);
+}
+
+.metal-ai-chip.oversold {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.metal-ai-forecast {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metal-ai-forecast-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.metal-ai-forecast.tone-bullish .metal-ai-forecast-head { color: var(--gain); }
+.metal-ai-forecast.tone-bearish .metal-ai-forecast-head { color: var(--loss); }
+.metal-ai-forecast.tone-neutral .metal-ai-forecast-head { color: var(--text-2); }
+
+.metal-ai-forecast p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-2);
+}
+
+.metal-ai-forecast-perf {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.metal-ai-forecast-note {
+  color: var(--text-3) !important;
+  font-size: 0.75rem !important;
+}
+
+.metal-ai-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid var(--line-soft);
+  padding-top: 10px;
+  font-size: 0.72rem;
+  color: var(--text-3);
+}
+
+@media (max-width: 680px) {
+  .metal-ai-insight {
+    padding: 18px 16px;
+  }
+
+  .metal-ai-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metal-ai-range {
+    flex-direction: column;
+    gap: 4px;
+  }
+}

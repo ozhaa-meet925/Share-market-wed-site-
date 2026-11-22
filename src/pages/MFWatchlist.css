@@ -1,0 +1,63 @@
+/* ============================================================
+   MFWatchlist.css — Mutual Fund Watchlist Page
+   Prefix: .mfwl-
+   ============================================================ */
+
+.mfwl-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 16px 80px;
+}
+
+.mfwl-header {
+  margin-bottom: 24px;
+}
+
+.mfwl-title {
+  font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.mfwl-sub {
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  margin: 0;
+}
+
+.mfwl-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  padding: 24px;
+  box-shadow: var(--shadow-2);
+  margin-bottom: 28px;
+}
+
+.mfwl-table-wrap {
+  overflow-x: auto;
+}
+
+.mfwl-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.mfwl-table th {
+  text-align: left;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+  color: var(--text-3);
+  font-weight: 650;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+}
+
+.mfwl-table td {
+  padding: 14px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+}

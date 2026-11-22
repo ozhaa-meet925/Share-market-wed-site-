@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { marketApi } from '../services/api';
 
-const QUOTE_REFRESH_MS = 5000;
+const LIVE_REFRESH_MS = 3000;
+const RESEARCH_REFRESH_MS = 3_000;
 
 export const useCompareQuotes = (symbols) => {
   const symbolsKey = symbols.join(',');
@@ -35,7 +36,7 @@ export const useCompareQuotes = (symbols) => {
         const quotes = new Map(
           Object.entries(payload?.quotes || {})
             .map(([symbol, quote]) => [symbol.toUpperCase(), quote])
-            .filter(([, quote]) => quote?.isLive === true && Number(quote?.c) > 0),
+            .filter(([, quote]) => (quote?.isLive === true || quote?.isResearch === true) && Number(quote?.c) > 0),
         );
         setQuoteState({
           quotes,
@@ -63,7 +64,7 @@ export const useCompareQuotes = (symbols) => {
         const health = await marketApi.getHealth();
         if (!active) return;
         configuredProvider = health.configuredProvider || health.provider || configuredProvider;
-        if (!health.realTimeAvailable) {
+        if (!health.realTimeAvailable && !health.researchDataAvailable) {
           setQuoteState({
             quotes: new Map(),
             provider: configuredProvider,
@@ -77,7 +78,7 @@ export const useCompareQuotes = (symbols) => {
 
         setQuoteState((previous) => ({ ...previous, provider: configuredProvider, setupMessage: '' }));
         refresh();
-        intervalId = window.setInterval(refresh, QUOTE_REFRESH_MS);
+        intervalId = window.setInterval(refresh, health.realTimeAvailable ? LIVE_REFRESH_MS : RESEARCH_REFRESH_MS);
       } catch (error) {
         if (!active) return;
         setQuoteState((previous) => ({

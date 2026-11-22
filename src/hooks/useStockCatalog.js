@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { stocks as seededStocks } from '../data/stocks';
+import { metalCatalogStocks } from '../data/metals';
 import { companyCatalog } from '../data/companyCatalog';
 import { marketApi } from '../services/api';
+import { detectSector } from '../utils/sector';
 
 export function getCustomStocks() {
   try {
@@ -24,31 +26,6 @@ export function saveCustomStock(stock) {
   }
 }
 
-function detectSector(symbol, name) {
-  const sym = symbol.toUpperCase();
-  const desc = name.toUpperCase();
-
-  if (sym.includes('BANK') || sym.includes('SBIN') || sym.includes('PNB') || sym.includes('CANBK') || sym === 'YESBANK') return 'Banking';
-  if (sym.includes('TCS') || sym.includes('INFY') || sym.includes('WIPRO') || sym.includes('TECHM') || sym.includes('HCL') || sym.includes('ELXSI')) return 'IT';
-  if (sym.includes('AUTO') || sym.includes('MOT') || sym.includes('MARUTI') || sym.includes('M&M') || sym.includes('HYUNDAI') || sym.includes('TVS') || sym.includes('TMPV') || sym.includes('TMCV')) return 'Auto';
-  if (sym.includes('PHARMA') || sym.includes('CIPLA') || sym.includes('REDDY') || sym.includes('DIVIS') || sym.includes('HOSP') || sym.includes('HEALTH') || sym.includes('TORNT')) return 'Pharma';
-  if (sym.includes('POWER') || sym.includes('GREEN') || sym.includes('NTPC') || sym.includes('ONGC') || sym.includes('BPCL') || sym.includes('IOC') || sym.includes('ENERGY') || sym.includes('RELIANCE')) return 'Energy';
-  if (sym.includes('FIN') || sym.includes('LIFE') || sym.includes('CAP') || sym.includes('INVEST') || sym.includes('CHOLA')) return 'Financial Services';
-  if (sym.includes('STEEL') || sym.includes('COAL') || sym.includes('HINDALCO') || sym.includes('ZINC') || sym.includes('MET')) return 'Metals';
-  if (sym.includes('AERO') || sym.includes('HAL') || sym.includes('BEL') || sym.includes('SIEMENS') || sym.includes('ABB') || sym === 'LT') return 'Defense & Engineering';
-  if (sym.includes('TEL') || sym.includes('COMM') || sym.includes('AIRTEL')) return 'Telecom';
-  if (sym.includes('CONSUM') || sym.includes('FMCG') || sym.includes('INDUNILVR') || sym.includes('NESTLE') || sym.includes('ITC') || sym.includes('DMART') || sym.includes('TITAN') || sym.includes('TRENT') || sym.includes('VBL') || sym.includes('ETERNAL')) return 'FMCG';
-
-  if (desc.includes('BANK')) return 'Banking';
-  if (desc.includes('MOTORS') || desc.includes('AUTO')) return 'Auto';
-  if (desc.includes('HEALTH') || desc.includes('LAB') || desc.includes('PHARM')) return 'Pharma';
-  if (desc.includes('POWER') || desc.includes('ENERGY') || desc.includes('OIL') || desc.includes('GAS')) return 'Energy';
-  if (desc.includes('STEEL') || desc.includes('MINING') || desc.includes('COAL')) return 'Metals';
-  if (desc.includes('TECHNOLOGIES') || desc.includes('CONSULTANCY') || desc.includes('SOFTWARE')) return 'IT';
-
-  return 'Diversified';
-}
-
 const clearCurrentQuote = (stock) => ({
   ...stock,
   price: null,
@@ -60,6 +37,11 @@ const clearCurrentQuote = (stock) => ({
   week52High: null,
   week52Low: null,
   volume: null,
+  vwap: null,
+  marketCap: null,
+  pe: null,
+  eps: null,
+  dividendYield: null,
   history: [],
   isLive: false,
   isDemo: false,
@@ -107,6 +89,8 @@ export function createCatalogStock(symbol, name, customSector = null) {
 export const useStockCatalog = () => {
   const [catalog, setCatalog] = useState(() => mergeCatalog(baseCatalog));
   const [isLiveCatalog, setIsLiveCatalog] = useState(false);
+  const [isLoadingCatalog, setIsLoadingCatalog] = useState(true);
+  const [catalogError, setCatalogError] = useState('');
 
   // Listen to custom stock added events
   useEffect(() => {
@@ -121,21 +105,37 @@ export const useStockCatalog = () => {
 
   useEffect(() => {
     let active = true;
-
-    // First try the backend API, or directly load /all_companies.json (5700+ companies)
-    fetch('/all_companies.json')
-      .then((res) => (res.ok ? res.json() : marketApi.getStockCatalog()))
-      .then((items) => {
-        if (!Array.isArray(items)) return;
-        const normalized = mergeCatalog(items.map(toCatalogStock));
-        if (active && normalized.length) {
-          setCatalog(normalized);
-          setIsLiveCatalog(true);
+    const loadCatalog = async () => {
+      try {
+        let items = [];
+        try {
+          const response = await fetch('/all_companies.json');
+          if (response.ok) {
+            const publicCatalog = await response.json();
+            if (Array.isArray(publicCatalog)) items = publicCatalog;
+          }
+        } catch {
+          // The API catalog remains available if the static directory cannot be read.
         }
-      })
-      .catch(() => {
-        if (active) setIsLiveCatalog(true);
-      });
+        if (!items.length) items = await marketApi.getStockCatalog();
+        if (!Array.isArray(items) || !items.length) throw new Error('The company directory returned no listed companies.');
+
+        const normalized = mergeCatalog(items.map(toCatalogStock));
+        if (!normalized.length) throw new Error('The company directory could not be normalized.');
+        if (active) {
+          setCatalog(normalized);
+          setCatalogError('');
+        }
+      } catch (error) {
+        if (active) setCatalogError(error.message || 'The company directory could not be loaded.');
+      } finally {
+        if (active) {
+          setIsLiveCatalog(true);
+          setIsLoadingCatalog(false);
+        }
+      }
+    };
+    loadCatalog();
 
     return () => { active = false; };
   }, []);
@@ -145,13 +145,13 @@ export const useStockCatalog = () => {
     setCatalog((prev) => mergeCatalog([newStock, ...prev]));
   }, []);
 
-  return { catalog, isLiveCatalog, addStock };
+  return { catalog, isLiveCatalog, isLoadingCatalog, catalogError, addStock };
 };
 
 function mergeCatalog(items = []) {
   const custom = getCustomStocks();
   const unique = new Map();
-  [...custom, ...items, ...baseCatalog, ...seededStocks].map(clearCurrentQuote).forEach((stock) => {
+  [...custom, ...metalCatalogStocks, ...items, ...baseCatalog, ...seededStocks].map(clearCurrentQuote).forEach((stock) => {
     if (stock && stock.symbol && !unique.has(stock.symbol)) {
       unique.set(stock.symbol, stock);
     }

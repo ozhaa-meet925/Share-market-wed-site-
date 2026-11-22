@@ -25,6 +25,7 @@ const normalizeNews = (items) => items
     publishedAt: item.datetime,
     source: item.source || 'Market feed',
     url: item.url,
+    sentiment: item.sentiment && item.sentiment.label ? item.sentiment : null,
   }));
 
 export const useMarketNews = (refreshMs = REFRESH_MS) => {
@@ -34,6 +35,7 @@ export const useMarketNews = (refreshMs = REFRESH_MS) => {
   const [provider, setProvider] = useState(null);
   const [statusMessage, setStatusMessage] = useState('Connecting to live market news…');
   const [isLoading, setIsLoading] = useState(true);
+  const [sentimentMethod, setSentimentMethod] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -47,6 +49,7 @@ export const useMarketNews = (refreshMs = REFRESH_MS) => {
         setIsLive(feed?.live === true && articles.length > 0);
         setLastUpdated(feed?.lastUpdated ? new Date(feed.lastUpdated) : null);
         setProvider(feed?.provider || null);
+        setSentimentMethod(feed?.sentimentMethod || '');
         setStatusMessage(feed?.note || (articles.length ? '' : 'No live market headlines are available right now.'));
       } catch (error) {
         if (!active) return;
@@ -71,5 +74,5 @@ export const useMarketNews = (refreshMs = REFRESH_MS) => {
     };
   }, [refreshMs]);
 
-  return { news, isLive, lastUpdated, provider, statusMessage, isLoading };
+  return { news, isLive, lastUpdated, provider, statusMessage, isLoading, sentimentMethod };
 };

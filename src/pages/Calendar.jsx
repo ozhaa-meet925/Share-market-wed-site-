@@ -210,7 +210,7 @@ const Calendar = () => {
       .catch((requestError) => {
         if (!isCurrent) return;
         setError(requestError);
-        if (requestError.code !== 'calendar_provider_not_configured') {
+        if (requestError.code !== 'calendar_provider_not_configured' && requestError.code !== 'calendar_api_key_required') {
           autoRefreshTimer = window.setTimeout(() => setRefreshKey((key) => key + 1), 90_000);
         }
       })
@@ -416,11 +416,15 @@ const Calendar = () => {
   }, [feed?.data, from, to, todayKey]);
 
   const providerNotConfigured = error?.code === 'calendar_provider_not_configured';
+  const calendarKeyRequired = error?.code === 'calendar_api_key_required';
+  const setupRequired = providerNotConfigured || calendarKeyRequired;
   const apiProxyIssue = error?.code === 'api_returned_html' || error?.code === 'api_invalid_response';
   const providerStatus = !feed
-    ? (providerNotConfigured ? 'setup' : error ? 'error' : 'loading')
+    ? (setupRequired ? 'setup' : error ? 'error' : 'loading')
     : feed.demo ? 'demo' : feed.stale ? 'stale' : 'connected';
-  const expectedProvider = ['economic', 'holidays', 'expiries'].includes(activeKind) ? 'Finance Calendar' : 'Financial Modeling Prep';
+  const expectedProvider = activeKind === 'economic'
+    ? 'Finance Calendar'
+    : activeKind === 'expiries' ? 'NSE F&O' : 'NSE India';
   const todaysEvents = feed?.data?.filter((event) => event.date === todayKey).length;
   const nextEvent = feed?.data?.[0];
   const expiryEvents = (activeKind === 'expiries' ? feed?.data : expiryFeed?.data) || [];
@@ -469,7 +473,7 @@ const Calendar = () => {
         </button>
         <article className="calendar-overview-card calendar-overview-status">
           <div className="calendar-overview-label"><span>Feed status</span><Activity size={16} /></div>
-          <strong>{feed ? (feed.demo ? 'Demo preview' : feed.stale ? 'Last known data' : 'Connected') : providerNotConfigured ? 'Setup needed' : error ? 'Unavailable' : 'Connecting'}</strong>
+          <strong>{feed ? (feed.demo ? 'Demo preview' : feed.stale ? 'Last known data' : 'Connected') : setupRequired ? 'Setup needed' : error ? 'Unavailable' : 'Connecting'}</strong>
           <small>{feed?.demo ? 'Examples only · not live announcements' : feed?.lastUpdated ? `Updated ${formatUpdatedAt(feed.lastUpdated)}` : 'Provider update times vary'}</small>
         </article>
       </div>
@@ -596,7 +600,7 @@ const Calendar = () => {
         </div>
 
         <div className="calendar-feed-meta">
-          <span className="calendar-provider-badge"><span className={`calendar-live-dot is-${providerStatus}`} />{feed?.demo ? 'Demo preview · sample only' : feed?.provider ? `${feed.provider} ${feed.stale ? 'cached feed' : 'feed'}` : providerNotConfigured ? 'FMP · setup required' : error ? `${expectedProvider} · feed unavailable` : `${expectedProvider} · connecting`}</span>
+          <span className="calendar-provider-badge"><span className={`calendar-live-dot is-${providerStatus}`} />{feed?.demo ? 'Demo preview · sample only' : feed?.provider ? `${feed.provider} ${feed.stale ? 'cached feed' : 'feed'}` : calendarKeyRequired ? 'Economic calendar · API key needed' : setupRequired ? 'Setup required' : error ? `${expectedProvider} · feed unavailable` : `${expectedProvider} · connecting`}</span>
           <span>{from} – {to}</span>
           {activeKind === 'holidays' && feed && filteredEvents.length > 10 && <span>Showing next 10 of {filteredEvents.length} published holidays</span>}
           {activeKind === 'holidays' && feed && filteredEvents.length <= 10 && <span>{filteredEvents.length} published holidays in this range</span>}
@@ -637,12 +641,18 @@ const Calendar = () => {
         {loading ? (
           <div className="calendar-state" role="status"><RefreshCw size={20} className="calendar-refreshing" /><div><strong>Loading calendar feed</strong><span>Checking the selected event dates.</span></div></div>
         ) : error ? (
-          <div className={`calendar-state calendar-error-state ${providerNotConfigured ? 'calendar-setup-state' : ''}`} role="alert">
+          <div className={`calendar-state calendar-error-state ${setupRequired ? 'calendar-setup-state' : ''}`} role="alert">
             <div className="calendar-state-icon"><AlertCircle size={21} /></div>
             <div className="calendar-state-content">
-              <strong>{providerNotConfigured ? 'Connect FMP for company events' : apiProxyIssue ? 'API connection needs attention' : 'Calendar feed unavailable'}</strong>
+              <strong>{calendarKeyRequired ? 'Connect an economic calendar feed' : providerNotConfigured ? 'Connect FMP for company events' : apiProxyIssue ? 'API connection needs attention' : 'Calendar feed unavailable'}</strong>
               <span>{error.message || 'Could not load calendar events. Please try again.'}</span>
-              {providerNotConfigured ? (
+              {calendarKeyRequired ? (
+                <ol className="calendar-setup-steps">
+                  <li>Create a Finance Calendar account and copy its API key. An FMP key with economic calendar access also works.</li>
+                  <li>Add <code>FINANCE_CALENDAR_API_KEY=your_key</code> to <code>share-market/.env</code>, or set a valid <code>FMP_API_KEY</code>.</li>
+                  <li>Restart the server and refresh this page. Holiday, earnings, dividend, split, IPO, and expiry calendars already work without a key.</li>
+                </ol>
+              ) : providerNotConfigured ? (
                 <ol className="calendar-setup-steps">
                   <li>Create an FMP API key with access to Indian company calendar endpoints.</li>
                   <li>Add <code>FMP_API_KEY=your_key</code> to <code>share-market/.env</code>.</li>

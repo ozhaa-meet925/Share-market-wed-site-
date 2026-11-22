@@ -1,4 +1,4 @@
-import { ArrowUpRight, Clock, Newspaper } from 'lucide-react';
+import { ArrowUpRight, Clock, Newspaper, TrendingDown, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const getTagClass = (tag) => {
@@ -11,6 +11,29 @@ const getTagClass = (tag) => {
   return 'news-tag-market';
 };
 
+const SENTIMENT_META = {
+  positive: { label: 'Positive tone', Icon: TrendingUp },
+  negative: { label: 'Negative tone', Icon: TrendingDown },
+  neutral: { label: 'Neutral tone', Icon: null },
+};
+
+export const NewsSentimentBadge = ({ sentiment }) => {
+  if (!sentiment?.label) return null;
+  const meta = SENTIMENT_META[sentiment.label];
+  if (!meta) return null;
+  const Icon = meta.Icon;
+  const score = Number(sentiment.score);
+  return (
+    <span
+      className={`news-sentiment-badge is-${sentiment.label}`}
+      title={`Keyword tone from the headline text${Number.isFinite(score) ? ` · score ${score > 0 ? '+' : ''}${score.toFixed(2)}` : ''}. Not a forecast or advice.`}
+    >
+      {Icon ? <Icon size={12} /> : null}
+      {meta.label}
+    </span>
+  );
+};
+
 const NewsCard = ({ item }) => {
   if (!item) return null;
   const tagClass = getTagClass(item.tag);
@@ -19,6 +42,7 @@ const NewsCard = ({ item }) => {
     <Link className={`news-card upgraded-news-card ${tagClass}`} to={`/news/${encodeURIComponent(item.id || item.title)}`}>
       <div className="news-card-header">
         <span className={`news-tag ${tagClass}`}>{item.tag || 'Market'}</span>
+        <NewsSentimentBadge sentiment={item.sentiment} />
         {item.source ? (
           <span className="news-source-badge">
             <Newspaper size={12} />

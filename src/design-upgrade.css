@@ -1,0 +1,608 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   ShareMarket PRO — Premium Design Upgrade
+   Zerodha / Groww jaise professional trading platform ka look
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Enhanced Design Tokens ───────────────────────────────────────────── */
+:root {
+  --bg: #eef2f7;
+  --surface: #ffffff;
+  --surface-2: #f5f8fc;
+  --surface-3: #eaf0f7;
+  --brand: #1a7c5a;
+  --brand-strong: #0f5e42;
+  --brand-bright: #22c97e;
+  --brand-soft: #e0f5ec;
+  --brand-glow: rgba(26, 124, 90, 0.26);
+
+  /* Trading accent colors */
+  --accent-blue: #2563eb;
+  --accent-blue-soft: rgba(37, 99, 235, 0.1);
+  --accent-orange: #ea6e1a;
+  --accent-orange-soft: rgba(234, 110, 26, 0.1);
+
+  /* Better shadows */
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.07), 0 4px 16px rgba(15, 23, 42, 0.06);
+  --shadow-card-hover: 0 4px 12px rgba(15, 23, 42, 0.1), 0 12px 32px rgba(15, 23, 42, 0.09);
+  --shadow-brand: 0 4px 18px rgba(26, 124, 90, 0.28);
+}
+
+:root[data-theme='dark'] {
+  --bg: #0b0f14;
+  --surface: #131920;
+  --surface-2: #182028;
+  --surface-3: #1e2730;
+  --brand: #22c97e;
+  --brand-strong: #17a067;
+  --brand-bright: #4ade90;
+  --brand-soft: rgba(34, 201, 126, 0.12);
+  --brand-glow: rgba(74, 222, 128, 0.28);
+  --shadow-card: 0 2px 6px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.4);
+  --shadow-card-hover: 0 4px 16px rgba(0,0,0,0.6), 0 16px 40px rgba(0,0,0,0.5);
+}
+
+/* ── 2. Body & Background ──────────────────────────────────────────────────*/
+body {
+  background:
+    radial-gradient(ellipse 900px 400px at 70% -5%, rgba(34, 201, 126, 0.07), transparent 65%),
+    radial-gradient(ellipse 600px 300px at 10% 90%, rgba(37, 99, 235, 0.04), transparent 60%),
+    var(--bg) !important;
+  background-attachment: fixed !important;
+}
+
+:root[data-theme='dark'] body {
+  background:
+    radial-gradient(ellipse 900px 400px at 70% -5%, rgba(34, 201, 126, 0.05), transparent 65%),
+    radial-gradient(ellipse 600px 300px at 10% 90%, rgba(37, 99, 235, 0.03), transparent 60%),
+    var(--bg) !important;
+}
+
+/* ── 3. Top Ticker Bar (Premium) ───────────────────────────────────────────*/
+.top-ticker-bar {
+  background: linear-gradient(90deg, #061510 0%, #0a1f17 50%, #061510 100%) !important;
+  border-bottom: 1px solid rgba(34, 201, 126, 0.2) !important;
+  height: 34px !important;
+}
+
+.ticker-badge {
+  background: linear-gradient(135deg, #15a06a, #0d6f4e) !important;
+  font-size: 0.65rem !important;
+  letter-spacing: 0.1em !important;
+  padding: 0 14px !important;
+  gap: 7px !important;
+}
+
+.ticker-badge.badge-live {
+  background: linear-gradient(135deg, #15a06a, #0d6f4e) !important;
+}
+
+.ticker-badge.badge-closed {
+  background: linear-gradient(135deg, #c43b38, #991b1b) !important;
+}
+
+/* ── 4. Navbar Premium ─────────────────────────────────────────────────────*/
+.navbar {
+  padding: 10px clamp(16px, 3vw, 48px) !important;
+  background: color-mix(in srgb, var(--surface) 88%, transparent) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  border-bottom: 1px solid var(--line-soft) !important;
+  box-shadow: 0 1px 0 var(--line-soft), 0 4px 16px rgba(15, 23, 42, 0.04) !important;
+}
+
+.navbar nav a {
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  padding: 7px 11px !important;
+  border-radius: 8px !important;
+  letter-spacing: 0.01em !important;
+  transition: all 150ms ease !important;
+}
+
+.navbar nav a:hover {
+  background: var(--brand-soft) !important;
+  color: var(--brand) !important;
+  transform: none !important;
+}
+
+.navbar nav a.active {
+  background: var(--brand-soft) !important;
+  color: var(--brand) !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+  position: relative;
+}
+
+/* Active underline indicator */
+.navbar nav a.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70%;
+  height: 2px;
+  background: var(--brand);
+  border-radius: 2px 2px 0 0;
+}
+
+/* Live nav item */
+.nav-live-item {
+  color: #ef4444 !important;
+}
+.nav-live-item:hover, .nav-live-item.active {
+  background: rgba(239,68,68,0.1) !important;
+  color: #dc2626 !important;
+}
+.nav-live-item.active::after {
+  background: #dc2626;
+}
+
+/* AI nav items */
+.nav-ai-item {
+  color: var(--brand) !important;
+}
+
+/* Nav icon buttons */
+.nav-icon-link {
+  width: 36px !important;
+  height: 36px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 8px !important;
+  color: var(--text-2) !important;
+  transition: all 150ms ease !important;
+}
+.nav-icon-link:hover {
+  background: var(--brand-soft) !important;
+  color: var(--brand) !important;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+  width: 36px !important;
+  height: 36px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 8px !important;
+  background: var(--surface-2) !important;
+  color: var(--text-2) !important;
+  transition: all 150ms ease !important;
+}
+.theme-toggle:hover {
+  border-color: var(--brand) !important;
+  color: var(--brand) !important;
+  background: var(--brand-soft) !important;
+}
+
+/* ── 5. Brand Logo ─────────────────────────────────────────────────────────*/
+.brand-logo-container .brand-title {
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+  color: var(--text) !important;
+}
+
+.brand-pro-tag {
+  background: linear-gradient(135deg, #22c97e, #0d6f4e) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  font-size: 0.65em !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.05em !important;
+  vertical-align: super !important;
+}
+
+/* ── 6. Cards — Market, Stock, Panel ───────────────────────────────────────*/
+.market-card,
+.stock-card,
+.panel,
+.ipo-card,
+.commodity-card,
+.news-card,
+.trade-box,
+.auth-panel {
+  border: 1px solid var(--line-soft) !important;
+  border-radius: 14px !important;
+  background: var(--surface) !important;
+  box-shadow: var(--shadow-card) !important;
+  transition: box-shadow 200ms ease, border-color 200ms ease, transform 200ms ease !important;
+}
+
+.market-card:hover,
+.stock-card:hover,
+.commodity-card:hover,
+.news-card:hover {
+  box-shadow: var(--shadow-card-hover) !important;
+  border-color: var(--brand-soft) !important;
+  transform: translateY(-3px) !important;
+}
+
+/* Left accent border on hover */
+.market-card {
+  border-left: 3px solid transparent !important;
+}
+.market-card:hover {
+  border-left-color: var(--brand) !important;
+}
+
+.stock-card {
+  border-left: 3px solid transparent !important;
+}
+.stock-card:hover {
+  border-left-color: var(--brand) !important;
+}
+
+/* Panel hover glow */
+.panel:hover {
+  box-shadow: 0 4px 20px rgba(26, 124, 90, 0.08), var(--shadow-card) !important;
+  border-color: rgba(26, 124, 90, 0.12) !important;
+}
+
+/* ── 7. Buttons ────────────────────────────────────────────────────────────*/
+.primary-button {
+  background: linear-gradient(135deg, #22c97e 0%, #1a7c5a 100%) !important;
+  box-shadow: var(--shadow-brand) !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.01em !important;
+  border: none !important;
+}
+.primary-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 28px rgba(26, 124, 90, 0.4) !important;
+}
+.primary-button:active {
+  transform: translateY(1px) !important;
+}
+
+.secondary-button {
+  background: var(--surface) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+}
+.secondary-button:hover {
+  border-color: var(--brand) !important;
+  color: var(--brand) !important;
+  background: var(--brand-soft) !important;
+}
+
+/* ── 8. Hero Section ───────────────────────────────────────────────────────*/
+.home-hero-copy {
+  min-height: 440px !important;
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  background:
+    linear-gradient(135deg, rgba(10, 79, 56, 0.97) 0%, rgba(13, 111, 78, 0.93) 55%, rgba(26, 124, 90, 0.9) 100%) !important;
+}
+
+.home-hero-copy h1 {
+  font-size: clamp(2.1rem, 4.5vw, 3.8rem) !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1.0 !important;
+}
+
+.home-hero-copy h1 span {
+  color: #6eedb6 !important;
+}
+
+.home-hero-copy p {
+  font-size: 1rem !important;
+  color: rgba(255, 255, 255, 0.82) !important;
+  line-height: 1.6 !important;
+}
+
+/* ── 9. Stats Bar (new feature pills) ─────────────────────────────────────*/
+.home-stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 14px 20px;
+  margin: 0 0 26px;
+  background: linear-gradient(135deg, var(--brand-soft) 0%, rgba(255,255,255,0.7) 100%);
+  border: 1px solid rgba(26, 124, 90, 0.14);
+  border-radius: 18px;
+  backdrop-filter: blur(8px);
+}
+
+:root[data-theme='dark'] .home-stats-bar {
+  background: linear-gradient(135deg, rgba(34,201,126,0.08), rgba(19,25,32,0.9));
+  border-color: rgba(34,201,126,0.16);
+}
+
+.home-stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  background: white;
+  border: 1px solid rgba(26, 124, 90, 0.14);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(26, 124, 90, 0.08);
+  white-space: nowrap;
+  transition: all 150ms ease;
+}
+.home-stat-pill:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+  box-shadow: 0 2px 8px rgba(26, 124, 90, 0.15);
+  transform: translateY(-1px);
+}
+.home-stat-pill svg {
+  color: var(--brand);
+}
+
+:root[data-theme='dark'] .home-stat-pill {
+  background: var(--surface-2);
+  border-color: rgba(34,201,126,0.16);
+  color: var(--text);
+}
+
+/* ── 10. Section Headings & Kickers ───────────────────────────────────────*/
+.home-section-kicker {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  border-radius: 999px;
+  font-size: 0.65rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  margin-bottom: 6px !important;
+}
+
+:root[data-theme='dark'] .home-section-kicker {
+  background: rgba(34,201,126,0.12);
+  color: var(--brand);
+}
+
+/* ── 11. Tables ────────────────────────────────────────────────────────────*/
+table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+}
+table th {
+  background: var(--surface-2) !important;
+  color: var(--text-3) !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  padding: 10px 14px !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+table td {
+  padding: 10px 14px !important;
+  border-bottom: 1px solid var(--line-soft) !important;
+  font-size: 0.88rem !important;
+}
+table tr:hover td {
+  background: var(--brand-soft) !important;
+}
+:root[data-theme='dark'] table tr:hover td {
+  background: rgba(34,201,126,0.07) !important;
+}
+
+/* Chart engine internals lay out with their own table; keep app table rules out of it. */
+.tv-lightweight-charts table {
+  width: fit-content !important;
+  border-collapse: separate !important;
+}
+.tv-lightweight-charts th,
+.tv-lightweight-charts td {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  font-size: inherit !important;
+}
+.tv-lightweight-charts tr:hover td {
+  background: transparent !important;
+}
+
+/* ── 12. Page Title Gradient ──────────────────────────────────────────────*/
+.page-title h1 {
+  background: linear-gradient(135deg, var(--text) 20%, var(--brand) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+:root[data-theme='dark'] .page-title h1 {
+  background: linear-gradient(135deg, var(--text) 20%, var(--brand-bright) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── 13. Scrollbar ────────────────────────────────────────────────────────*/
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand);
+}
+
+/* ── 14. Focus rings ──────────────────────────────────────────────────────*/
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--brand) !important;
+  outline-offset: 2px !important;
+  border-radius: var(--r-sm) !important;
+}
+
+/* ── 15. Live Chart panel ─────────────────────────────────────────────────*/
+.live-chart.panel {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+}
+
+.live-chart-header {
+  background: var(--surface) !important;
+  border-bottom: 1px solid var(--line-soft) !important;
+}
+
+/* ── 16. Footer Premium ───────────────────────────────────────────────────*/
+.main-footer {
+  background: var(--surface) !important;
+  border-top: 1px solid var(--line) !important;
+  margin-top: 40px !important;
+}
+
+.footer-bottom-bar {
+  background: var(--surface-2) !important;
+  border-top: 1px solid var(--line-soft) !important;
+}
+
+/* ── 17. Mobile Bottom Nav ────────────────────────────────────────────────*/
+.mobile-nav {
+  background: color-mix(in srgb, var(--surface) 92%, transparent) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border-top: 1px solid var(--line-soft) !important;
+  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* ── 18. Input fields ─────────────────────────────────────────────────────*/
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+select,
+textarea {
+  border: 1px solid var(--line) !important;
+  border-radius: 10px !important;
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  transition: border-color 150ms ease, box-shadow 150ms ease !important;
+}
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--brand) !important;
+  box-shadow: 0 0 0 3px var(--brand-soft) !important;
+  outline: none !important;
+}
+
+/* ── 19. Badges & Pills ───────────────────────────────────────────────────*/
+.gain-pill {
+  background: var(--gain-soft) !important;
+  color: var(--gain) !important;
+  font-weight: 700 !important;
+}
+.loss-pill {
+  background: var(--loss-soft) !important;
+  color: var(--loss) !important;
+  font-weight: 700 !important;
+}
+
+/* ── 20. Status badges ────────────────────────────────────────────────────*/
+.live-status {
+  background: rgba(17, 135, 93, 0.12) !important;
+  color: var(--gain) !important;
+  border: 1px solid rgba(17, 135, 93, 0.2) !important;
+  border-radius: 999px !important;
+  font-weight: 800 !important;
+}
+
+/* ── 21. Live dot ─────────────────────────────────────────────────────────*/
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+  display: inline-block;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+  animation: liveDotPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes liveDotPulse {
+  0%, 100% { box-shadow: 0 0 0 0px rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
+}
+
+/* ── 22. Section transitions ──────────────────────────────────────────────*/
+.page section {
+  transition: none;
+}
+
+/* ── 23. Home section intro ───────────────────────────────────────────────*/
+.home-section-intro {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.home-section-intro h2 {
+  margin: 4px 0 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.home-section-intro a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--brand) !important;
+  font-size: 0.84rem;
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 0.9;
+  transition: opacity 150ms ease;
+}
+.home-section-intro a:hover {
+  opacity: 1;
+}
+.home-section-intro p {
+  color: var(--text-3);
+  font-size: 0.88rem;
+  margin: 4px 0 0;
+}
+
+/* ── 24. Market strip responsive ─────────────────────────────────────────*/
+@media (max-width: 900px) {
+  .market-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 540px) {
+  .market-strip {
+    grid-template-columns: 1fr !important;
+  }
+  .home-stats-bar {
+    gap: 7px;
+    padding: 12px 14px;
+  }
+  .home-stat-pill {
+    font-size: 0.75rem;
+    padding: 5px 12px;
+  }
+}
+
+/* ── 25. Tooltip style ─────────────────────────────────────────────────────*/
+[title] {
+  cursor: help;
+}
+
+/* ══ End Premium Design Upgrade ════════════════════════════════════════════ */

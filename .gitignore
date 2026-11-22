@@ -13,3 +13,12 @@ calendar-output.png
 gold-chart-preview.png
 livechart-preview.png
 output-*.png
+*.log
+_archive/
+inv_tmp.json
+# Runtime state and secrets — never commit
+data/users.json
+data/auth-secret
+data/autotrade.json
+data/core/
+data/*.bak

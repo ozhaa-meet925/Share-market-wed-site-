@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Activity, ArrowDownRight, ArrowUpRight, Clock } from 'lucide-react';
 import Chart from '../components/Chart';
+import { TickArrow, tickToneClass, useTickFlash } from '../components/PriceChange';
 import StockCard from '../components/StockCard';
 import { stocks as stockSeed } from '../data/stocks';
 import { useLiveStocks } from '../hooks/useLiveStocks';
@@ -13,13 +14,17 @@ const formatNumber = (value) => value !== null && value !== undefined && Number.
 
 const Sensex = () => {
   const { stocks } = useLiveStocks(stockSeed);
-  const { quotes, histories, lastUpdated } = useMarketIndices(['BSE:SENSEX']);
+  const { quotes, histories, historyMeta, lastUpdated } = useMarketIndices(['BSE:SENSEX']);
   const quote = quotes.get('SENSEX');
   const hasQuote = Number(quote?.c) > 0;
   const isLive = quote?.isLive === true && hasQuote;
   const isDemo = quote?.isDemo === true && hasQuote;
   const isResearch = quote?.isResearch === true && hasQuote;
   const history = histories.get('SENSEX') || [];
+  const historyInfo = historyMeta.get('SENSEX') || {};
+  const historySource = history.length > 1
+    ? `${historyInfo.provider || 'Provider'} · ${historyInfo.isResearch ? 'research / delayed' : 'historical OHLC'}`
+    : historyInfo.status === 'loading' ? 'Loading verified daily candles…' : historyInfo.error || 'Historical data unavailable';
   const contributors = stocks.filter((stock) => sensexContributors.includes(stock.symbol) && (stock.isLive || stock.isDemo));
   const tracked = stocks.filter((stock) => (stock.isLive || stock.isDemo) && stock.changePercent !== null);
   const advances = tracked.filter((stock) => Number(stock.changePercent) >= 0).length;
@@ -27,7 +32,10 @@ const Sensex = () => {
   const advancePercent = tracked.length ? Math.round((advances / tracked.length) * 100) : 0;
   const change = quote?.d !== null && quote?.d !== undefined ? Number(quote.d) : null;
   const changePercent = quote?.dp !== null && quote?.dp !== undefined ? Number(quote.dp) : null;
-  const positive = change !== null && change >= 0;
+  const positive = change !== null && change > 0;
+  const direction = change === null ? null : change > 0 ? 'up' : change < 0 ? 'down' : 'flat';
+  const { flash: tickFlash } = useTickFlash(hasQuote ? Number(quote.c) : null, null, 'SENSEX');
+  const valueTone = tickToneClass(tickFlash || direction, tickFlash);
   const low = Number(quote?.l) > 0 ? Number(quote.l) : null;
   const high = Number(quote?.h) > 0 ? Number(quote.h) : null;
   const spread = high !== null && low !== null ? high - low : 0;
@@ -56,14 +64,14 @@ const Sensex = () => {
             <div className="quote-line">
               <div>
                 <span>{isDemo ? 'Simulated demo value · not real' : isResearch ? `Research value · not live · ${quote.provider || 'Yahoo Finance'}` : isLive ? `Current value · ${quote.provider || 'Live provider'}` : 'Current value · live provider required'}</span>
-                <h2>{hasQuote ? `₹${formatNumber(quote.c)}` : 'Quote unavailable'}</h2>
+                <h2 key={tickFlash ? `idx-${tickFlash}` : 'idx'} className={hasQuote ? valueTone : ''}>{hasQuote ? formatNumber(quote.c) : 'Quote unavailable'}</h2>
                 <span>{isDemo ? 'Demo value only · not for trading' : isResearch ? `Research quote · not live${quote.isStale ? ' · stale' : ''}` : isLive ? 'Latest provider quote' : quote?.isStale ? 'Last provider quote; refresh failed' : 'Live quote required'}</span>
               </div>
               <div className="align-right">
                 {change !== null && changePercent !== null ? (
-                  <strong className={positive ? 'gain' : 'loss'}>
-                    {positive ? <ArrowUpRight size={20} /> : <ArrowDownRight size={20} />}
-                    {positive ? '+' : ''}{formatNumber(change)} ({positive ? '+' : ''}{changePercent.toFixed(2)}%)
+                  <strong className={direction === 'up' ? 'gain' : direction === 'down' ? 'loss' : 'price-flat'}>
+                    <TickArrow direction={direction || 'flat'} />
+                    {`${positive ? '+' : ''}${formatNumber(change)}`} ({`${positive ? '+' : ''}${changePercent.toFixed(2)}%`})
                   </strong>
                 ) : <strong>Change unavailable</strong>}
                 <span>Latest provider snapshot</span>
@@ -71,15 +79,15 @@ const Sensex = () => {
             </div>
 
             <div style={{ margin: '14px 0 10px' }}>
-              <div className="section-heading"><strong>Session price snapshots</strong><span>Collected from available provider quotes</span></div>
-              {history.length > 1 ? <Chart data={history} positive={positive} height={250} showXAxis /> : <div className="chart-empty-state">Chart will appear after multiple provider quotes are available.</div>}
+              <div className="section-heading"><strong>Historical daily OHLC</strong><span>{historySource}</span></div>
+              {history.length > 1 ? <Chart symbol="SENSEX" data={history} height={250} maxCandles={90} showXAxis showYAxis /> : <div className="chart-empty-state">Verified historical candles are unavailable.</div>}
             </div>
 
             <div className="day-range-wrapper" style={{ margin: '14px 0' }}>
               <div className="range-labels">
-                <span>Low: <b>{low === null ? 'Unavailable' : `₹${formatNumber(low)}`}</b></span>
+                <span>Low: <b>{low === null ? 'Unavailable' : formatNumber(low)}</b></span>
                 <span>Day's range</span>
-                <span>High: <b>{high === null ? 'Unavailable' : `₹${formatNumber(high)}`}</b></span>
+                <span>High: <b>{high === null ? 'Unavailable' : formatNumber(high)}</b></span>
               </div>
               <div className="range-bar-track"><div className="range-bar-fill" style={{ width: `${rangeProgress}%` }} /></div>
             </div>

@@ -1,0 +1,173 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   Face Scanner — Cyberpunk / Fintech Biometric HUD
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.face-scanner-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin: 10px 0 20px;
+}
+
+.face-scanner-viewport {
+  position: relative;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: radial-gradient(circle, #081a14 0%, #030a08 100%);
+  border: 3px solid rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.25), inset 0 0 30px rgba(16, 185, 129, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.face-video-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* Mirror view for natural selfie */
+}
+
+/* Fallback holographic face avatar when webcam is inactive */
+.face-holo-avatar {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #10b981;
+  filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.7));
+}
+
+.face-holo-mesh {
+  position: absolute;
+  inset: -15px;
+  border-radius: 50%;
+  border: 1px dashed rgba(16, 185, 129, 0.4);
+  animation: holoRotate 12s linear infinite;
+}
+
+@keyframes holoRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Biometric HUD Overlays */
+.face-scanner-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Oval tracking guide */
+.face-target-oval {
+  width: 170px;
+  height: 210px;
+  border: 2px dashed rgba(16, 185, 129, 0.6);
+  border-radius: 50%;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.3);
+  position: relative;
+  transition: all 300ms ease;
+}
+
+.face-target-oval.detected {
+  border-color: #10b981;
+  border-style: solid;
+  box-shadow: 0 0 24px rgba(16, 185, 129, 0.6);
+}
+
+.face-target-oval.success {
+  border-color: #22c55e;
+  box-shadow: 0 0 32px rgba(34, 197, 94, 0.8);
+}
+
+/* Laser scan line moving up and down */
+.face-laser-line {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #22c97e, #ffffff, #22c97e, transparent);
+  box-shadow: 0 0 15px #22c97e, 0 0 25px rgba(34, 201, 126, 0.8);
+  animation: laserScan 2s ease-in-out infinite alternate;
+}
+
+@keyframes laserScan {
+  0% { top: 12%; opacity: 0.8; }
+  100% { top: 85%; opacity: 1; }
+}
+
+/* Crosshairs & corner brackets */
+.face-corner-tl,
+.face-corner-tr,
+.face-corner-bl,
+.face-corner-br {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-color: #10b981;
+}
+
+.face-corner-tl { top: 20px; left: 20px; border-top: 2px solid; border-left: 2px solid; }
+.face-corner-tr { top: 20px; right: 20px; border-top: 2px solid; border-right: 2px solid; }
+.face-corner-bl { bottom: 20px; left: 20px; border-bottom: 2px solid; border-left: 2px solid; }
+.face-corner-br { bottom: 20px; right: 20px; border-bottom: 2px solid; border-right: 2px solid; }
+
+/* Status Ticker */
+.face-status-bar {
+  margin-top: 14px;
+  text-align: center;
+  max-width: 320px;
+}
+
+.face-status-text {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--brand, #10b981);
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 24px;
+}
+
+.face-progress-track {
+  width: 220px;
+  height: 5px;
+  background: var(--surface-inset, rgba(16, 185, 129, 0.15));
+  border-radius: 99px;
+  margin: 8px auto 0;
+  overflow: hidden;
+}
+
+.face-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  transition: width 200ms ease;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+.face-cam-toggle {
+  margin-top: 10px;
+  background: transparent;
+  border: none;
+  font-size: 0.76rem;
+  color: var(--text-3, #94a3b8);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 150ms ease;
+}
+
+.face-cam-toggle:hover {
+  color: var(--brand);
+}

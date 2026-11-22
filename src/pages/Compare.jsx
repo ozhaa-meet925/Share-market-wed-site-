@@ -1,8 +1,10 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ArrowLeftRight, BellPlus, Info, Trash2, X } from 'lucide-react';
 import { useStockCatalog } from '../hooks/useStockCatalog';
 import { useCompareQuotes } from '../hooks/useCompareQuotes';
 import CompanyLogo from '../components/CompanyLogo';
+import { TickArrow } from '../components/PriceChange';
 import PriceAlertForm from '../components/PriceAlertForm';
 import QuickTradeModal from '../components/QuickTradeModal';
 import LiveChart from '../components/LiveChart';
@@ -43,12 +45,29 @@ const formatRupees = (value, digits = 2) => value === null || value === undefine
 
 export const Compare = () => {
   const { catalog } = useStockCatalog();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const incomingSymbol = String(searchParams.get('add') || '').trim().toUpperCase();
   const [selectedSymbols, setSelectedSymbols] = useState(['RELIANCE', 'TCS', 'HDFCBANK']);
   const [selectorInput, setSelectorInput] = useState('');
   const [tradingStock, setTradingStock] = useState(null);
   const [alertStock, setAlertStock] = useState(null);
   const [chartSymbol, setChartSymbol] = useState('RELIANCE');
   const quoteState = useCompareQuotes(selectedSymbols);
+
+  useEffect(() => {
+    if (!incomingSymbol) return;
+    setSelectedSymbols((current) => (
+      current.includes(incomingSymbol) || current.length >= 4
+        ? current
+        : [...current, incomingSymbol]
+    ));
+    setChartSymbol(incomingSymbol);
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.delete('add');
+      return next;
+    }, { replace: true });
+  }, [incomingSymbol, setSearchParams]);
 
   const selectedStocks = useMemo(() => {
     return selectedSymbols
@@ -60,8 +79,8 @@ export const Compare = () => {
   const comparedStocks = useMemo(() => selectedStocks.map((stock) => {
     const quote = quoteState.quotes.get(stock.symbol);
     const hasPrice = Number(quote?.c) > 0;
-    const quoteIsDemo = hasPrice && quote?.isDemo === true;
-    const price = hasPrice && (quote?.isLive === true || quoteIsDemo) ? Number(quote.c) : null;
+    const quoteIsResearch = hasPrice && quote?.isResearch === true && quote?.isLive !== true;
+    const price = hasPrice && (quote?.isLive === true || quoteIsResearch) ? Number(quote.c) : null;
     const previousClose = Number(quote?.pc) > 0 ? Number(quote.pc) : null;
     const change = quote?.d !== null && quote?.d !== undefined && Number.isFinite(Number(quote.d)) && hasPrice
       ? Number(quote.d)
@@ -71,8 +90,9 @@ export const Compare = () => {
       : (previousClose && change !== null ? (change / previousClose) * 100 : null);
     const quoteProvider = quote?.provider || quoteState.provider;
     const quoteDate = toQuoteDate(quote?.timestamp || quote?.updatedAt, quoteState.lastUpdated);
-    const quoteIsVerified = price !== null && quote?.isLive === true;
+    const quoteIsVerified = price !== null;
     const quoteIsLive = quoteIsVerified && !quoteState.hasError;
+    const quoteIsStale = quoteIsVerified && (quoteState.hasError || quote?.isStale === true);
 
     return {
       ...stock,
@@ -82,13 +102,22 @@ export const Compare = () => {
       changePercent,
       high: quoteIsVerified && Number(quote?.h) > 0 ? Number(quote.h) : null,
       low: quoteIsVerified && Number(quote?.l) > 0 ? Number(quote.l) : null,
-      quoteIsLive,
-      quoteIsDemo,
-      quoteIsStale: quoteIsVerified && quoteState.hasError,
+      week52High: quoteIsVerified && Number(quote?.week52High) > 0 ? Number(quote.week52High) : null,
+      week52Low: quoteIsVerified && Number(quote?.week52Low) > 0 ? Number(quote.week52Low) : null,
+      marketCap: quoteIsVerified ? Number(quote?.marketCap) || null : null,
+      pe: quoteIsVerified ? Number(quote?.pe) || null : null,
+      dividendYield: quoteIsVerified ? Number(quote?.dividendYield) || null : null,
+      quoteIsLive: quoteIsLive && quote?.isLive === true && !quoteIsStale,
+      quoteIsResearch,
+      quoteIsDemo: false,
+      quoteIsStale,
+      isLive: quoteIsLive && quote?.isLive === true && !quoteIsStale,
+      isResearch: quoteIsResearch,
+      isStale: quoteIsStale,
       quoteSource: hasPrice
-        ? (quoteIsDemo
-          ? 'Simulated demo feed · not real market data'
-          : quoteState.hasError
+        ? (quoteIsResearch
+          ? `Research quote · delayed, not live · ${formatProviderName(quoteProvider)}`
+          : quoteState.hasError || quoteIsStale
           ? `Last quote · ${formatProviderName(quoteProvider)} · refresh failed`
           : `Live quote · ${formatProviderName(quoteProvider)}`)
         : quoteState.hasError
@@ -218,7 +247,7 @@ export const Compare = () => {
                         <span className="th-name">{stock.name}</span>
                         <span className="th-sector">{stock.sector}</span>
                       </div>
-                      <div className={`compare-quote-meta ${stock.quoteIsLive ? 'is-live' : stock.quoteIsStale ? 'is-stale' : 'is-demo'}`}>
+                      <div className={`compare-quote-meta ${stock.quoteIsLive ? 'is-live' : stock.quoteIsResearch ? 'is-research' : stock.quoteIsStale ? 'is-stale' : 'is-unavailable'}`}>
                         <span className="compare-quote-source">{stock.quoteSource}</span>
                         <span className="compare-quote-updated">Updated {formatQuoteTime(stock.quoteUpdatedAt)}</span>
                       </div>
@@ -268,14 +297,15 @@ export const Compare = () => {
                 </td>
                 {comparedStocks.map((stock) => (
                   <td key={stock.symbol} className="param-value price-cell">
-                    <span className="cell-current-price">
-                      {stock.quoteIsLive || stock.quoteIsDemo ? `₹${formatRupees(stock.price)}` : 'Quote unavailable'}
+                    <span className={`cell-current-price ${stock.change === null ? '' : Number(stock.change) > 0 ? 'price-up' : Number(stock.change) < 0 ? 'price-down' : 'price-flat'}`}>
+                      {stock.price !== null ? `₹${formatRupees(stock.price)}` : 'Quote unavailable'}
                     </span>
-                    {(stock.quoteIsLive || stock.quoteIsDemo) && stock.change !== null && stock.changePercent !== null ? (
-                      <span className={`cell-change ${stock.change >= 0 ? 'gain' : 'loss'}`}>
-                        {stock.change >= 0 ? '+' : ''}{Number(stock.change).toFixed(2)} ({stock.change >= 0 ? '+' : ''}{Number(stock.changePercent).toFixed(2)}%)
+                    {stock.price !== null && stock.change !== null && stock.changePercent !== null ? (
+                      <span className={`cell-change ${Number(stock.change) > 0 ? 'gain' : Number(stock.change) < 0 ? 'loss' : 'price-flat'}`}>
+                        <TickArrow direction={Number(stock.change) > 0 ? 'up' : Number(stock.change) < 0 ? 'down' : 'flat'} />
+                        {Number(stock.change) > 0 ? '+' : ''}{Number(stock.change).toFixed(2)} ({Number(stock.changePercent) > 0 ? '+' : ''}{Number(stock.changePercent).toFixed(2)}%)
                       </span>
-                    ) : <span className="cell-change">Live change unavailable</span>}
+                    ) : <span className="cell-change">Change unavailable</span>}
                   </td>
                 ))}
               </tr>
@@ -307,7 +337,7 @@ export const Compare = () => {
               <tr>
                 <td className="param-label">
                   <strong>Market Capitalization</strong>
-                  <span>Estimated Total Equity Value</span>
+                  <span>Provider value when supplied</span>
                 </td>
                 {comparedStocks.map((stock) => {
                   const mcap = stock.marketCap;
@@ -315,7 +345,7 @@ export const Compare = () => {
                     <td key={stock.symbol} className="param-value">
                       <div className="compare-metric-stack">
                         <strong>{mcap || 'Unavailable'}</strong>
-                        {mcap ? <span className="metric-provenance">Demo estimate</span> : null}
+                        {mcap ? <span className="metric-provenance">Provider supplied</span> : null}
                       </div>
                     </td>
                   );
@@ -335,7 +365,7 @@ export const Compare = () => {
                     <td key={stock.symbol} className="param-value">
                       <div className="compare-metric-stack">
                         <span className="badge-pe">{hasPe ? `${pe.toFixed(1)}x` : 'Unavailable'}</span>
-                        {hasPe ? <span className="metric-provenance">Demo estimate</span> : null}
+                        {hasPe ? <span className="metric-provenance">Provider supplied</span> : null}
                       </div>
                     </td>
                   );
@@ -358,7 +388,7 @@ export const Compare = () => {
                     <td key={stock.symbol} className="param-value">
                       <div className="compare-metric-stack">
                         <strong>{hasDividendYield ? `${dividendYield.toFixed(2)}%` : 'Unavailable'}</strong>
-                        {hasDividendYield ? <span className="metric-provenance">Demo estimate</span> : null}
+                        {hasDividendYield ? <span className="metric-provenance">Provider supplied</span> : null}
                       </div>
                     </td>
                   );
@@ -374,8 +404,10 @@ export const Compare = () => {
                 {comparedStocks.map((stock) => (
                   <td key={stock.symbol} className="param-value">
                     <div className="compare-metric-stack">
-                      <strong>Unavailable</strong>
-                      <span className="metric-provenance">The selected live quote does not include 52-week range data</span>
+                      {stock.week52High && stock.week52Low
+                        ? <strong>₹{formatRupees(stock.week52Low)} – ₹{formatRupees(stock.week52High)}</strong>
+                        : <strong>Unavailable</strong>}
+                      <span className="metric-provenance">Provider values only</span>
                     </div>
                   </td>
                 ))}
@@ -422,7 +454,7 @@ export const Compare = () => {
         </div>
         <p>
           Comparing <strong>{selectedStocks.map((s) => s.symbol).join(', ')}</strong>. Quotes show their provider and update time above.
-          Market capitalization, P/E, and dividend yield are estimates. Live comparison prices require a configured market provider. Charts use illustrative previews when provider history is unavailable.
+          Metrics without a verified provider value are marked unavailable. Charts render provider candles only.
         </p>
       </section>
 

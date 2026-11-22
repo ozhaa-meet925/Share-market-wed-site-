@@ -1,0 +1,100 @@
+.heatmap-widget-container {
+  background: var(--surface-1, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 24px;
+}
+
+.heatmap-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.heatmap-header h2 {
+  font-size: 1.35rem;
+  margin: 0 0 4px;
+}
+
+.heatmap-header p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-3, #64748b);
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.sector-card {
+  background: var(--surface-2, #f8fafc);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sector-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sector-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-1, #0f172a);
+}
+
+.sector-badge {
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.sector-stocks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+  gap: 6px;
+}
+
+.stock-heatmap-tile {
+  color: #ffffff !important;
+  text-decoration: none;
+  padding: 8px 6px;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: transform 0.15s, filter 0.15s;
+}
+
+.stock-heatmap-tile:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.stk-sym {
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.stk-chg {
+  font-size: 0.75rem;
+  font-weight: 800;
+  margin: 2px 0;
+}
+
+.stk-price {
+  font-size: 0.65rem;
+  opacity: 0.9;
+}

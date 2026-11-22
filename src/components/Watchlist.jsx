@@ -1,5 +1,6 @@
 import { Star } from 'lucide-react';
 import CompanyLogo from './CompanyLogo';
+import { TickArrow, TickPrice, priceDirection } from './PriceChange';
 
 const Watchlist = ({ items }) => (
   <section className="panel compact-watchlist-panel">
@@ -8,7 +9,10 @@ const Watchlist = ({ items }) => (
       <Star size={18} />
     </div>
     <div className="compact-list">
-      {items.map((stock) => (
+      {items.map((stock) => {
+        const direction = priceDirection(stock.change, stock.changePercent, stock.flash, stock.lastTick);
+        const hasChange = Number.isFinite(Number(stock.changePercent));
+        return (
         <div className="compact-row" key={stock.symbol}>
           <div className="compact-company-wrap">
             <CompanyLogo symbol={stock.symbol} name={stock.name} size={30} />
@@ -20,7 +24,7 @@ const Watchlist = ({ items }) => (
           <div className="align-right">
             {Number(stock.price) > 0 ? (
               <>
-                <b>₹{Number(stock.price).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>
+                <TickPrice as="b" value={stock.price} changePercent={stock.changePercent} />
                 <span className="compact-quote-source">
                   {stock.isDemo
                     ? 'Demo price · not real'
@@ -30,8 +34,13 @@ const Watchlist = ({ items }) => (
                         ? `Research quote · not live${stock.isStale ? ' · stale' : ' · delayed'}`
                         : stock.isStale ? 'Last quote · stale' : 'Quote status unavailable'}
                 </span>
-                {stock.changePercent !== null && Number.isFinite(Number(stock.changePercent))
-                  ? <span className={Number(stock.changePercent) >= 0 ? 'gain' : 'loss'}>{Number(stock.changePercent) >= 0 ? '+' : ''}{Number(stock.changePercent).toFixed(2)}%{stock.isResearch ? ' · delayed' : ''}</span>
+                {hasChange
+                  ? (
+                    <span className={direction === 'up' ? 'gain' : direction === 'down' ? 'loss' : 'price-flat'}>
+                      <TickArrow direction={direction} />
+                      {`${Number(stock.changePercent) > 0 ? '+' : ''}${Number(stock.changePercent).toFixed(2)}%`}{stock.isResearch ? ' · delayed' : ''}
+                    </span>
+                  )
                   : <span>Change unavailable</span>}
               </>
             ) : (
@@ -42,7 +51,8 @@ const Watchlist = ({ items }) => (
             )}
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   </section>
 );

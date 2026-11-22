@@ -11,42 +11,107 @@ import {
   TrendingUp,
   X,
   Zap,
-  CheckCircle2,
 } from 'lucide-react';
 import NewsCard from '../components/NewsCard';
 import { useMarketNews } from '../hooks/useMarketNews';
+import { marketApi } from '../services/api';
 
 const TRENDING_TOPICS = [
-  { tag: '#Nifty50', label: 'Nifty 50 Record', query: 'Nifty' },
-  { tag: '#RBIPolicy', label: 'RBI Repo Rate', category: 'Market', query: 'RBI' },
-  { tag: '#TataTechIPO', label: 'Tata Tech IPO', category: 'IPO', query: 'Tata' },
-  { tag: '#GoldAllTimeHigh', label: 'Gold ₹78,500', category: 'Gold' },
-  { tag: '#SIPInflows', label: 'SIP ₹24,000 Cr', category: 'Mutual Funds', query: 'SIP' },
-  { tag: '#ITDealWins', label: 'IT AI Contracts', category: 'Stocks', query: 'IT' },
-  { tag: '#AutoSales', label: 'Festive Auto Sales', category: 'Stocks', query: 'Auto' },
-  { tag: '#SilverRally', label: 'Silver ₹92,000', category: 'Silver' },
-  { tag: '#SEBIRegulations', label: 'SEBI Derivatives', category: 'Market', query: 'SEBI' },
+  { tag: '#Nifty50', label: 'Nifty 50', query: 'Nifty' },
+  { tag: '#RBIPolicy', label: 'RBI Policy', category: 'Market', query: 'RBI' },
+  { tag: '#IPO', label: 'IPO Watch', category: 'IPO', query: 'IPO' },
+  { tag: '#GoldTrend', label: 'Gold Price Trend', category: 'Gold' },
+  { tag: '#SIPInflows', label: 'SIP Inflows', category: 'Mutual Funds', query: 'SIP' },
+  { tag: '#ITSector', label: 'IT Sector Deals', category: 'Stocks', query: 'IT' },
+  { tag: '#AutoSales', label: 'Auto Sales', category: 'Stocks', query: 'Auto' },
+  { tag: '#SilverTrend', label: 'Silver Trend', category: 'Silver' },
+  { tag: '#SEBIRegulations', label: 'SEBI Regulations', category: 'Market', query: 'SEBI' },
 ];
 
-const MARKET_SIGNALS = [
-  { label: 'RBI Repo Rate', value: '6.50% (Status Quo)', positive: true },
-  { label: 'Institutional Flows', value: 'Unavailable · live source not configured' },
-  { label: 'MCX Spot Gold', value: '₹78,500 / 10g (Peak)', positive: true },
-  { label: 'MCX Spot Silver', value: '₹92,000 / kg (Surging)', positive: true },
-  { label: 'India 10Y Yield', value: '6.82% (Stable)', positive: false },
-];
+const formatIndexValue = (value) => Number(value).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+const formatRupees = (value) => `₹${Number(value).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+const quoteState = (quote) => {
+  if (quote?.isStale) return 'Stale quote';
+  if (quote?.isLive) return 'Live';
+  if (quote?.isClose) return 'Previous close · delayed feed';
+  if (quote?.isDelayed) return 'Delayed feed';
+  return 'Provider feed';
+};
 
 const CATEGORIES = ['All', 'Market', 'Stocks', 'IPO', 'Gold', 'Silver', 'Mutual Funds'];
 
 const News = () => {
-  const { news, isLive, lastUpdated, provider, statusMessage, isLoading } = useMarketNews();
+  const { news, isLive, lastUpdated, provider, statusMessage, isLoading, sentimentMethod } = useMarketNews();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [category, setCategory] = useState(() => searchParams.get('category') || 'All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSource, setSelectedSource] = useState('All');
-  const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
-  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [marketSignals, setMarketSignals] = useState([]);
+  const [signalsUpdatedAt, setSignalsUpdatedAt] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    const loadSignals = async () => {
+      const [benchmarks, metals] = await Promise.allSettled([
+        marketApi.getBatchQuotes(['NIFTY', 'SENSEX']),
+        marketApi.getMetalsOverview(),
+      ]);
+      if (!active) return;
+      const rows = [];
+
+      if (benchmarks.status === 'fulfilled') {
+        for (const symbol of ['NIFTY', 'SENSEX']) {
+          const quote = benchmarks.value?.quotes?.[symbol];
+          if (!quote || !(Number(quote.c) > 0)) continue;
+          const change = Number(quote.dp);
+          rows.push({
+            key: symbol,
+            label: quote.label || symbol,
+            value: `${formatIndexValue(quote.c)} (${change >= 0 ? '+' : ''}${change.toFixed(2)}%)`,
+            detail: quoteState(quote),
+            positive: change >= 0,
+          });
+        }
+      }
+
+      if (metals.status === 'fulfilled') {
+        const metalRows = [
+          { key: 'GOLD', label: 'Gold (₹/10g)', quote: metals.value?.quotes?.GOLD },
+          { key: 'SILVER', label: 'Silver (₹/kg)', quote: metals.value?.quotes?.SILVER },
+        ];
+        for (const { key, label, quote } of metalRows) {
+          if (!quote || !(Number(quote.c) > 0)) continue;
+          const change = Number(quote.dp);
+          rows.push({
+            key,
+            label,
+            value: `${formatRupees(quote.c)} (${change >= 0 ? '+' : ''}${change.toFixed(2)}%)`,
+            detail: `${quoteState(quote)} · COMEX basis, not MCX spot`,
+            positive: change >= 0,
+          });
+        }
+      }
+
+      rows.push({
+        key: 'flows',
+        label: 'FII / DII Flows',
+        value: 'Unavailable',
+        detail: 'No configured data source',
+        muted: true,
+      });
+
+      setMarketSignals(rows);
+      setSignalsUpdatedAt(new Date());
+    };
+
+    loadSignals();
+    const intervalId = window.setInterval(loadSignals, 60000);
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   // Synchronize category with URL search param
   useEffect(() => {
@@ -154,13 +219,6 @@ const News = () => {
     setSearchParams(searchParams, { replace: true });
   };
 
-  const handleNewsletterSubmit = (e) => {
-    e.preventDefault();
-    if (newsletterEmail.trim()) {
-      setNewsletterSubscribed(true);
-    }
-  };
-
   return (
     <div className="page news-page">
       {/* 1. SCROLLING BREAKING NEWS TICKER */}
@@ -217,6 +275,11 @@ const News = () => {
                 <Newspaper size={13} />
                 Showing {filteredNews.length} of {news.length} articles
               </div>
+              {sentimentMethod ? (
+                <div className="news-sentiment-method" title={sentimentMethod}>
+                  Tone badges: headline keyword score · not advice
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -355,15 +418,31 @@ const News = () => {
               Key Market Signals
             </h3>
             <div className="news-signals-list">
-              {MARKET_SIGNALS.map((signal) => (
-                <div key={signal.label} className="news-signal-item">
-                  <span className="news-signal-label">{signal.label}</span>
-                  <span className={`news-signal-value ${signal.positive ? 'positive' : ''}`}>
+              {marketSignals.length === 0 ? (
+                <div className="news-signal-item">
+                  <span className="news-signal-label">Live quotes</span>
+                  <span className="news-signal-value">Connecting…</span>
+                </div>
+              ) : marketSignals.map((signal) => (
+                <div key={signal.key} className="news-signal-item">
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span className="news-signal-label">{signal.label}</span>
+                    <div style={{ fontSize: '0.66rem', color: 'var(--text-3)', marginTop: 2 }}>{signal.detail}</div>
+                  </div>
+                  <span
+                    className={`news-signal-value ${signal.positive ? 'positive' : ''}`}
+                    style={{ textAlign: 'right', color: signal.muted ? 'var(--text-3)' : undefined }}
+                  >
                     {signal.value}
                   </span>
                 </div>
               ))}
             </div>
+            {signalsUpdatedAt && (
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-3)', marginTop: 8 }}>
+                Updated {signalsUpdatedAt.toLocaleTimeString('en-IN')} · indices and metals refresh every 60s
+              </div>
+            )}
           </section>
 
           {/* Sources Filter Widget */}
@@ -393,26 +472,13 @@ const News = () => {
             </div>
           </section>
 
-          {/* Daily Market Newsletter Widget */}
+          {/* Live Feed Note Widget */}
           <section className="news-newsletter-card">
-            <h4>Stay Ahead of the Market</h4>
-            <p>Get curated morning bell updates, IPO filings, and commodity movements straight to your inbox.</p>
-            {newsletterSubscribed ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: '0.88rem', fontWeight: 700 }}>
-                <CheckCircle2 size={18} /> Subscribed for daily briefs!
-              </div>
-            ) : (
-              <form onSubmit={handleNewsletterSubmit} className="news-newsletter-form">
-                <input
-                  type="email"
-                  placeholder="Enter email address"
-                  required
-                  value={newsletterEmail}
-                  onChange={(e) => setNewsletterEmail(e.target.value)}
-                />
-                <button type="submit">Subscribe</button>
-              </form>
-            )}
+            <h4>Live Headlines, No Sign-up</h4>
+            <p>Headlines on this page come from the live news feed and refresh every 2 minutes. Email briefs are not enabled on this deployment.</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: '0.82rem', fontWeight: 700 }}>
+              <Radio size={16} /> Auto-refresh is on
+            </div>
           </section>
         </aside>
       </div>

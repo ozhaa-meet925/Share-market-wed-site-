@@ -1,13 +1,38 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CreditCard, WalletCards } from 'lucide-react';
-import { getPaperState } from '../services/paperTrading';
+import { getPaperState, PAPER_STATE_EVENT } from '../services/paperTrading';
+
+let razorpayLoader = null;
+const loadRazorpayCheckout = () => {
+  if (window.Razorpay) return Promise.resolve();
+  if (!razorpayLoader) {
+    razorpayLoader = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => {
+        razorpayLoader = null;
+        reject(new Error('Razorpay Checkout could not be loaded. Check your internet connection.'));
+      };
+      document.head.appendChild(script);
+    });
+  }
+  return razorpayLoader;
+};
 
 const Wallet = () => {
-  const state = getPaperState();
+  const [state, setState] = useState(getPaperState);
   const [amount, setAmount] = useState('1000');
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
   const [payments, setPayments] = useState(() => JSON.parse(localStorage.getItem('sharemarket:payments') || '[]'));
+
+  useEffect(() => {
+    const refresh = () => setState(getPaperState());
+    window.addEventListener(PAPER_STATE_EVENT, refresh);
+    return () => window.removeEventListener(PAPER_STATE_EVENT, refresh);
+  }, []);
 
   const savePayment = (payment) => {
     const next = [payment, ...payments].slice(0, 10);
@@ -26,18 +51,33 @@ const Wallet = () => {
   const startPayment = async (event) => {
     event.preventDefault();
     setBusy(true);
-    setStatus('Creating secure Razorpay order...');
+    setStatus('Creating secure order...');
     try {
       const response = await fetch('/api/payments/order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: Number(amount) }) });
       const order = await response.json();
       if (!response.ok) throw new Error(order.error || 'Unable to create payment order.');
+
+      // If sandbox demo order, credit cash immediately without blocking on Razorpay modal
+      if (order.isSandbox) {
+        savePayment({ id: order.id, amount: Number(amount), orderId: order.id, status: 'Verified', date: new Date().toLocaleString('en-IN') });
+        dispatch({ type: 'DEPOSIT', amount: Number(amount), note: 'Instant Sandbox Wallet Recharge' });
+        setStatus(`₹${Number(amount).toLocaleString('en-IN')} added to your trading wallet (Sandbox Demo Mode).`);
+        return;
+      }
+
+      await loadRazorpayCheckout();
       if (!window.Razorpay) throw new Error('Razorpay Checkout is unavailable. Check your internet connection.');
       savePayment({ id: order.id, amount: Number(amount), orderId: order.id, status: 'Pending', date: new Date().toLocaleString('en-IN') });
       const checkout = new window.Razorpay({ key: order.keyId, amount: order.amount, currency: order.currency, name: 'ShareMarket', description: 'Wallet top-up', order_id: order.id, handler: async (result) => {
         const verification = await fetch('/api/payments/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: result.razorpay_order_id, paymentId: result.razorpay_payment_id, signature: result.razorpay_signature }) });
         const verified = await verification.json();
         updatePayment(result.razorpay_order_id, { id: result.razorpay_payment_id, status: verified.verified ? 'Verified' : 'Failed' });
-        setStatus(verified.verified ? 'Payment verified successfully.' : 'Payment received but verification failed. Funds were not credited.');
+        if (verified.verified) {
+          dispatch({ type: 'DEPOSIT', amount: Number(amount), note: 'Razorpay Wallet Recharge' });
+          setStatus('Payment verified successfully. Funds credited to wallet.');
+        } else {
+          setStatus('Payment received but verification failed. Funds were not credited.');
+        }
       }, theme: { color: '#0d6f4e' } });
       checkout.open();
       setStatus('');

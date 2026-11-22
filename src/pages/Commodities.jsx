@@ -1,8 +1,13 @@
-import { Activity, ArrowUpRight, Clock3, Info, Layers3, Sparkles } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import {
+  Activity, ArrowUpRight, Box, Cable, Clock3, Droplets, Flame, Gem, Hexagon, Info, Layers3, Sparkles,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import GoldCard from '../components/GoldCard';
 import SilverCard from '../components/SilverCard';
 import MarketCard from '../components/MarketCard';
+import LiveChart from '../components/LiveChart';
+import PriceAlertForm from '../components/PriceAlertForm';
 import { useMarketIndices } from '../hooks/useMarketIndices';
 
 const commodityContracts = [
@@ -13,10 +18,37 @@ const commodityContracts = [
   { symbol: 'ZINC', name: 'Zinc', unit: '₹/kg' },
 ];
 
+const chartInstruments = [
+  { symbol: 'GOLD', name: 'Gold', label: 'Gold', assetType: 'commodity', icon: Gem },
+  { symbol: 'SILVER', name: 'Silver', label: 'Silver', assetType: 'silver', icon: Hexagon },
+  { symbol: 'CRUDEOIL', name: 'Crude Oil', label: 'Crude Oil · ₹/bbl', assetType: 'commodity-contract', unit: '₹/bbl', icon: Droplets },
+  { symbol: 'NATURALGAS', name: 'Natural Gas', label: 'Natural Gas · ₹/MMBtu', assetType: 'commodity-contract', unit: '₹/MMBtu', icon: Flame },
+  { symbol: 'COPPER', name: 'Copper', label: 'Copper · ₹/kg', assetType: 'commodity-contract', unit: '₹/kg', icon: Cable },
+  { symbol: 'ALUMINIUM', name: 'Aluminium', label: 'Aluminium · ₹/kg', assetType: 'commodity-contract', unit: '₹/kg', icon: Layers3 },
+  { symbol: 'ZINC', name: 'Zinc', label: 'Zinc · ₹/kg', assetType: 'commodity-contract', unit: '₹/kg', icon: Box },
+];
+
+const formatTabPrice = (value) => Number(value).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+
 const Commodities = () => {
-  const { quotes, histories, lastUpdated } = useMarketIndices([
+  const { quotes, histories, historyMeta, lastUpdated, retryHistory } = useMarketIndices([
     'MCX:GOLD', 'MCX:SILVER', ...commodityContracts.map((item) => `MCX:${item.symbol}`),
   ]);
+  const [chartSymbol, setChartSymbol] = useState('GOLD');
+  const [alertMetal, setAlertMetal] = useState('GOLD');
+  const chartSectionRef = useRef(null);
+  const chartTabsRef = useRef(null);
+
+  useEffect(() => {
+    const strip = chartTabsRef.current;
+    const active = strip?.querySelector('button.active');
+    if (!strip || !active) return;
+    strip.scrollTo({
+      left: Math.max(0, active.offsetLeft - (strip.clientWidth - active.offsetWidth) / 2),
+      behavior: 'smooth',
+    });
+  }, [chartSymbol]);
+  const selectedChart = chartInstruments.find((item) => item.symbol === chartSymbol) || chartInstruments[0];
   const allSymbols = ['GOLD', 'SILVER', ...commodityContracts.map((item) => item.symbol)];
   const pricedQuotes = allSymbols
     .map((symbol) => quotes.get(symbol))
@@ -37,6 +69,13 @@ const Commodities = () => {
       hasBenchmarkQuotes ? 'Delayed global benchmarks' : null,
       hasSpotQuotes ? 'International spot references' : null,
     ].filter(Boolean).join(' · ') || 'Waiting for commodity price feeds';
+
+  const openChart = (symbol) => {
+    setChartSymbol(symbol);
+    window.requestAnimationFrame(() => {
+      chartSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
 
   return (
     <div className="page commodities-page">
@@ -79,6 +118,48 @@ const Commodities = () => {
         </div>
       )}
 
+      <section ref={chartSectionRef} className="commodity-section commodity-chart-section" aria-labelledby="commodity-chart-heading">
+        <div className="commodity-section-heading">
+          <div>
+            <span className="commodity-section-kicker">PRICE ACTION</span>
+            <h2 id="commodity-chart-heading">Commodity charts</h2>
+          </div>
+          <span className="commodity-section-count">7 instruments · 1D to ALL</span>
+        </div>
+        <div className="commodity-chart-shell">
+          <div ref={chartTabsRef} className="commodity-chart-tabs" role="tablist" aria-label="Choose commodity chart">
+            {chartInstruments.map((item) => {
+              const Icon = item.icon;
+              const quote = quotes.get(item.symbol);
+              const hasQuote = Number(quote?.c) > 0;
+              return (
+                <button
+                  key={item.symbol}
+                  type="button"
+                  role="tab"
+                  aria-selected={chartSymbol === item.symbol}
+                  aria-label={hasQuote ? `${item.name}, ${formatTabPrice(quote.c)} rupees` : item.name}
+                  className={chartSymbol === item.symbol ? 'active' : ''}
+                  onClick={() => setChartSymbol(item.symbol)}
+                >
+                  <span className="commodity-chart-tab-icon"><Icon size={15} /></span>
+                  <span className="commodity-chart-tab-copy">
+                    <strong>{item.name}</strong>
+                    <small>{hasQuote ? `₹${formatTabPrice(quote.c)}` : 'No quote'}</small>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <LiveChart
+            key={selectedChart.symbol}
+            stock={{ symbol: selectedChart.symbol, name: selectedChart.label }}
+            assetType={selectedChart.assetType}
+            unit={selectedChart.unit}
+          />
+        </div>
+      </section>
+
       <section className="commodity-section" aria-labelledby="precious-metals-heading">
         <div className="commodity-section-heading">
           <div>
@@ -91,6 +172,26 @@ const Commodities = () => {
           <GoldCard quote={quotes.get('GOLD')} />
           <SilverCard quote={quotes.get('SILVER')} />
         </div>
+        <div className="commodity-metal-alert">
+          <div className="commodity-metal-alert-tabs" role="tablist" aria-label="Choose metal for price alert">
+            {['GOLD', 'SILVER'].map((symbol) => (
+              <button
+                key={symbol}
+                type="button"
+                role="tab"
+                aria-selected={alertMetal === symbol}
+                className={alertMetal === symbol ? 'active' : ''}
+                onClick={() => setAlertMetal(symbol)}
+              >
+                {symbol === 'GOLD' ? 'Gold alert' : 'Silver alert'}
+              </button>
+            ))}
+          </div>
+          <PriceAlertForm
+            key={alertMetal}
+            stock={{ symbol: alertMetal, price: Number(quotes.get(alertMetal)?.c) || null }}
+          />
+        </div>
       </section>
 
       <section className="commodity-section commodity-section-markets" aria-labelledby="energy-metals-heading">
@@ -102,15 +203,24 @@ const Commodities = () => {
           <span className="commodity-section-count">{commodityContracts.length} instruments</span>
         </div>
         <div className="market-strip commodity-market-grid">
-          {commodityContracts.map((item) => (
-            <MarketCard
-              key={item.symbol}
-              name={`${item.name} · ${item.unit}`}
-              quote={quotes.get(item.symbol)}
-              history={histories.get(item.symbol) || []}
-              lastUpdated={lastUpdated}
-            />
-          ))}
+          {commodityContracts.map((item) => {
+            const meta = historyMeta.get(item.symbol);
+            return (
+              <MarketCard
+                key={item.symbol}
+                name={`${item.name} · ${item.unit}`}
+                quote={quotes.get(item.symbol)}
+                history={histories.get(item.symbol) || []}
+                historyStatus={meta?.status || 'loading'}
+                historyError={meta?.error || ''}
+                historyProvider={meta?.provider || ''}
+                historyIsResearch={meta?.isResearch === true}
+                onRetryHistory={retryHistory}
+                onOpenChart={() => openChart(item.symbol)}
+                lastUpdated={lastUpdated}
+              />
+            );
+          })}
         </div>
       </section>
 

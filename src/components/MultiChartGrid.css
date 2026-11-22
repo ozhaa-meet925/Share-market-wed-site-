@@ -1,0 +1,107 @@
+.multichart-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--surface-1, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 24px;
+}
+
+.multichart-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  padding-bottom: 12px;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--text-1, #0f172a);
+}
+
+.layout-switcher {
+  display: flex;
+  gap: 6px;
+  background: var(--surface-2, #f1f5f9);
+  padding: 3px;
+  border-radius: 8px;
+}
+
+.layout-switcher button {
+  border: none;
+  background: transparent;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-2, #475569);
+  transition: all 0.2s;
+}
+
+.layout-switcher button.active {
+  background: #ffffff;
+  color: #0d6f4e;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.charts-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.charts-grid.layout-1x1 {
+  grid-template-columns: 1fr;
+}
+
+.charts-grid.layout-1x2 {
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+}
+
+.charts-grid.layout-2x2 {
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+}
+
+.chart-cell {
+  background: var(--surface-2, #f8fafc);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-cell-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--surface-1, #ffffff);
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+
+.symbol-input {
+  border: 1px solid var(--border-color, #cbd5e1);
+  padding: 4px 8px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  border-radius: 6px;
+  width: 140px;
+  text-transform: uppercase;
+}
+
+.press-enter-hint {
+  font-size: 0.72rem;
+  color: var(--text-3, #94a3b8);
+}
+
+.chart-cell-body {
+  padding: 8px;
+  min-height: 400px;
+}

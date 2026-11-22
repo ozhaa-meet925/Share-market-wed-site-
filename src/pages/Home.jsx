@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ShieldCheck, TrendingUp } from 'lucide-react';
+import { Activity, ArrowRight, ArrowUpRight, ShieldCheck, TrendingUp } from 'lucide-react';
 import LivePriceTracker from '../components/LivePriceTracker';
 import LiveChart from '../components/LiveChart';
 import CompanyList from '../components/CompanyList';
@@ -27,9 +27,26 @@ const holdings = [
 ];
 
 const Home = () => {
-  const { catalog, addStock } = useStockCatalog();
+  const { catalog, addStock, isLoadingCatalog, catalogError } = useStockCatalog();
   const { stocks, lastUpdated } = useLiveStocks(stockSeed);
-  const { quotes: indexQuotes, histories: indexHistories, lastUpdated: indexUpdated } = useMarketIndices(marketIndexSymbols);
+  const {
+    quotes: indexQuotes,
+    histories: indexHistories,
+    historyMeta: indexHistoryMeta,
+    lastUpdated: indexUpdated,
+    retryHistory: retryIndexHistory,
+  } = useMarketIndices(marketIndexSymbols);
+  const indexHistoryProps = (symbol) => {
+    const meta = indexHistoryMeta.get(symbol) || {};
+    return {
+      history: indexHistories.get(symbol) || [],
+      historyStatus: meta.status || 'loading',
+      historyError: meta.error || '',
+      historyProvider: meta.provider || '',
+      historyIsResearch: meta.isResearch === true,
+      onRetryHistory: retryIndexHistory,
+    };
+  };
   const { news } = useMarketNews();
   const ipoFeed = useIpoFeed();
   const liveIpos = ipoFeed.data || [];
@@ -38,18 +55,24 @@ const Home = () => {
     liveIpos.find((ipo) => ['upcoming', 'open soon'].includes(String(ipo.status).toLowerCase())),
   ].filter(Boolean);
   const [selectedSymbol, setSelectedSymbol] = useState(stockSeed[0].symbol);
-  const liveStockMap = new Map(stocks.map((stock) => [stock.symbol, stock]));
-  const catalogStocks = catalog.map((stock) => liveStockMap.get(stock.symbol) || stock);
-  const topMovers = stocks.filter((stock) => stock.isLive).sort((a, b) => Math.abs(b.changePercent || 0) - Math.abs(a.changePercent || 0)).slice(0, 4);
+  const liveStockMap = useMemo(() => new Map(stocks.map((stock) => [stock.symbol, stock])), [stocks]);
+  const catalogStocks = useMemo(
+    () => catalog.map((stock) => liveStockMap.get(stock.symbol) || stock),
+    [catalog, liveStockMap],
+  );
+  const topMovers = stocks.filter((stock) => stock.isLive || stock.isResearch).sort((a, b) => Math.abs(b.changePercent || 0) - Math.abs(a.changePercent || 0)).slice(0, 4);
   const quotedHoldings = holdings.map((holding) => {
     const quote = stocks.find((stock) => stock.symbol === holding.symbol);
-    const hasDisplayQuote = quote?.isLive === true && Number(quote.price) > 0;
+    const hasDisplayQuote = !!quote && Number(quote.price) > 0
+      && (quote.isLive === true || quote.isResearch === true || quote.isStale === true);
     return {
       ...holding,
       value: hasDisplayQuote ? quote.price * holding.qty : null,
       dayGain: hasDisplayQuote && quote.change !== null ? quote.change * holding.qty : null,
       pnl: hasDisplayQuote ? quote.changePercent : null,
       isLive: quote?.isLive === true,
+      isResearch: quote?.isResearch === true,
+      isStale: quote?.isStale === true,
       isDemo: false,
       dataSource: quote?.dataSource,
       marketOpen: quote?.marketOpen === true,
@@ -84,11 +107,25 @@ const Home = () => {
           <MarketCard
             name={nifty.name}
             quote={indexQuotes.get('NIFTY')}
-            history={indexHistories.get('NIFTY')}
+            {...indexHistoryProps('NIFTY')}
             lastUpdated={indexUpdated}
           />
         </div>
       </section>
+
+      {/* Premium stats bar */}
+      <div className="home-stats-bar" role="region" aria-label="Platform highlights">
+        {[
+          { icon: <TrendingUp size={14} />, label: '1,800+ Stocks' },
+          { icon: <Activity size={14} />, label: 'Live Market Data' },
+          { icon: <ShieldCheck size={14} />, label: 'Paper Trading' },
+          { icon: <ArrowUpRight size={14} />, label: 'AI Analysis' },
+        ].map(({ icon, label }) => (
+          <span key={label} className="home-stat-pill">
+            {icon} {label}
+          </span>
+        ))}
+      </div>
 
       <section className="home-market-section" aria-labelledby="home-market-heading">
         <div className="home-section-intro">
@@ -105,7 +142,7 @@ const Home = () => {
               key={index.name}
               name={index.name}
               quote={index.symbol ? indexQuotes.get(index.symbol) : null}
-              history={index.symbol ? indexHistories.get(index.symbol) : []}
+              {...(index.symbol ? indexHistoryProps(index.symbol) : {})}
               lastUpdated={indexUpdated}
             />
           ))}
@@ -120,11 +157,18 @@ const Home = () => {
             <div>
               <span className="home-section-kicker">DISCOVER</span>
               <h3>All companies</h3>
-              <span>{catalogStocks.length} listed companies</span>
+              <span>{catalogStocks.length.toLocaleString('en-IN')} listed companies</span>
             </div>
             <Link to="/stocks">View all</Link>
           </div>
-          <CompanyList companies={catalogStocks} onSelect={setSelectedSymbol} selected={selectedSymbol} onAddStock={addStock} />
+          <CompanyList
+            companies={catalogStocks}
+            onSelect={setSelectedSymbol}
+            selected={selectedSymbol}
+            onAddStock={addStock}
+            isLoadingCatalog={isLoadingCatalog}
+            catalogError={catalogError}
+          />
         </aside>
         <div className="home-widget home-chart-widget">
           <div className="home-chart-heading">

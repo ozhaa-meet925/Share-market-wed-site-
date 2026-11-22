@@ -3,13 +3,10 @@ import { Link } from 'react-router-dom';
 import {
   Activity,
   ArrowUpRight,
-  ArrowDownRight,
   Clock,
   Radio,
   Volume2,
   VolumeX,
-  TrendingUp,
-  TrendingDown,
   Layers,
   BarChart2,
   ShieldAlert,
@@ -20,54 +17,14 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import LiveChart from '../components/LiveChart';
+import MultiChartGrid from '../components/MultiChartGrid';
+import { TickArrow, signedChange, signedPercent, tickToneClass } from '../components/PriceChange';
 import { stocks as stockSeed } from '../data/stocks';
 import { marketApi } from '../services/api';
 
 const formatCurrency = (val) => Number.isFinite(Number(val)) && val !== null
   ? `₹${Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   : '—';
-
-const createIllustrativeDepth = (symbol, referencePrice) => {
-  const price = Number(referencePrice);
-  if (!Number.isFinite(price) || price <= 0) return null;
-
-  const seed = [...(symbol || 'STOCK')].reduce((total, char) => total + char.charCodeAt(0), 0);
-  const mid = Math.round(price / 0.05) * 0.05;
-  const bids = Array.from({ length: 5 }, (_, index) => ({
-    price: Number((mid - (index + 1) * 0.05).toFixed(2)),
-    quantity: 700 + ((seed + index * 379) % 2500),
-    orders: 2 + ((seed + index * 13) % 35),
-  }));
-  const asks = Array.from({ length: 5 }, (_, index) => ({
-    price: Number((mid + (index + 1) * 0.05).toFixed(2)),
-    quantity: 700 + ((seed + index * 523 + 97) % 2500),
-    orders: 2 + ((seed + index * 17 + 5) % 35),
-  }));
-
-  return {
-    bids,
-    asks,
-    totalBidQty: bids.reduce((total, level) => total + level.quantity, 0),
-    totalAskQty: asks.reduce((total, level) => total + level.quantity, 0),
-    spread: Number((asks[0].price - bids[0].price).toFixed(2)),
-  };
-};
-
-const createIllustrativeTape = (symbol, referencePrice) => {
-  const price = Number(referencePrice);
-  if (!Number.isFinite(price) || price <= 0) return [];
-
-  const seed = [...(symbol || 'STOCK')].reduce((total, char) => total + char.charCodeAt(0), 0);
-  const mid = Math.round(price / 0.05) * 0.05;
-  const offsets = [-3, -2, -1, 0, 1, 0, 2, 1];
-  return offsets.map((offset, index) => ({
-    id: `sample-${symbol}-${index}`,
-    time: 'Sample',
-    price: Number((mid + offset * 0.05).toFixed(2)),
-    quantity: 1 + ((seed + index * 19) % 90),
-    side: index % 2 === 0 ? 'BUY' : 'SELL',
-  }));
-};
 
 const formatCompact = (val) => {
   if (val >= 1e7) return `${(val / 1e7).toFixed(2)} Cr`;
@@ -127,12 +84,13 @@ const LiveTerminal = () => {
     flash: null,
     lastTick: null,
     isLive: false,
+    isResearch: false,
     isDemo: false,
     isStale: false,
   })));
   const [indexList, setIndexList] = useState(() => initialIndices.map((index) => ({ ...index, quote: null })));
   const [selectedSymbol, setSelectedSymbol] = useState('RELIANCE');
-  const [streamSpeed, setStreamSpeed] = useState(5000);
+  const [streamSpeed, setStreamSpeed] = useState(2000);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [providerStatus, setProviderStatus] = useState('Checking live provider');
   const [activeFilter, setActiveFilter] = useState('ALL');
@@ -154,20 +112,10 @@ const LiveTerminal = () => {
     () => stockList.find((s) => s.symbol === selectedSymbol) || stockList[0],
     [stockList, selectedSymbol]
   );
-  const selectedSeedPrice = stockSeed.find((stock) => stock.symbol === selectedSymbol)?.price;
-  const previewReferencePrice = selectedStock?.price ?? selectedSeedPrice;
-  const illustrativeDepth = useMemo(
-    () => createIllustrativeDepth(selectedSymbol, previewReferencePrice),
-    [selectedSymbol, previewReferencePrice]
-  );
-  const illustrativeTape = useMemo(
-    () => createIllustrativeTape(selectedSymbol, previewReferencePrice),
-    [selectedSymbol, previewReferencePrice]
-  );
   const hasLiveDepth = depthData?.symbol === selectedSymbol && depthData?.isLive === true && depthData?.isDemo !== true && depthData.bids?.length && depthData.asks?.length;
   const hasLiveTape = tradeTapeIsLive && tradeTapeSymbol === selectedSymbol && tradeTape.length > 0;
-  const displayedDepth = hasLiveDepth ? depthData : illustrativeDepth;
-  const displayedTape = hasLiveTape ? tradeTape : illustrativeTape;
+  const displayedDepth = hasLiveDepth ? depthData : null;
+  const displayedTape = hasLiveTape ? tradeTape : [];
 
   // Real-time IST clock
   useEffect(() => {
@@ -193,25 +141,28 @@ const LiveTerminal = () => {
         const quoteMap = new Map(Object.entries(payload?.quotes || {}).map(([symbol, quote]) => [symbol.toUpperCase(), quote]));
         setStockList((current) => current.map((stock) => {
           const quote = quoteMap.get(stock.symbol);
-          if (!quote || (quote.isLive !== true && quote.isDemo !== true) || !(Number(quote.c) > 0)) {
-            return { ...stock, isLive: false, isDemo: false, isStale: stock.price !== null, flash: null };
+          if (!quote || !(Number(quote.c) > 0)) {
+            return { ...stock, isLive: false, isResearch: false, isDemo: false, isStale: stock.price !== null, flash: null };
           }
           const price = Number(quote.c);
           const direction = stock.price === null || price === stock.price ? stock.lastTick : price > stock.price ? 'up' : 'down';
           if (soundEnabledRef.current && stock.symbol === selectedSymbolRef.current && stock.price !== null && price !== stock.price) playTickAudio(price > stock.price);
+          const isDemo = quote.isDemo === true;
+          const isLive = quote.isLive === true && !isDemo;
           return {
             ...stock,
             price,
             previousClose: Number(quote.pc) > 0 ? Number(quote.pc) : null,
-            change: Number.isFinite(Number(quote.d)) ? Number(quote.d) : null,
-            changePercent: Number.isFinite(Number(quote.dp)) ? Number(quote.dp) : null,
+            change: Number.isFinite(Number(quote.d)) ? Number(Number(quote.d).toFixed(2)) : null,
+            changePercent: Number.isFinite(Number(quote.dp)) ? Number(Number(quote.dp).toFixed(2)) : null,
             high: Number(quote.h) > 0 ? Number(quote.h) : null,
             low: Number(quote.l) > 0 ? Number(quote.l) : null,
             lastTradeTime: quote.lastTradeTime || quote.timestamp || null,
-            isLive: quote.isLive === true && quote.isDemo !== true,
-            isDemo: quote.isDemo === true,
-            isStale: false,
-            dataSource: quote.provider || 'Live provider',
+            isLive,
+            isResearch: quote.isResearch === true && !isLive && !isDemo,
+            isDemo,
+            isStale: quote.isStale === true,
+            dataSource: quote.provider || (isLive ? 'Live provider' : 'Research feed'),
             flash: stock.price === null || price === stock.price ? null : direction,
             lastTick: direction,
           };
@@ -234,14 +185,14 @@ const LiveTerminal = () => {
         const providerName = health.provider || health.configuredProvider || 'Market provider';
         setProviderStatus(health.realTimeAvailable
           ? `${providerName} live`
-          : `${providerName} token required`);
-        if (!health.realTimeAvailable) return;
-
-        tickAll();
-        intervalId = setInterval(tickAll, streamSpeed);
+          : 'Research quotes · live provider not configured');
       } catch {
-        if (active) setProviderStatus('Market API unavailable');
+        if (!active) return;
+        setProviderStatus('Market API unavailable');
       }
+      if (!active) return;
+      tickAll();
+      intervalId = setInterval(tickAll, streamSpeed);
     };
 
     start();
@@ -285,7 +236,7 @@ const LiveTerminal = () => {
         fetchDepthAndTape();
         intervalId = setInterval(fetchDepthAndTape, Math.max(5000, streamSpeed));
       } catch {
-        // Keep illustrative depth visible when the live provider is not reachable.
+        // No live provider means no depth or tape is shown at all; nothing is synthesised.
       }
     };
 
@@ -296,11 +247,11 @@ const LiveTerminal = () => {
     };
   }, [selectedSymbol, streamSpeed]);
 
-  // Market breadth uses only fresh provider quotes.
-  const liveStocks = stockList.filter((stock) => (stock.isLive || stock.isDemo) && stock.change !== null);
-  const advances = liveStocks.filter((stock) => stock.change >= 0).length;
-  const declines = liveStocks.filter((stock) => stock.change < 0).length;
-  const advancePercent = liveStocks.length ? Math.round((advances / liveStocks.length) * 100) : 0;
+  // Market breadth uses every loaded provider or research quote.
+  const quotedStocks = stockList.filter((stock) => Number(stock.price) > 0 && stock.change !== null);
+  const advances = quotedStocks.filter((stock) => stock.change >= 0).length;
+  const declines = quotedStocks.filter((stock) => stock.change < 0).length;
+  const advancePercent = quotedStocks.length ? Math.round((advances / quotedStocks.length) * 100) : 0;
 
   // Filtered Stock Matrix
   const filteredStocks = stockList.filter((stk) => {
@@ -329,7 +280,10 @@ const LiveTerminal = () => {
     setTimeout(() => setAlertSuccess(''), 4000);
   };
 
-  const isStockGain = selectedStock.change !== null && selectedStock.change >= 0;
+  const stockDirection = selectedStock.change === null || selectedStock.change === undefined
+    ? null
+    : Number(selectedStock.change) > 0 ? 'up' : Number(selectedStock.change) < 0 ? 'down' : 'flat';
+  const heroPriceTone = tickToneClass(selectedStock.flash || stockDirection, selectedStock.flash);
 
   return (
     <div className="page live-terminal-page">
@@ -339,7 +293,7 @@ const LiveTerminal = () => {
           <div className="live-status-pill">
             <span className="live-dot pulse" />
             <Radio size={15} />
-            <strong>{selectedStock.isDemo ? 'SIMULATED DEMO · NOT REAL' : selectedStock.isLive ? providerStatus : providerStatus.toUpperCase()}</strong>
+            <strong>{selectedStock.isDemo ? 'SIMULATED DEMO · NOT REAL' : selectedStock.isLive ? providerStatus : selectedStock.isResearch ? `${selectedStock.dataSource || 'Research feed'} · RESEARCH` : providerStatus.toUpperCase()}</strong>
           </div>
           <h1>NSE / BSE Live Tracking Terminal</h1>
         </div>
@@ -354,6 +308,13 @@ const LiveTerminal = () => {
             <SlidersHorizontal size={14} />
             <span>Speed:</span>
             <button
+              className={streamSpeed === 2000 ? 'active' : ''}
+              onClick={() => setStreamSpeed(2000)}
+              title="Ultra fast (2s)"
+            >
+              2s
+            </button>
+            <button
               className={streamSpeed === 5000 ? 'active' : ''}
               onClick={() => setStreamSpeed(5000)}
               title="Fast (5s)"
@@ -366,13 +327,6 @@ const LiveTerminal = () => {
               title="Normal (10s)"
             >
               10s
-            </button>
-            <button
-              className={streamSpeed === 20000 ? 'active' : ''}
-              onClick={() => setStreamSpeed(20000)}
-              title="Relaxed (20s)"
-            >
-              20s
             </button>
             <button
               className={streamSpeed === 0 ? 'active' : ''}
@@ -398,20 +352,21 @@ const LiveTerminal = () => {
       <section className="indices-ribbon">
         {indexList.map((idx) => {
           const quote = idx.quote;
-          const isUp = Number(quote?.d) >= 0;
+          const direction = Number(quote?.d) > 0 ? 'up' : Number(quote?.d) < 0 ? 'down' : Number(quote?.d) === 0 ? 'flat' : null;
+          const isUp = direction === 'up';
           return (
             <div className="ribbon-card" key={idx.symbol}>
               <div className="ribbon-top">
                 <strong>{idx.label}</strong>
-                <span className={quote ? isUp ? 'gain' : 'loss' : ''}>
-                  {quote && (isUp ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />)}
-                  {quote && Number.isFinite(Number(quote.dp)) ? `${isUp ? '+' : ''}${quote.dp}%` : '—'}
+                <span className={direction ? (isUp ? 'gain' : direction === 'down' ? 'loss' : 'price-flat') : ''}>
+                  {quote ? <TickArrow direction={direction} /> : null}
+                  {quote && Number.isFinite(Number(quote.dp)) ? `${isUp ? '+' : ''}${Number(quote.dp).toFixed(2)}%` : '—'}
                 </span>
               </div>
               <div className="ribbon-bottom">
-                <b>{formatCurrency(quote?.c)}</b>
-                <small className={quote ? isUp ? 'gain' : 'loss' : ''}>
-                  {quote && Number.isFinite(Number(quote.d)) ? `${isUp ? '+' : ''}${quote.d}` : '—'}
+                <b className={direction ? `price-${direction}` : ''}>{formatCurrency(quote?.c)}</b>
+                <small className={direction ? (isUp ? 'gain' : direction === 'down' ? 'loss' : 'price-flat') : ''}>
+                  {quote && Number.isFinite(Number(quote.d)) ? `${isUp ? '+' : ''}${Number(quote.d).toFixed(2)}` : '—'}
                 </small>
                 {quote?.isDemo ? <small>DEMO · NOT REAL</small> : null}
               </div>
@@ -426,7 +381,7 @@ const LiveTerminal = () => {
           <span>Market Breadth:</span>
           <strong className="gain">Advances: {advances}</strong>
           <strong className="loss">Declines: {declines}</strong>
-          <span>Live quotes: {liveStocks.length}/{stockList.length}</span>
+          <span>Quotes: {quotedStocks.length}/{stockList.length}</span>
         </div>
         <div className="breadth-bar-container">
           <div
@@ -469,12 +424,12 @@ const LiveTerminal = () => {
                 <p>{selectedStock.name}</p>
               </div>
               <div className="stock-hero-price-box">
-                <span className="hero-price-label">{selectedStock.isDemo ? 'Demo price · not real' : selectedStock.isLive ? `${selectedStock.dataSource || 'Live provider'} price` : providerStatus}</span>
-                <strong className={`hero-price-val ${selectedStock.flash ? `flash-${selectedStock.flash}` : ''}`}>
+                <span className="hero-price-label">{selectedStock.isDemo ? 'Demo price · not real' : selectedStock.isLive ? `${selectedStock.dataSource || 'Live provider'} price` : selectedStock.isResearch ? `${selectedStock.dataSource || 'Research feed'} · research, not live${selectedStock.isStale ? ' · stale' : ''}` : providerStatus}</span>
+                <strong key={selectedStock.flash ? `${selectedStock.symbol}-${selectedStock.flash}` : 'steady'} className={`hero-price-val ${heroPriceTone}`}>
                   {formatCurrency(selectedStock.price)}
                 </strong>
-                <span className={`hero-price-change ${selectedStock.change === null ? '' : isStockGain ? 'gain' : 'loss'}`}>
-                  {selectedStock.change === null ? '—' : <>{isStockGain ? <TrendingUp size={16} /> : <TrendingDown size={16} />}{isStockGain ? '+' : ''}{selectedStock.change} ({isStockGain ? '+' : ''}{selectedStock.changePercent}%)</>}
+                <span className={`hero-price-change ${stockDirection === 'up' ? 'gain' : stockDirection === 'down' ? 'loss' : 'price-flat'}`}>
+                  {selectedStock.change === null ? '—' : <><TickArrow direction={stockDirection || 'flat'} />{`${Number(selectedStock.change) > 0 ? '+' : ''}${selectedStock.change}`} ({`${Number(selectedStock.changePercent) > 0 ? '+' : ''}${selectedStock.changePercent}%`})</>}
                 </span>
               </div>
             </div>
@@ -485,16 +440,14 @@ const LiveTerminal = () => {
                 <button
                   className="quick-buy-btn"
                   onClick={() => handleQuickTrade('BUY')}
-                  disabled={!selectedStock.isLive}
                 >
-                  <ShoppingCart size={15} /> Buy 10 @ Market
+                  <ShoppingCart size={15} /> Instant Buy (Paper/Live)
                 </button>
                 <button
                   className="quick-sell-btn"
                   onClick={() => handleQuickTrade('SELL')}
-                  disabled={!selectedStock.isLive}
                 >
-                  Sell 10 @ Market
+                  Instant Sell
                 </button>
                 <Link to={`/stocks/${selectedStock.symbol}`} className="details-link-btn">
                   Full Details <ArrowUpRight size={14} />
@@ -552,10 +505,10 @@ const LiveTerminal = () => {
                 <h3>
                   <Layers size={17} /> Market Depth (Level 2)
                 </h3>
-                <span className="depth-spread">Spread: {formatCurrency(displayedDepth?.spread)}</span>
+                <span className="depth-spread">Spread: {displayedDepth ? formatCurrency(displayedDepth.spread) : '—'}</span>
               </div>
               <div className={`market-data-note ${hasLiveDepth ? 'is-live' : 'is-sample'}`}>
-                {hasLiveDepth ? `${depthData.provider || 'Provider'} live order book` : 'Illustrative sample · not actual exchange orders'}
+                {hasLiveDepth ? `${depthData.provider || 'Provider'} live order book` : 'Unavailable · no connected broker is publishing a live order book'}
               </div>
 
               <div className="depth-tables-container">
@@ -580,7 +533,7 @@ const LiveTerminal = () => {
                       </div>
                     );
                   })}
-                  {!displayedDepth?.bids?.length && <p className="chart-empty-state">Order book preview is unavailable without a reference price.</p>}
+                  {!displayedDepth?.bids?.length && !displayedDepth?.asks?.length && <p className="chart-empty-state">Market depth needs a live broker feed (Upstox or Zerodha). Connect a broker to see the real 5-level order book.</p>}
                   <div className="depth-total-row">
                     <span>Total Bid Qty:</span>
                     <strong className="gain">{displayedDepth?.totalBidQty?.toLocaleString('en-IN') || '—'}</strong>
@@ -608,7 +561,7 @@ const LiveTerminal = () => {
                       </div>
                     );
                   })}
-                  {!displayedDepth?.asks?.length && <p className="chart-empty-state">Order book preview is unavailable without a reference price.</p>}
+                  {!displayedDepth?.asks?.length && <p className="chart-empty-state">No live ask levels from the connected broker.</p>}
                   <div className="depth-total-row">
                     <span>Total Ask Qty:</span>
                     <strong className="loss">{displayedDepth?.totalAskQty?.toLocaleString('en-IN') || '—'}</strong>
@@ -623,10 +576,10 @@ const LiveTerminal = () => {
                 <h3>
                   <Activity size={17} /> Time & Sales (Trade Tape)
                 </h3>
-                <span className="tape-count">{hasLiveTape ? `${tradeTape.length} ticks` : `${displayedTape.length} sample rows`}</span>
+                <span className="tape-count">{hasLiveTape ? `${tradeTape.length} ticks` : 'no ticks'}</span>
               </div>
               <div className={`market-data-note ${hasLiveTape ? 'is-live' : 'is-sample'}`}>
-                {hasLiveTape ? 'Live provider trade prints' : 'Illustrative sample · not actual trades'}
+                {hasLiveTape ? 'Live provider trade prints' : 'Unavailable · no live trade prints from a connected broker'}
               </div>
               <div className="tape-list">
                 <div className="tape-header-row">
@@ -646,7 +599,7 @@ const LiveTerminal = () => {
                       </span>
                     </div>
                   ))}
-                  {!displayedTape.length && <p className="chart-empty-state">Trade tape preview is unavailable without a reference price.</p>}
+                  {!displayedTape.length && <p className="chart-empty-state">Time &amp; Sales appears only when a connected broker streams executed trades.</p>}
                 </div>
               </div>
             </div>
@@ -688,14 +641,26 @@ const LiveTerminal = () => {
             {/* Stock list rows */}
             <div className="matrix-stock-rows">
               {filteredStocks.map((stk) => {
-                const isGain = stk.change !== null && stk.change >= 0;
                 const isSelected = stk.symbol === selectedSymbol;
-                const flashClass = stk.flash === 'up' ? 'flash-up' : stk.flash === 'down' ? 'flash-down' : '';
+                const hasQuote = Number.isFinite(stk.price) && stk.price > 0;
+                const hasChange = hasQuote && stk.change !== null && stk.changePercent !== null;
+                const dayDirection = !hasChange
+                  ? null
+                  : Number(stk.change) > 0 ? 'up' : Number(stk.change) < 0 ? 'down' : 'flat';
+                const priceTone = tickToneClass(stk.flash || dayDirection, stk.flash);
+                const labelTone = dayDirection === 'up' ? 'gain' : dayDirection === 'down' ? 'loss' : dayDirection === 'flat' ? 'price-flat' : '';
+                const quoteLabel = !hasQuote
+                  ? 'Quote unavailable'
+                  : stk.isDemo
+                    ? 'Demo · simulated'
+                    : hasChange
+                      ? `${signedChange(stk.change)} (${signedPercent(stk.changePercent)})${stk.isResearch ? ' · research' : stk.isLive ? '' : ' · delayed'}${stk.isStale ? ' · stale' : ''}`
+                      : stk.isLive ? 'Live quote' : stk.isResearch ? 'Research quote · not live' : 'Quote unavailable';
 
                 return (
                   <div
                     key={stk.symbol}
-                    className={`matrix-row ${isSelected ? 'selected' : ''} ${flashClass}`}
+                    className={`matrix-row ${isSelected ? 'selected' : ''}`}
                     onClick={() => setSelectedSymbol(stk.symbol)}
                   >
                     <div className="matrix-col-symbol">
@@ -703,12 +668,8 @@ const LiveTerminal = () => {
                       <span>{stk.name}</span>
                     </div>
                     <div className="matrix-col-price">
-                      <b className={stk.isLive || stk.isDemo ? isGain ? 'gain' : 'loss' : ''}>
-                        {formatCurrency(stk.price)}
-                      </b>
-                      <span className={stk.isLive || stk.isDemo ? isGain ? 'gain' : 'loss' : ''}>
-                        {stk.isDemo ? 'Demo · simulated' : stk.isLive && stk.change !== null ? `${isGain ? '+' : ''}${stk.change} (${isGain ? '+' : ''}${stk.changePercent}%)` : 'Live quote required'}
-                      </span>
+                      <b key={stk.flash ? `${stk.symbol}-${stk.flash}` : 'steady'} className={priceTone}>{formatCurrency(stk.price)}</b>
+                      <span className={labelTone}>{hasChange ? <TickArrow direction={dayDirection} /> : null}{quoteLabel}</span>
                     </div>
                   </div>
                 );
@@ -725,23 +686,24 @@ const LiveTerminal = () => {
             </div>
             <div className="sector-tiles-grid">
               {sectors.map((sec) => {
-                const members = stockList.filter((stock) => stock.sector === sec.sector && (stock.isLive || stock.isDemo) && stock.changePercent !== null);
+                const members = stockList.filter((stock) => stock.sector === sec.sector && (stock.isLive || stock.isDemo || stock.isResearch) && stock.changePercent !== null);
                 const sectorChange = members.length
                   ? Number((members.reduce((total, stock) => total + stock.changePercent, 0) / members.length).toFixed(2))
                   : null;
-                const isUp = sectorChange !== null && sectorChange >= 0;
+                const isUp = sectorChange !== null && sectorChange > 0;
+                const isFlat = sectorChange === 0;
                 return (
                   <div
                     key={sec.name}
-                    className={`sector-tile ${sectorChange === null ? '' : isUp ? 'tile-gain' : 'tile-loss'}`}
+                    className={`sector-tile ${sectorChange === null || isFlat ? '' : isUp ? 'tile-gain' : 'tile-loss'}`}
                   >
                     <div className="sector-tile-top">
                       <strong>{sec.name}</strong>
-                      <span className={sectorChange === null ? '' : isUp ? 'gain' : 'loss'}>
-                        {sectorChange === null ? '—' : `${isUp ? '+' : ''}${sectorChange}%`}
+                      <span className={sectorChange === null ? '' : isFlat ? 'price-flat' : isUp ? 'gain' : 'loss'}>
+                        {sectorChange === null ? '—' : <><TickArrow direction={isFlat ? 'flat' : isUp ? 'up' : 'down'} />{`${isUp ? '+' : ''}${sectorChange}%`}</>}
                       </span>
                     </div>
-                    <small>{members.length} {members.some((stock) => stock.isDemo) ? 'demo tracked' : 'live tracked'} {members.length === 1 ? 'stock' : 'stocks'}</small>
+                    <small>{members.length} {members.some((stock) => stock.isDemo) ? 'demo' : members.some((stock) => stock.isResearch) ? 'research' : 'live'} tracked {members.length === 1 ? 'stock' : 'stocks'}</small>
                   </div>
                 );
               })}
@@ -749,6 +711,9 @@ const LiveTerminal = () => {
           </section>
         </aside>
       </div>
+
+      {/* Multi-Chart Workspace (1x1, 1x2, 2x2 Grid) */}
+      <MultiChartGrid />
     </div>
   );
 };

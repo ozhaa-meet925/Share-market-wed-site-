@@ -60,48 +60,14 @@ const calculateRSI = (candles, period = 14) => {
 };
 
 const timeframeIntervals = {
-  '1m': 60,
-  '5m': 5 * 60,
-  '15m': 15 * 60,
-  '30m': 30 * 60,
-  '45m': 45 * 60,
-  '1h': 60 * 60,
-  '2h': 2 * 60 * 60,
-  '4h': 4 * 60 * 60,
-  '5h': 5 * 60 * 60,
-  '1d': 24 * 60 * 60,
-  '1w': 7 * 24 * 60 * 60,
-  '1M': 30 * 24 * 60 * 60,
-};
-
-const createIllustrativeCandles = (symbol, timeframe, currentPrice) => {
-  const count = 72;
-  const secondsPerCandle = timeframeIntervals[timeframe] || 60;
-  const now = Math.floor(Date.now() / 60) * 60;
-  const hasLivePrice = Number(currentPrice) > 0;
-  const anchor = hasLivePrice ? Number(currentPrice) : 100;
-  const seed = [...symbol].reduce((total, character) => total + character.charCodeAt(0), 0);
-  let previous = anchor * 0.994;
-
-  return Array.from({ length: count }, (_, index) => {
-    const progress = index / (count - 1);
-    const wave = Math.sin(seed * 0.07 + index * 0.63) * 0.0035;
-    const close = index === count - 1 && hasLivePrice
-      ? anchor
-      : anchor * (0.994 + progress * (1 - 0.994) + wave);
-    const open = previous;
-    const wick = Math.max(Math.max(open, close) * 0.0012, 0.01);
-    previous = close;
-
-    return {
-      time: now - (count - 1 - index) * secondsPerCandle,
-      open: Number(open.toFixed(2)),
-      high: Number((Math.max(open, close) + wick).toFixed(2)),
-      low: Number(Math.max(0.01, Math.min(open, close) - wick).toFixed(2)),
-      close: Number(close.toFixed(2)),
-      value: 0,
-    };
-  });
+  '1D': 5 * 60,
+  '1W': 15 * 60,
+  '1M': 24 * 60 * 60,
+  '3M': 24 * 60 * 60,
+  '6M': 24 * 60 * 60,
+  '1Y': 24 * 60 * 60,
+  '5Y': 7 * 24 * 60 * 60,
+  ALL: 30 * 24 * 60 * 60,
 };
 
 // Transformer Helper: Convert standard candles to Heikin-Ashi candles
@@ -310,18 +276,28 @@ const toPointAndFigure = (candles) => {
 };
 
 const timeframeNames = {
-  '1m': '1 minute',
-  '5m': '5 minutes',
-  '15m': '15 minutes',
-  '30m': '30 minutes',
-  '45m': '45 minutes',
-  '1h': '1 hour',
-  '2h': '2 hours',
-  '4h': '4 hours',
-  '5h': '5 hours',
-  '1d': '1 day',
-  '1w': '1 week',
+  '1D': '1 day',
+  '1W': '1 week',
   '1M': '1 month',
+  '3M': '3 months',
+  '6M': '6 months',
+  '1Y': '1 year',
+  '5Y': '5 years',
+  ALL: 'all available history',
+};
+
+const formatChartTime = (value) => {
+  if (!value) return '';
+  const numericValue = Number(value);
+  const date = typeof value === 'object'
+    ? new Date(Date.UTC(value.year, value.month - 1, value.day))
+    : (Number.isFinite(numericValue) ? new Date(numericValue * 1000) : new Date(value));
+  if (!Number.isFinite(date.getTime())) return '';
+  return date.toLocaleString('en-IN', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'Asia/Kolkata',
+  }) + ' IST';
 };
 
 const CandlestickChart = ({
@@ -332,25 +308,26 @@ const CandlestickChart = ({
   onTimeframeChange,
   isLoading = false,
   historyProvider,
+  isResearchHistory = false,
   historyError = '',
-  isDemoQuote = false,
   isLiveQuote = false,
   isStaleQuote = false,
+  quoteTimestamp = null,
+  onRetry,
 }) => {
   const containerRef = useRef(null);
   const chartWrapperRef = useRef(null);
   const rsiContainerRef = useRef(null);
   const chartInstanceRef = useRef(null);
   const rsiChartInstanceRef = useRef(null);
+  const mainSeriesRef = useRef(null);
   const currentPriceLineRef = useRef(null);
-  const currentPriceRef = useRef(currentPrice);
-  const currentPriceLabelRef = useRef('LIVE');
-  currentPriceRef.current = currentPrice;
-  currentPriceLabelRef.current = isDemoQuote ? 'DEMO' : isStaleQuote ? 'LAST' : 'LIVE';
+  const currentPriceLabelRef = useRef('LAST');
+  currentPriceLabelRef.current = isLiveQuote && !isStaleQuote ? 'LIVE' : 'LAST';
 
   const [theme, setTheme] = useState(() => document.documentElement.dataset.theme || 'light');
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [localTimeframe, setLocalTimeframe] = useState('15m');
+  const [localTimeframe, setLocalTimeframe] = useState('1D');
   const timeframe = selectedTimeframe || localTimeframe;
   const setTimeframe = (value) => {
     setLocalTimeframe(value);
@@ -368,6 +345,7 @@ const CandlestickChart = ({
   };
   const [chartType, setChartType] = useState('candles');
   const [hoverData, setHoverData] = useState(null);
+  const [hoverTime, setHoverTime] = useState(null);
 
   // Technical Indicator Toggles
   const [showEMA20, setShowEMA20] = useState(true);
@@ -375,27 +353,39 @@ const CandlestickChart = ({
   const [showRSI, setShowRSI] = useState(false);
   const [latestRSI, setLatestRSI] = useState(null);
 
-  const verifiedData = useMemo(() => candles
-    .filter((candle) => Number.isFinite(Number(candle.time))
-      && Number.isFinite(Number(candle.open))
-      && Number.isFinite(Number(candle.high))
-      && Number.isFinite(Number(candle.low))
-      && Number.isFinite(Number(candle.close)))
-    .sort((first, second) => Number(first.time) - Number(second.time))
-    .slice(-72), [candles]);
-  const isIllustrative = verifiedData.length === 0;
-  const baseData = useMemo(
-    () => isIllustrative ? createIllustrativeCandles(symbol, timeframe, currentPrice) : verifiedData,
-    [currentPrice, isIllustrative, symbol, timeframe, verifiedData],
-  );
-
-  // Keep provider candles unchanged; show the latest quote as its own price line.
-  const displayData = baseData;
+  const verifiedData = useMemo(() => {
+    const uniqueCandles = new Map();
+    candles.forEach((candle) => {
+      const time = Number(candle.time);
+      const open = Number(candle.open);
+      const high = Number(candle.high);
+      const low = Number(candle.low);
+      const close = Number(candle.close);
+      const valid = Number.isFinite(time) && time > 0
+        && [open, high, low, close].every((price) => Number.isFinite(price) && price > 0)
+        && high >= Math.max(open, close)
+        && low <= Math.min(open, close);
+      if (valid) uniqueCandles.set(time, {
+        ...candle,
+        time,
+        open,
+        high,
+        low,
+        close,
+        value: candle.value === null || candle.value === undefined || candle.value === ''
+          ? null
+          : (Number.isFinite(Number(candle.value)) && Number(candle.value) >= 0 ? Number(candle.value) : null),
+      });
+    });
+    return [...uniqueCandles.values()].sort((first, second) => first.time - second.time);
+  }, [candles]);
+  const hasVerifiedData = verifiedData.length > 0;
+  const displayData = verifiedData;
 
   // Compute Indicator series
-  const ema20Data = useMemo(() => (showEMA20 && !isIllustrative ? calculateEMA(displayData, 20) : []), [displayData, isIllustrative, showEMA20]);
-  const ema50Data = useMemo(() => (showEMA50 && !isIllustrative ? calculateEMA(displayData, 50) : []), [displayData, isIllustrative, showEMA50]);
-  const rsiSeriesData = useMemo(() => (showRSI && !isIllustrative ? calculateRSI(displayData, 14) : []), [displayData, isIllustrative, showRSI]);
+  const ema20Data = useMemo(() => (showEMA20 && hasVerifiedData ? calculateEMA(displayData, 20) : []), [displayData, hasVerifiedData, showEMA20]);
+  const ema50Data = useMemo(() => (showEMA50 && hasVerifiedData ? calculateEMA(displayData, 50) : []), [displayData, hasVerifiedData, showEMA50]);
+  const rsiSeriesData = useMemo(() => (showRSI && hasVerifiedData ? calculateRSI(displayData, 14) : []), [displayData, hasVerifiedData, showRSI]);
 
   useEffect(() => {
     if (rsiSeriesData.length) {
@@ -444,7 +434,7 @@ const CandlestickChart = ({
         borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
         scaleMargins: { top: 0.12, bottom: 0.22 },
         alignLabels: true,
-        visible: !isIllustrative || Number(currentPrice) > 0,
+        visible: hasVerifiedData,
       },
       timeScale: {
         borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
@@ -568,7 +558,7 @@ const CandlestickChart = ({
     }
 
     // Add EMA 20 Overlay (Bright Blue)
-    if (!isIllustrative && showEMA20 && ema20Data.length) {
+    if (hasVerifiedData && showEMA20 && ema20Data.length) {
       const ema20Series = chart.addLineSeries({
         color: '#38bdf8',
         lineWidth: 1.5,
@@ -579,7 +569,7 @@ const CandlestickChart = ({
     }
 
     // Add EMA 50 Overlay (Golden Amber)
-    if (!isIllustrative && showEMA50 && ema50Data.length) {
+    if (hasVerifiedData && showEMA50 && ema50Data.length) {
       const ema50Series = chart.addLineSeries({
         color: '#f59e0b',
         lineWidth: 1.5,
@@ -589,42 +579,38 @@ const CandlestickChart = ({
       ema50Series.setData(ema50Data);
     }
 
-    // Volume Histogram
-    const volumeSeries = chart.addHistogramSeries({
-      color: '#94a3b8',
-      priceFormat: { type: 'volume' },
-      priceScaleId: '',
-    });
-    chart.priceScale('').applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
-    volumeSeries.setData(displayData.map(({ time, close, open, value }) => ({
-      time,
-      value: Number(value) || 0,
-      color: close >= open ? 'rgba(0, 208, 156, 0.35)' : 'rgba(235, 91, 86, 0.35)',
-    })));
+    mainSeriesRef.current = mainSeries;
 
-    // Live Price Line
-    const latestPrice = Number(currentPriceRef.current) > 0 ? Number(currentPriceRef.current) : null;
-    if (latestPrice !== null && !isIllustrative) {
-      currentPriceLineRef.current = mainSeries.createPriceLine({
-        price: latestPrice,
-        color: '#00D09C',
-        lineWidth: 1.5,
-        lineStyle: 2,
-        axisLabelVisible: true,
-        title: currentPriceLabelRef.current,
+    // Volume bars are rendered only for provider rows that contain volume.
+    const volumeData = displayData.filter((candle) => (
+      typeof candle.value === 'number' && Number.isFinite(candle.value) && candle.value >= 0
+    ));
+    if (volumeData.length) {
+      const volumeSeries = chart.addHistogramSeries({
+        color: '#94a3b8',
+        priceFormat: { type: 'volume' },
+        priceScaleId: '',
       });
-    } else {
-      currentPriceLineRef.current = null;
+      chart.priceScale('').applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
+      volumeSeries.setData(volumeData.map(({ time, close, open, value }) => ({
+        time,
+        value,
+        color: close >= open ? 'rgba(0, 208, 156, 0.35)' : 'rgba(235, 91, 86, 0.35)',
+      })));
     }
 
     // Crosshair listener
     chart.subscribeCrosshairMove((param) => {
       if (!param || !param.time || !param.seriesPrices) {
         setHoverData(null);
+        setHoverTime(null);
         return;
       }
       const data = param.seriesPrices.get(mainSeries);
-      if (data) setHoverData(typeof data === 'number' ? { close: data } : data);
+      if (data) {
+        setHoverData(typeof data === 'number' ? { close: data } : data);
+        setHoverTime(param.time);
+      }
     });
 
     chart.timeScale().fitContent();
@@ -634,9 +620,32 @@ const CandlestickChart = ({
         chartInstanceRef.current.remove();
         chartInstanceRef.current = null;
         currentPriceLineRef.current = null;
+        mainSeriesRef.current = null;
       }
     };
-  }, [displayData, isIllustrative, theme, chartType, showEMA20, showEMA50, ema20Data, ema50Data]);
+  }, [displayData, hasVerifiedData, theme, chartType, showEMA20, showEMA50, ema20Data, ema50Data]);
+
+  useEffect(() => {
+    const series = mainSeriesRef.current;
+    if (!series) return undefined;
+
+    if (currentPriceLineRef.current) {
+      series.removePriceLine(currentPriceLineRef.current);
+      currentPriceLineRef.current = null;
+    }
+    const latestPrice = Number(currentPrice);
+    if (isLiveQuote && !isStaleQuote && Number.isFinite(latestPrice) && latestPrice > 0) {
+      currentPriceLineRef.current = series.createPriceLine({
+        price: latestPrice,
+        color: '#00D09C',
+        lineWidth: 1.5,
+        lineStyle: 2,
+        axisLabelVisible: true,
+        title: 'LIVE',
+      });
+    }
+    return undefined;
+  }, [currentPrice, displayData, hasVerifiedData, isLiveQuote, isStaleQuote, theme, chartType]);
 
   useEffect(() => {
     const priceLine = currentPriceLineRef.current;
@@ -721,15 +730,19 @@ const CandlestickChart = ({
   const activeCandle = hoverData || displayData[displayData.length - 1] || {};
   const isPositive = (activeCandle.close || 0) >= (activeCandle.open || activeCandle.close || 0);
   const timeframeName = timeframeNames[timeframe] || 'selected interval';
-  const sourceNote = isLoading
-    ? `Loading ${timeframeName} candles…`
-    : isIllustrative
-      ? `Illustrative ${timeframeName} candles · ${historyError || 'verified history is unavailable.'}${isDemoQuote ? ' The price above is simulated too.' : isLiveQuote ? ' The quote above is live; these candles are not.' : isStaleQuote ? ' The price above is a stale quote.' : ''}`
-      : `${historyProvider || 'Provider'} history · ${timeframeName} candles · ${verifiedData.length} bars.`;
+  const latestBarTime = displayData[displayData.length - 1]?.time;
+  const latestBarLabel = latestBarTime ? formatChartTime(latestBarTime) : '';
+  const quoteTimeLabel = quoteTimestamp ? formatChartTime(quoteTimestamp) : '';
+  const hasVolume = verifiedData.some((candle) => typeof candle.value === 'number' && Number.isFinite(candle.value));
+  const sourceNote = isLoading && !hasVerifiedData
+    ? `Loading verified ${timeframeName} history…`
+    : hasVerifiedData
+      ? `${historyProvider || 'Market provider'} ${isResearchHistory ? 'research history · delayed, not live' : 'history'} · ${timeframeName} · ${verifiedData.length} candles · latest bar ${latestBarLabel}${hasVolume ? '' : ' · volume not reported'}`
+      : `Historical data unavailable · ${historyError || 'No verified candles were returned.'}${quoteTimeLabel ? ` · quote published ${quoteTimeLabel}` : ''}`;
 
   return (
     <div className="pro-chart-wrapper" ref={chartWrapperRef}>
-      <div className={`pro-chart-source-note ${isLoading ? 'is-loading' : ''}`} role="status" aria-live="polite" title={historyError || undefined}>
+      <div className={`pro-chart-source-note ${isLoading ? 'is-loading' : ''} ${isResearchHistory ? 'is-research' : ''} ${!hasVerifiedData && !isLoading ? 'is-error' : ''}`} role="status" aria-live="polite" title={historyError || undefined}>
         {sourceNote}
       </div>
       {/* TradingView / Zerodha Pro Style Segmented Toolbar */}
@@ -737,15 +750,14 @@ const CandlestickChart = ({
         {/* Left Segment: Timeframe Interval Buttons + More Dropdown */}
         <div className="tv-toolbar-group tv-intervals-group">
           {[
-            { label: '1m', value: '1m', title: '1 Minute' },
-            { label: '5', value: '5m', title: '5 Minutes' },
-            { label: '15', value: '15m', title: '15 Minutes' },
-            { label: '30', value: '30m', title: '30 Minutes' },
-            { label: '1h', value: '1h', title: '1 Hour' },
-            { label: '4h', value: '4h', title: '4 Hours' },
-            { label: '1D', value: '1d', title: '1 Day' },
-            { label: '1W', value: '1w', title: '1 Week' },
+            { label: '1D', value: '1D', title: '1 Day' },
+            { label: '1W', value: '1W', title: '1 Week' },
             { label: '1M', value: '1M', title: '1 Month' },
+            { label: '3M', value: '3M', title: '3 Months' },
+            { label: '6M', value: '6M', title: '6 Months' },
+            { label: '1Y', value: '1Y', title: '1 Year' },
+            { label: '5Y', value: '5Y', title: '5 Years' },
+            { label: 'ALL', value: 'ALL', title: 'All Available History' },
           ].map((tf) => (
             <button
               key={tf.value}
@@ -759,29 +771,6 @@ const CandlestickChart = ({
             </button>
           ))}
 
-          {/* Timeframe Dropdown (showing active if not in quick pills or for all 12 intervals) */}
-          <div className="tv-dropdown-pill">
-            <select
-              className="tv-select-hidden"
-              value={timeframe}
-              onChange={(e) => setTimeframe(e.target.value)}
-              title="All Timeframes"
-            >
-              <option value="1m">1 minute (1m)</option>
-              <option value="5m">5 minutes (5m)</option>
-              <option value="15m">15 minutes (15m)</option>
-              <option value="30m">30 minutes (30m)</option>
-              <option value="45m">45 minutes (45m)</option>
-              <option value="1h">1 hour (1h)</option>
-              <option value="2h">2 hours (2h)</option>
-              <option value="4h">4 hours (4h)</option>
-              <option value="5h">5 hours (5h)</option>
-              <option value="1d">1 day (1D)</option>
-              <option value="1w">1 week (1W)</option>
-              <option value="1M">1 month (1M)</option>
-            </select>
-            <span className="tv-dropdown-arrow">▼</span>
-          </div>
         </div>
 
         <div className="tv-toolbar-divider" />
@@ -841,17 +830,11 @@ const CandlestickChart = ({
               onChange={(e) => setChartType(e.target.value)}
               title="All Chart Styles"
             >
-              <option value="candles">📊 Candles (Japanese)</option>
-              <option value="bars">🪜 Bars (OHLC)</option>
-              <option value="hollow">🕯️ Hollow Candle</option>
-              <option value="heikin">📈 Heikin-Ashi (Smoothed)</option>
-              <option value="line">📈 Line (Close)</option>
-              <option value="area">🏔️ Area (Mountain)</option>
-              <option value="baseline">⚖️ Baseline</option>
-              <option value="renko">🧱 Renko (Bricks)</option>
-              <option value="linebreak">⚡ Line Break</option>
-              <option value="kagi">🎋 Kagi</option>
-              <option value="pnf">🎯 Point & Figure</option>
+              <option value="candles">Candlestick</option>
+              <option value="heikin">Heikin Ashi</option>
+              <option value="line">Line</option>
+              <option value="area">Area</option>
+              <option value="bars">Bar</option>
             </select>
             <span className="tv-dropdown-arrow">▼</span>
           </div>
@@ -860,7 +843,7 @@ const CandlestickChart = ({
         <div className="tv-toolbar-divider" />
 
         {/* Technical Indicators Modal Trigger / Pills */}
-        {!isIllustrative && (
+        {hasVerifiedData && (
           <div className="tv-toolbar-group tv-indicators-group">
             <button
               type="button"
@@ -936,12 +919,22 @@ const CandlestickChart = ({
         <div className="tv-toolbar-divider" />
 
         {/* OHLC Realtime Inspector Box */}
-        {!isIllustrative && activeCandle.open && (
+        {hasVerifiedData && activeCandle.open && (
           <div className="tv-ohlc-display">
+            <span className="tv-ohlc-time">{formatChartTime(hoverTime || activeCandle.time) || latestBarLabel}</span>
             <span>O <b className={isPositive ? 'gain-text' : 'loss-text'}>{Number(activeCandle.open).toFixed(2)}</b></span>
             <span>H <b className="gain-text">{Number(activeCandle.high).toFixed(2)}</b></span>
             <span>L <b className="loss-text">{Number(activeCandle.low).toFixed(2)}</b></span>
             <span>C <b className={isPositive ? 'gain-text' : 'loss-text'}>{Number(activeCandle.close).toFixed(2)}</b></span>
+            {typeof activeCandle.value === 'number' && <span>Vol <b>{activeCandle.value.toLocaleString('en-IN')}</b></span>}
+          </div>
+        )}
+        {hasVerifiedData && ['line', 'area'].includes(chartType) && (
+          <div className="tv-ohlc-display">
+            <span className="tv-ohlc-time">{formatChartTime(hoverTime || activeCandle.time) || latestBarLabel}</span>
+            <span>Price <b className={isPositive ? 'gain-text' : 'loss-text'}>
+              ₹{Number(activeCandle.close ?? activeCandle.value).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </b></span>
           </div>
         )}
 
@@ -983,10 +976,30 @@ const CandlestickChart = ({
       </div>
 
       {/* Main Lightweight Canvas Container */}
-      <div className="candlestick-chart pro-canvas-box" ref={containerRef} />
+      <div className="candlestick-chart pro-canvas-box" ref={containerRef}>
+        {!hasVerifiedData && (
+          <div className="pro-chart-empty-state" role="status" aria-live="polite">
+            {isLoading ? (
+              <>
+                <span className="pro-chart-loader" aria-hidden="true" />
+                <strong>Loading verified market history</strong>
+                <span>Waiting for published OHLC and volume records from the provider.</span>
+              </>
+            ) : (
+              <>
+                <strong>No verified historical candles</strong>
+                <span>{historyError || 'The configured providers did not return data for this range.'}</span>
+                <button type="button" className="pro-chart-retry" onClick={onRetry}>
+                  <RefreshCw size={14} /> Retry data request
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Dedicated RSI Oscillator View */}
-      {showRSI && !isIllustrative && (
+      {showRSI && hasVerifiedData && (
         <div className="pro-rsi-pane">
           <div className="pro-rsi-header">
             <span>RSI (14 Period) — Relative Strength Index</span>

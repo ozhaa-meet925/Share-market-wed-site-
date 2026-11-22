@@ -6,6 +6,7 @@ const desiredInstruments = new Map();
 const sentInstruments = new Set();
 const snapshotRequestedAt = new Map();
 const pendingSnapshots = new Map();
+const quoteListeners = new Set();
 const SNAPSHOT_CACHE_MS = 10_000;
 const SNAPSHOT_BATCH_SIZE = 100;
 
@@ -79,6 +80,15 @@ const cacheQuote = (instrument, payload, source, receivedAt = Date.now()) => {
   const quote = normalizeQuote(payload, instrument, source, receivedAt);
   if (!quote) return null;
   quoteCache.set(instrument.instrument, { quote, source, receivedAt });
+  if (source === 'stream') {
+    quoteListeners.forEach((listener) => {
+      try {
+        listener(quote);
+      } catch (error) {
+        console.warn('Kunpeng Data quote listener failed:', error.message);
+      }
+    });
+  }
   return quote;
 };
 
@@ -280,6 +290,12 @@ export const getKunDataStatus = () => ({
   connected: socket?.readyState === WebSocket.OPEN,
   subscribedSymbols: desiredInstruments.size,
 });
+
+export const subscribeKunQuotes = (listener) => {
+  if (typeof listener !== 'function') return () => {};
+  quoteListeners.add(listener);
+  return () => quoteListeners.delete(listener);
+};
 
 export const getKunQuotes = async (symbols) => {
   const { token } = config();

@@ -26,6 +26,36 @@ const displayDate = (value) => {
   if (!value || value === '—') return '—';
   return /\b20\d{2}\b/.test(value) ? value : `${value} ${new Date().getFullYear()}`;
 };
+const parseIssueDate = (value) => {
+  const timestamp = Date.parse(String(value || '').replace(/(\d{1,2}) ([A-Za-z]{3,9})/, '$1 $2'));
+  return Number.isFinite(timestamp) ? timestamp : null;
+};
+const shortIssueDate = (value) => {
+  const timestamp = parseIssueDate(value);
+  return timestamp == null ? null : new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short' }).format(new Date(timestamp));
+};
+const ipoTimelineSteps = (ipo, now = Date.now()) => {
+  const status = String(ipo.status || '').toLowerCase();
+  const steps = [
+    ['Opens', ipo.openDate],
+    ['Closes', ipo.closeDate],
+    ['Allotment', ipo.allotmentDate],
+    ['Listing', ipo.listingDate],
+  ];
+  const doneCount = status === 'listed' ? steps.length : ['closed'].includes(status) ? 2 : status === 'open' ? 1 : 0;
+  let currentAssigned = false;
+  return steps.map(([label, value], index) => {
+    const timestamp = parseIssueDate(value);
+    const done = index < doneCount || (timestamp != null && timestamp < now && index <= doneCount);
+    let state = 'todo';
+    if (done) state = 'done';
+    else if (!currentAssigned) {
+      state = 'current';
+      currentAssigned = true;
+    }
+    return { label, date: shortIssueDate(value), state };
+  });
+};
 const hasDisplayValue = (value) => value != null
   && String(value).trim() !== ''
   && !['—', 'not provided', 'not provided by api'].includes(String(value).trim().toLowerCase());
@@ -162,6 +192,15 @@ const IpoCard = ({ ipo, compact = false, isTracked = false, onToggleTracked, isC
         <div className="ipo-summary-grid">
           {summaryItems.map(([label, value]) => <span key={label}>{label}<b>{value}</b></span>)}
         </div>
+        <ol className="ipo-timeline" aria-label={`${ipo.company} issue timeline`}>
+          {ipoTimelineSteps(ipo).map((step) => (
+            <li key={step.label} className={`ipo-timeline-step is-${step.state}`}>
+              <span className="ipo-timeline-dot" aria-hidden="true" />
+              <span className="ipo-timeline-label">{step.label}</span>
+              <span className="ipo-timeline-date">{step.date || '—'}</span>
+            </li>
+          ))}
+        </ol>
       </div>
 
       {detailItems.length > 0 && (

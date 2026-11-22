@@ -4,7 +4,7 @@ import { useLiveStocks } from '../hooks/useLiveStocks';
 
 const TopLosers = () => {
   const { stocks } = useLiveStocks(stockSeed);
-  const losers = [...stocks].filter((stock) => (stock.isLive || stock.isDemo) && stock.changePercent < 0).sort((a, b) => a.changePercent - b.changePercent);
+  const losers = [...stocks].filter((stock) => (stock.isLive || stock.isResearch) && stock.changePercent < 0).sort((a, b) => a.changePercent - b.changePercent);
 
   return (
     <div className="page">

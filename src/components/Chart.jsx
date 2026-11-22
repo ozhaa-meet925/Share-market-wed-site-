@@ -1,119 +1,113 @@
-import { useId, useMemo } from 'react';
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import { useMemo } from 'react';
 
-const timeLabels = ['9:15', '10:30', '11:45', '13:00', '14:15', '15:00', '15:30'];
+const compactNumber = (value) => Number(value).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 
-const buildIllustrativeSeries = (symbol) => {
-  const seed = [...String(symbol || 'stock')].reduce((total, character) => total + character.charCodeAt(0), 0);
-  const phase = (seed % 29) / 7;
-  return Array.from({ length: 24 }, (_, index) => ({
-    label: `Sample ${index + 1}`,
-    value: Number((50
-      + Math.sin(phase + index * 0.48) * 10
-      + Math.cos(phase * 0.7 + index * 0.91) * 3.5
-      + Math.sin(index * 0.16 + phase) * 2).toFixed(2)),
-  }));
+const chartDate = (value, range) => {
+  const date = new Date(Number(value) * 1000);
+  if (Number.isNaN(date.getTime())) return '—';
+  return new Intl.DateTimeFormat('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    ...(range > 365 * 24 * 60 * 60 ? { year: '2-digit' } : {}),
+    timeZone: 'Asia/Kolkata',
+  }).format(date);
 };
 
-const Chart = ({ data = [], positive = true, height = 82, symbol = 'stock' }) => {
-  const seed = [...String(symbol || 'stock')].reduce((total, character) => total + character.charCodeAt(0), 0);
-  const candleCount = 26;
+const Chart = ({ data = [], height = 82, symbol = 'stock', loading = false, showXAxis = false, showYAxis = false, maxCandles }) => {
+  const visibleCount = maxCandles || (showXAxis ? 90 : 28);
+  const candles = useMemo(() => (Array.isArray(data) ? data : [])
+    .filter((item) => item && Number.isFinite(Number(item.time))
+      && ['open', 'high', 'low', 'close'].every((key) => Number.isFinite(Number(item[key])) && Number(item[key]) > 0)
+      && Number(item.high) >= Math.max(Number(item.open), Number(item.close))
+      && Number(item.low) <= Math.min(Number(item.open), Number(item.close)))
+    .sort((a, b) => Number(a.time) - Number(b.time))
+    .slice(-visibleCount), [data, visibleCount]);
 
-  // Build realistic mini OHLC candlesticks
-  const candles = useMemo(() => {
-    const list = Array.isArray(data) && data.length >= 7 ? data : [];
-    const basePrice = list.length ? list[list.length - 1] : 100 + (seed % 900);
-    let prevClose = list.length ? list[0] : basePrice * 0.98;
+  if (candles.length < 2) {
+    return (
+      <div className="mini-candle-chart-empty" style={{ height }} role="img" aria-label={`${symbol} historical candles unavailable`}>
+        {loading ? 'Loading historical candles…' : 'Historical candles unavailable'}
+      </div>
+    );
+  }
 
-    return Array.from({ length: candleCount }, (_, i) => {
-      const wave = Math.sin((seed * 0.12) + (i * 0.75)) * 0.015;
-      const stepTrend = (i / (candleCount - 1)) * (positive ? 0.025 : -0.025);
-      const close = basePrice * (0.985 + stepTrend + wave + (Math.sin(i * 1.4) * 0.008));
-      const open = prevClose;
-      const isUp = close >= open;
-      const wick = Math.max(Math.abs(close - open) * 0.35, basePrice * 0.003);
-      const high = Math.max(open, close) + wick;
-      const low = Math.min(open, close) - wick;
-      prevClose = close;
-
-      return {
-        open: Number(open.toFixed(2)),
-        close: Number(close.toFixed(2)),
-        high: Number(high.toFixed(2)),
-        low: Number(Math.max(0.1, low).toFixed(2)),
-        isUp,
-      };
-    });
-  }, [data, positive, seed]);
-
-  const allValues = candles.flatMap((c) => [c.high, c.low]);
-  const minVal = Math.min(...allValues);
-  const maxVal = Math.max(...allValues);
-  const spread = Math.max(maxVal - minVal, 1);
-  const padTop = 6;
-  const padBottom = 6;
-  const usableHeight = Math.max(10, height - padTop - padBottom);
-
-  const getY = (val) => padTop + ((maxVal - val) / spread) * usableHeight;
+  const chartWidth = showXAxis || showYAxis ? 320 : 260;
+  const padding = {
+    top: 7,
+    right: 5,
+    bottom: showXAxis ? 23 : 5,
+    left: showYAxis ? 58 : 4,
+  };
+  const plotWidth = chartWidth - padding.left - padding.right;
+  const plotHeight = height - padding.top - padding.bottom;
+  const minValue = Math.min(...candles.map((candle) => Number(candle.low)));
+  const maxValue = Math.max(...candles.map((candle) => Number(candle.high)));
+  const spread = Math.max(maxValue - minValue, Math.max(maxValue * 0.001, 0.01));
+  const min = minValue - spread * 0.04;
+  const max = maxValue + spread * 0.04;
+  const yOf = (value) => padding.top + ((max - Number(value)) / (max - min)) * plotHeight;
+  const columnWidth = plotWidth / candles.length;
+  const bodyWidth = Math.min(showXAxis ? 7 : 5.2, columnWidth * 0.66);
+  const timeRange = Number(candles.at(-1).time) - Number(candles[0].time);
+  const isIndex = /^(NIFTY|SENSEX|BANKNIFTY|NIFTYIT|NIFTYMIDCAP)$/i.test(symbol.replace(/^(NSE|BSE):/i, ''));
 
   return (
     <div className="mini-candle-chart-wrap" style={{ height, width: '100%', position: 'relative' }}>
       <svg
         width="100%"
         height={height}
-        viewBox={`0 0 260 ${height}`}
+        viewBox={`0 0 ${chartWidth} ${height}`}
         preserveAspectRatio="none"
+        role="img"
+        aria-label={`${symbol} historical OHLC candles${showXAxis ? ' with IST date axis' : ''}`}
         style={{ display: 'block', overflow: 'visible' }}
       >
-        {/* Subtle reference grid lines */}
-        <line x1="0" x2="260" y1={height * 0.25} y2={height * 0.25} stroke="rgba(255, 255, 255, 0.04)" strokeDasharray="2 3" />
-        <line x1="0" x2="260" y1={height * 0.75} y2={height * 0.75} stroke="rgba(255, 255, 255, 0.04)" strokeDasharray="2 3" />
-
-        {candles.map((c, idx) => {
-          const colWidth = 260 / candleCount;
-          const x = idx * colWidth + colWidth / 2;
-          const bodyWidth = 5.2;
-          const yOpen = getY(c.open);
-          const yClose = getY(c.close);
-          const yHigh = getY(c.high);
-          const yLow = getY(c.low);
-
-          const bodyY = Math.min(yOpen, yClose);
-          const bodyHeight = Math.max(2.5, Math.abs(yClose - yOpen));
-          const color = c.isUp ? '#00D09C' : '#EB5B56';
-
+        {[0, 0.5, 1].map((position) => {
+          const y = padding.top + plotHeight * position;
+          const value = max - ((max - min) * position);
           return (
-            <g key={idx} className="mini-candle-group">
-              {/* Wick */}
-              <line
-                x1={x}
-                x2={x}
-                y1={yHigh}
-                y2={yLow}
-                stroke={color}
-                strokeWidth="1.2"
-                strokeLinecap="round"
-              />
-              {/* Candle Body */}
+            <g key={position}>
+              <line x1={padding.left} x2={chartWidth - padding.right} y1={y} y2={y} stroke="var(--line)" strokeDasharray="2 3" />
+              {showYAxis ? (
+                <text x={padding.left - 5} y={y + 3} textAnchor="end" fill="currentColor" opacity="0.72" fontSize="9">
+                  {isIndex ? compactNumber(value) : `₹${compactNumber(value)}`}
+                </text>
+              ) : null}
+            </g>
+          );
+        })}
+        {candles.map((candle, index) => {
+          const x = padding.left + (index * columnWidth) + (columnWidth / 2);
+          const openY = yOf(candle.open);
+          const closeY = yOf(candle.close);
+          const highY = yOf(candle.high);
+          const lowY = yOf(candle.low);
+          const color = Number(candle.close) >= Number(candle.open) ? 'var(--gain)' : 'var(--loss)';
+          return (
+            <g key={`${candle.time}-${index}`}>
+              <line x1={x} x2={x} y1={highY} y2={lowY} stroke={color} strokeWidth="1.2" />
               <rect
                 x={x - bodyWidth / 2}
-                y={bodyY}
+                y={Math.min(openY, closeY)}
                 width={bodyWidth}
-                height={bodyHeight}
+                height={Math.max(1.8, Math.abs(closeY - openY))}
                 fill={color}
-                rx="1"
+                rx="0.7"
               />
             </g>
           );
         })}
+        {showXAxis ? [0, Math.floor((candles.length - 1) / 2), candles.length - 1].map((index, tickIndex, ticks) => {
+          const candle = candles[index];
+          const x = padding.left + (index * columnWidth) + (columnWidth / 2);
+          const anchor = tickIndex === 0 ? 'start' : tickIndex === ticks.length - 1 ? 'end' : 'middle';
+          const tickX = tickIndex === 0 ? padding.left : tickIndex === ticks.length - 1 ? chartWidth - padding.right : x;
+          return (
+            <text key={candle.time} x={tickX} y={height - 5} textAnchor={anchor} fill="currentColor" opacity="0.72" fontSize="9">
+              {chartDate(candle.time, timeRange)}
+            </text>
+          );
+        }) : null}
       </svg>
     </div>
   );

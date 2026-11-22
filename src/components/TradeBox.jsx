@@ -4,6 +4,12 @@ import { soundEffects } from '../services/sounds';
 
 const TradeBox = ({ stock }) => {
   const hasPrice = stock.isLive === true && Number.isFinite(stock.price) && stock.price > 0;
+  const tradingEnabled = hasPrice;
+  const disabledReason = stock.isResearch
+    ? 'Trading is disabled: quotes come from the Yahoo Finance research feed, which is delayed and not live.'
+    : stock.isStale
+      ? 'Trading is disabled: the last provider quote is stale.'
+      : 'Trading is disabled until a live market provider quote is available.';
   const [side, setSide] = useState('Buy');
   const [orderType, setOrderType] = useState('Market');
   const [qty, setQty] = useState(1);
@@ -12,12 +18,19 @@ const TradeBox = ({ stock }) => {
   const executionPrice = orderType === 'Limit' ? Number(limitPrice) || 0 : hasPrice ? stock.price : 0;
   const total = useMemo(() => Math.max(1, Number(qty) || 1) * executionPrice, [executionPrice, qty]);
   const submitOrder = () => {
-    if (!hasPrice && orderType === 'Market') {
+    if (!tradingEnabled) {
       soundEffects.playOrderCancel();
-      setMessage('Live price required before placing a market order.');
+      setMessage(disabledReason);
       return;
     }
-    const state = placePaperOrder({ symbol: stock.symbol, side, qty, price: executionPrice, orderType });
+    let state;
+    try {
+      state = placePaperOrder({ symbol: stock.symbol, side, qty, price: executionPrice, orderType });
+    } catch (error) {
+      soundEffects.playOrderCancel();
+      setMessage(error.message);
+      return;
+    }
     soundEffects.playOrderSuccess();
     setMessage(`✓ ${side} order executed! Virtual cash: Rs ${state.cash.toLocaleString('en-IN')}`);
   };
@@ -25,6 +38,7 @@ const TradeBox = ({ stock }) => {
   return (
     <section className="trade-box">
       <span className="paper-note">Paper trading only. No real exchange order is placed.</span>
+      {!tradingEnabled ? <p className="paper-note trade-disabled-note" role="status">{disabledReason}</p> : null}
       <div className="segmented">
         {['Buy', 'Sell'].map((option) => (
           <button
@@ -56,8 +70,8 @@ const TradeBox = ({ stock }) => {
         <span>Estimated Value</span>
         <strong>Rs {total.toLocaleString('en-IN')}</strong>
       </div>
-      <button className="primary-button" type="button" onClick={submitOrder} disabled={!hasPrice && orderType === 'Market'}>{side} {stock.symbol}</button>
-      {message ? <p className="success-message">{message}</p> : null}
+      <button className="primary-button" type="button" onClick={submitOrder} disabled={!tradingEnabled}>{side} {stock.symbol}</button>
+      {message ? <p className={message.startsWith('✓') ? 'success-message' : 'error-message'} role="status">{message}</p> : null}
     </section>
   );
 };

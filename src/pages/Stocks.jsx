@@ -108,15 +108,17 @@ const Stocks = () => {
     const quote = catalogQuotes.get(stock.symbol);
     const quoteHasPrice = Number(quote?.c) > 0;
     const quoteIsCurrent = quoteHasPrice && quote.isLive === true;
+    const quoteIsResearch = quoteHasPrice && quote.isResearch === true;
     const stockIsCurrent = stock.isLive === true;
     const quoteIsStale = quoteHasPrice && quote.isStale === true;
     const stockIsStale = stock.isStale === true;
-    const sourceQuote = quoteIsCurrent ? quote : stockIsCurrent ? stock : quoteIsStale ? quote : stockIsStale ? stock : null;
+    const sourceQuote = quoteIsCurrent ? quote : stockIsCurrent ? stock : quoteIsResearch ? quote : quoteIsStale ? quote : stockIsStale ? stock : null;
     const hasQuote = sourceQuote !== null;
     const isLive = sourceQuote?.isLive === true;
+    const isResearch = sourceQuote?.isResearch === true;
     const isDemo = false;
     const isStale = !isLive && sourceQuote?.isStale === true;
-    const hasCurrentQuote = isLive;
+    const hasCurrentQuote = isLive || isResearch;
     const quotePrice = Number(sourceQuote?.c ?? sourceQuote?.price);
     const price = hasQuote && quotePrice > 0 ? quotePrice : null;
     const quoteChange = sourceQuote?.d ?? sourceQuote?.change;
@@ -131,6 +133,12 @@ const Stocks = () => {
     return {
       ...stock,
       price,
+      marketCap: hasCurrentQuote ? Number(sourceQuote?.marketCap) || null : null,
+      pe: hasCurrentQuote ? Number(sourceQuote?.pe) || null : null,
+      eps: hasCurrentQuote ? Number(sourceQuote?.eps) || null : null,
+      dividendYield: hasCurrentQuote ? Number(sourceQuote?.dividendYield) || null : null,
+      week52High: hasCurrentQuote ? Number(sourceQuote?.week52High) || null : null,
+      week52Low: hasCurrentQuote ? Number(sourceQuote?.week52Low) || null : null,
       previousClose: Number(sourceQuote?.pc ?? sourceQuote?.previousClose) > 0
         ? Number(sourceQuote.pc ?? sourceQuote.previousClose)
         : null,
@@ -142,10 +150,13 @@ const Stocks = () => {
         ? catalogHistories.get(stock.symbol)
         : stock.history || [],
       isLive,
+      isResearch,
       isDemo,
       isStale,
       dataSource: isLive
           ? `${sourceQuote.provider || 'Upstox'} live quote`
+          : isResearch
+            ? `${sourceQuote.provider || 'Yahoo Finance'} research quote · delayed, not live${isStale ? ' · stale' : ''}`
           : isStale
             ? `${sourceQuote.provider || 'Upstox'} quote · stale`
             : 'Live quote required',

@@ -1,12 +1,13 @@
 import { ArrowLeft, ExternalLink, Newspaper } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { useMarketNews } from '../hooks/useMarketNews';
+import { NewsSentimentBadge } from '../components/NewsCard';
 
 const NewsDetails = () => {
   const { id } = useParams();
-  const { news, isLive, provider, statusMessage } = useMarketNews();
+  const { news, isLive, provider, statusMessage, sentimentMethod } = useMarketNews();
   const decodedId = decodeURIComponent(id || '');
-  const item = news.find((entry) => entry.id === decodedId || encodeURIComponent(entry.id) === id) || news[0];
+  const item = news.find((entry) => entry.id === decodedId || encodeURIComponent(entry.id) === id) || null;
 
   if (!item) {
     return (
@@ -23,10 +24,11 @@ const NewsDetails = () => {
     <div className="page news-detail-page">
       <Link className="back-link" to="/news"><ArrowLeft size={18} /> Back to news</Link>
       <article className="news-detail-panel">
-        <div className="news-detail-topline"><span>{item.tag}</span><span>{item.time}</span></div>
+        <div className="news-detail-topline"><span>{item.tag}</span><NewsSentimentBadge sentiment={item.sentiment} /><span>{item.time}</span></div>
         <h1>{item.title}</h1>
         <p className="news-detail-summary">{item.summary}</p>
         <div className="news-detail-meta"><Newspaper size={18} /> {item.source || provider || 'Market news'} · {isLive ? 'Live feed' : 'Cached feed'}</div>
+        {item.sentiment ? <p className="news-sentiment-note">{sentimentMethod || 'Headline tone is scored by a keyword lexicon. It is not a forecast or investment advice.'}</p> : null}
         {item.url ? <a className="primary-button news-source-button" href={item.url} target="_blank" rel="noreferrer">Read original source <ExternalLink size={16} /></a> : null}
       </article>
       <section className="panel news-related-panel">

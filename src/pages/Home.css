@@ -1,9 +1,9 @@
 .home-page {
-  --home-ink: #172820;
-  --home-muted: #74827b;
-  --home-line: #e6ece8;
-  --home-green: #087b57;
-  --home-soft-green: #edf7f1;
+  --home-ink: var(--text);
+  --home-muted: var(--text-3);
+  --home-line: var(--line);
+  --home-green: var(--brand);
+  --home-soft-green: var(--brand-soft);
   width: min(1280px, calc(100% - 40px));
   padding-top: 26px;
   padding-bottom: 64px;
@@ -42,6 +42,7 @@
   z-index: 1;
   inset: 0;
   background:
+    radial-gradient(620px 320px at 88% 4%, rgba(212, 175, 55, 0.2), transparent 68%),
     linear-gradient(90deg, rgba(5, 58, 41, 0.97) 0%, rgba(5, 58, 41, 0.9) 46%, rgba(5, 58, 41, 0.45) 100%),
     linear-gradient(0deg, rgba(6, 38, 31, 0.28), rgba(6, 38, 31, 0.08));
   pointer-events: none;
@@ -54,9 +55,9 @@
   right: -135px;
   width: 440px;
   aspect-ratio: 1;
-  border: 1px solid rgba(214, 255, 233, 0.13);
+  border: 1px solid rgba(212, 175, 55, 0.22);
   border-radius: 50%;
-  box-shadow: 0 0 0 34px rgba(214, 255, 233, 0.035), 0 0 0 70px rgba(214, 255, 233, 0.025);
+  box-shadow: 0 0 0 34px rgba(214, 255, 233, 0.035), 0 0 0 70px rgba(212, 175, 55, 0.04);
   pointer-events: none;
 }
 
@@ -109,8 +110,10 @@
 }
 
 .home-page .home-hero-copy .primary-button {
-  background: #f4fff8;
-  color: #075b40;
+  background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+  color: #17130a;
+  border-color: transparent;
+  box-shadow: 0 10px 26px rgba(212, 175, 55, 0.26);
 }
 
 .home-page .home-hero-copy .primary-button:hover,
@@ -160,10 +163,10 @@
   min-height: 356px;
   height: 100%;
   padding: 22px;
-  border: 1px solid #e3ebe5;
+  border: 1px solid var(--line-soft);
   border-radius: 24px;
-  background: linear-gradient(155deg, #fff 0%, #f5faf6 100%);
-  box-shadow: 0 18px 48px rgba(28, 54, 39, 0.08);
+  background: linear-gradient(155deg, var(--surface) 0%, var(--surface-2) 100%);
+  box-shadow: var(--shadow-3);
 }
 
 .home-page .home-hero-market .market-card-chart-container {
@@ -190,7 +193,7 @@
 .home-section-kicker {
   display: block;
   margin-bottom: 5px;
-  color: var(--home-green);
+  color: var(--gold);
   font-size: 0.65rem;
   font-weight: 850;
   letter-spacing: 0.12em;
@@ -218,9 +221,9 @@
   align-items: center;
   gap: 7px;
   padding: 9px 12px;
-  border: 1px solid var(--home-line);
+  border: 1px solid var(--line);
   border-radius: 10px;
-  background: #fff;
+  background: var(--surface);
   color: var(--home-green);
   font-size: 0.79rem;
   font-weight: 800;
@@ -230,7 +233,7 @@
 
 .home-section-intro > a:hover {
   transform: translateY(-1px);
-  border-color: #a5d7bc;
+  border-color: color-mix(in srgb, var(--gold-bright) 55%, transparent);
 }
 
 .home-page .market-strip {
@@ -243,17 +246,17 @@
   min-width: 0;
   padding: 15px;
   overflow: hidden;
-  border: 1px solid var(--home-line);
+  border: 1px solid var(--line-soft);
   border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(31, 52, 41, 0.045);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
   transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
 
 .home-page .market-strip .market-card:hover {
   transform: translateY(-2px);
-  border-color: #c9dfd1;
-  box-shadow: 0 13px 30px rgba(31, 52, 41, 0.08);
+  border-color: color-mix(in srgb, var(--gold-bright) 45%, transparent);
+  box-shadow: var(--shadow-2);
 }
 
 .home-page .market-strip .market-card-price-wrap .market-card-price {
@@ -274,10 +277,10 @@
 .home-page .home-widget {
   min-width: 0;
   padding: 19px;
-  border: 1px solid var(--home-line);
+  border: 1px solid var(--line-soft);
   border-radius: 18px;
-  background: #fff;
-  box-shadow: 0 10px 28px rgba(31, 52, 41, 0.045);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
 }
 
 .home-page .home-company-widget .section-heading {
@@ -313,7 +316,7 @@
 
 .home-chart-symbol {
   padding: 7px 10px;
-  border: 1px solid #dcebe1;
+  border: 1px solid color-mix(in srgb, var(--brand) 26%, transparent);
   border-radius: 9px;
   background: var(--home-soft-green);
   color: var(--home-green);
@@ -345,14 +348,14 @@
 }
 
 .home-page .home-content-grid .side-stack > .panel {
-  border-color: var(--home-line);
+  border-color: var(--line-soft);
   border-radius: 17px;
-  box-shadow: 0 10px 26px rgba(31, 52, 41, 0.045);
+  box-shadow: var(--shadow-2);
 }
 
 .home-page .home-content-grid .trust-panel {
-  border-color: #d8ecdf;
-  background: linear-gradient(120deg, #f2faf5, #fff);
+  border-color: color-mix(in srgb, var(--gold-bright) 34%, transparent);
+  background: linear-gradient(120deg, var(--gold-soft), var(--surface) 72%);
 }
 
 .home-page .compact-ipo-list,
@@ -360,42 +363,7 @@
   gap: 12px;
 }
 
-:root[data-theme='dark'] .home-page {
-  --home-ink: #edf5f0;
-  --home-muted: #a3b2aa;
-  --home-line: rgba(237, 243, 240, 0.12);
-  --home-green: #82dfad;
-  --home-soft-green: #203b2c;
-}
-
-:root[data-theme='dark'] .home-page .home-hero-market .market-card,
-:root[data-theme='dark'] .home-page .market-strip .market-card,
-:root[data-theme='dark'] .home-page .home-widget {
-  border-color: var(--home-line);
-  background: #1a2022;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
-}
-
-:root[data-theme='dark'] .home-page .home-section-intro > a {
-  border-color: var(--home-line);
-  background: #1a2022;
-  color: var(--home-green);
-}
-
-:root[data-theme='dark'] .home-page .home-section-intro > a:hover {
-  border-color: rgba(130, 223, 173, 0.4);
-}
-
-:root[data-theme='dark'] .home-page .home-chart-symbol {
-  border-color: rgba(130, 223, 173, 0.2);
-  background: #203b2c;
-  color: #a6ebc1;
-}
-
-:root[data-theme='dark'] .home-page .home-content-grid .trust-panel {
-  border-color: rgba(130, 223, 173, 0.18);
-  background: linear-gradient(120deg, #1d3025, #1a2022);
-}
+/* Every surface above reads the shared tokens, so dark mode needs no overrides. */
 
 @media (max-width: 1020px) {
   .home-page .home-hero {

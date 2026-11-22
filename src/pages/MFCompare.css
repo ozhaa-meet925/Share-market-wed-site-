@@ -1,0 +1,110 @@
+/* ============================================================
+   MFCompare.css — Fund Comparison Page
+   Prefix: .mfc-
+   ============================================================ */
+
+.mfc-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 16px 80px;
+}
+
+.mfc-header {
+  margin-bottom: 24px;
+}
+
+.mfc-title {
+  font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.mfc-sub {
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  margin: 0;
+}
+
+.mfc-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  padding: 24px;
+  box-shadow: var(--shadow-2);
+  margin-bottom: 28px;
+}
+
+.mfc-fund-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.mfc-fund-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.mfc-chip-remove {
+  background: none;
+  border: none;
+  color: var(--text-3);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.mfc-chip-remove:hover {
+  color: var(--loss);
+}
+
+.mfc-table-wrap {
+  overflow-x: auto;
+}
+
+.mfc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.mfc-table th,
+.mfc-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+
+.mfc-table th.metric-col {
+  width: 220px;
+  min-width: 180px;
+  background: var(--surface-2);
+  color: var(--text-3);
+  font-weight: 650;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  position: sticky;
+  left: 0;
+  z-index: 10;
+}
+
+.mfc-table td.best-val {
+  background: rgba(13, 111, 78, 0.08);
+  font-weight: 750;
+}
+
+.mfc-chart-box {
+  height: 320px;
+  margin-top: 20px;
+}

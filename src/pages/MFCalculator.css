@@ -1,0 +1,145 @@
+/* ============================================================
+   MFCalculator.css — Mutual Fund Calculators Page
+   Prefix: .mfcalc-
+   ============================================================ */
+
+.mfcalc-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 16px 80px;
+}
+
+.mfcalc-header {
+  margin-bottom: 24px;
+}
+
+.mfcalc-title {
+  font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.mfcalc-sub {
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  margin: 0;
+}
+
+.mfcalc-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 28px;
+  scrollbar-width: none;
+}
+
+.mfcalc-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.mfcalc-tab-btn {
+  padding: 10px 18px;
+  font-size: var(--fs-sm);
+  font-weight: 650;
+  color: var(--text-3);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.16s ease;
+}
+
+.mfcalc-tab-btn.active {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+}
+
+.mfcalc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+
+@media (max-width: 860px) {
+  .mfcalc-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mfcalc-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  padding: 26px;
+  box-shadow: var(--shadow-2);
+}
+
+.mfcalc-field {
+  margin-bottom: 20px;
+}
+
+.mfcalc-field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.mfcalc-label {
+  font-size: 0.84rem;
+  font-weight: 650;
+  color: var(--text-2);
+}
+
+.mfcalc-val-display {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--brand);
+}
+
+.mfcalc-slider {
+  width: 100%;
+  accent-color: var(--brand);
+  cursor: pointer;
+}
+
+.mfcalc-bounds {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text-3);
+  margin-top: 4px;
+}
+
+.mfcalc-res-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.mfcalc-res-box {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 14px;
+}
+
+.mfcalc-res-label {
+  font-size: 0.74rem;
+  color: var(--text-3);
+  margin-bottom: 4px;
+}
+
+.mfcalc-res-val {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.mfcalc-res-val.gain {
+  color: var(--gain);
+}

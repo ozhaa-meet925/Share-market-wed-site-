@@ -1,8 +1,29 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { isMetalSymbol } from '../data/metals';
 import { marketApi } from '../services/api';
 
-const LIVE_REFRESH_MS = 5000;
-const RESEARCH_REFRESH_MS = 60_000;
+const LIVE_REFRESH_MS = 1000;
+const RESEARCH_REFRESH_MS = 1_000;
+const HEALTH_CACHE_MS = 30_000;
+let providerHealthCache = null;
+let providerHealthSavedAt = 0;
+let providerHealthPending = null;
+
+const getProviderHealth = () => {
+  if (providerHealthCache && Date.now() - providerHealthSavedAt < HEALTH_CACHE_MS) {
+    return Promise.resolve(providerHealthCache);
+  }
+  if (!providerHealthPending) {
+    providerHealthPending = marketApi.getHealth()
+      .then((health) => {
+        providerHealthCache = health;
+        providerHealthSavedAt = Date.now();
+        return health;
+      })
+      .finally(() => { providerHealthPending = null; });
+  }
+  return providerHealthPending;
+};
 
 export const useCatalogQuotes = (stocks) => {
   const [quotes, setQuotes] = useState(new Map());
@@ -12,17 +33,27 @@ export const useCatalogQuotes = (stocks) => {
   const [providerState, setProviderState] = useState('checking');
   const [setupMessage, setSetupMessage] = useState('');
   const [quoteError, setQuoteError] = useState('');
+  const stocksRef = useRef(stocks);
+  stocksRef.current = stocks;
+  const stocksKey = stocks.map((stock) => `${String(stock.exchange || 'NSE').toUpperCase()}:${String(stock.symbol || '').toUpperCase()}`).join(',');
 
   useEffect(() => {
     let active = true;
     let enabled = false;
     let requestPending = false;
+    if (!stocksKey) {
+      setIsLoading(false);
+      return () => { active = false; };
+    }
+    setIsLoading(true);
+    setQuoteError('');
 
     const refresh = async () => {
-      if (!enabled || !stocks.length || requestPending) return;
+      const requestedStocks = stocksRef.current;
+      if (!enabled || !requestedStocks.length || requestPending) return;
       requestPending = true;
       try {
-        const payload = await marketApi.getBatchQuotes(stocks.map((stock) => (
+        const payload = await marketApi.getBatchQuotes(requestedStocks.map((stock) => (
           stock.exchange === 'BSE' ? `BSE:${stock.symbol}` : stock.symbol
         )));
         if (!active) return;
@@ -30,12 +61,12 @@ export const useCatalogQuotes = (stocks) => {
           Object.entries(payload?.quotes || {})
             .map(([symbol, quote]) => [String(quote?.symbol || symbol).replace(/^(NSE|BSE):/i, '').toUpperCase(), quote])
             .filter(([, quote]) => (
-              quote?.isLive === true || quote?.isResearch === true
+              quote?.isLive === true || quote?.isResearch === true || quote?.isReal === true
             ) && Number(quote.c) > 0),
         );
         setQuotes((previous) => {
           const next = new Map(previous);
-          for (const stock of stocks) {
+          for (const stock of requestedStocks) {
             const symbol = stock.symbol.toUpperCase();
             const fresh = liveQuotes.get(symbol);
             if (fresh) {
@@ -43,7 +74,7 @@ export const useCatalogQuotes = (stocks) => {
               const previousPrice = Number(previousQuote?.c);
               const currentPrice = Number(fresh.c);
               const moved = previousPrice > 0 && currentPrice !== previousPrice;
-              const shouldFlash = fresh.isLive === true;
+              const shouldFlash = fresh.isLive === true || fresh.isResearch === true || fresh.isReal === true;
               const direction = moved
                 ? currentPrice > previousPrice ? 'up' : 'down'
                 : previousQuote?.lastTick || null;
@@ -88,14 +119,15 @@ export const useCatalogQuotes = (stocks) => {
     };
 
     let intervalId;
-    marketApi.getHealth()
+    getProviderHealth()
       .then((health) => {
         if (!active) return;
         const researchNote = health.researchDataAvailable
           ? ' Yahoo Finance research quotes may be delayed and are not live.'
           : '';
         setSetupMessage(`${health.setupRequired || 'Configure a live market provider to load current prices.'}${researchNote}`);
-        if (!health.realTimeAvailable && !health.researchDataAvailable) {
+        const hasMetalFallback = stocksRef.current.some((stock) => isMetalSymbol(stock.symbol));
+        if (!health.realTimeAvailable && !health.researchDataAvailable && !hasMetalFallback) {
           setProviderState('unavailable');
           setIsLoading(false);
           return;
@@ -116,7 +148,7 @@ export const useCatalogQuotes = (stocks) => {
       active = false;
       if (intervalId) window.clearInterval(intervalId);
     };
-  }, [stocks]);
+  }, [stocksKey]);
 
   return { quotes, histories, lastUpdated, isLoading, providerState, setupMessage, quoteError };
 };

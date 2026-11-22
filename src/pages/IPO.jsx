@@ -221,25 +221,21 @@ const IPO = () => {
     ? 'Connecting to IPO feed'
     : feed.source === 'nse'
       ? 'NSE India Live Feed'
-    : feed.source === 'upstox'
-      ? (feed.live ? 'Upstox Live API' : 'Upstox Cached Feed')
-      : feed.configured ? 'Upstox API Error' : 'Live Feed Required';
-  const upstoxRejected = feed.source === 'nse' && /\b401\b/.test(String(feed.message || ''));
-  const feedDescription = upstoxRejected
-    ? 'NSE India refreshes current and upcoming IPOs automatically. Closed issues leave the active list. Upstox rejected its token; replace UPSTOX_ACCESS_TOKEN to restore Upstox.'
-    : feed.source === 'upstox'
-    ? (feed.live
-      ? 'Open and upcoming IPOs refresh automatically. New issues appear when Upstox publishes them; issues that close or list are removed from this active calendar.'
-      : feed.message || 'The latest successful Upstox data is being shown while the provider refreshes.')
-    : feed.message || 'Configure UPSTOX_ACCESS_TOKEN on the server to show current IPO listings.';
+      : 'Live Feed Unavailable';
+  const feedDescription = feed.message
+    || 'Current and upcoming IPOs are loaded from the free NSE India feed; no API token is required. Upcoming issues move to Open on their start date and leave the active list after the closing date.';
   const emptyMessage = feed.loading
     ? 'Loading current and upcoming IPOs…'
     : activeStatus === 'closed' && history.length === 0
       ? 'No listed or closed IPO records are available from the exchange feed yet.'
-    : ipos.length === 0 && feed.source !== 'upstox'
-      ? feedDescription
-      : ipos.length === 0 && feed.live
-        ? 'Upstox currently reports no open or upcoming IPOs.'
+    : ipos.length === 0 && feed.source === 'nse'
+      ? activeStatus === 'open'
+        ? `NSE India live feed connected. At ${updatedLabel} the exchange reports no IPO open for bidding. The next open issue appears here automatically within a minute of NSE publishing it.`
+        : activeStatus === 'upcoming'
+          ? `NSE India live feed connected. At ${updatedLabel} the exchange reports no upcoming IPO issues. New filings appear here when NSE publishes them.`
+          : `NSE India live feed connected. At ${updatedLabel} the exchange reports ${totalOpen} open and ${totalUpcoming} upcoming issues${history.length ? `; ${history.length} listed or closed issues are in the Listed / Closed tab` : ''}.`
+      : ipos.length === 0 && feed.source !== 'nse'
+        ? feedDescription
         : 'No active IPOs match the selected filters.';
   const compareFinancialLabels = [...new Set(compareIpos.flatMap((ipo) => financialEntries(ipo.financials).map(([label]) => label)))];
 
@@ -288,7 +284,7 @@ const IPO = () => {
           <strong>{feed.loading ? 'Connecting to live IPO data' : feed.live ? 'Live IPO feed connected' : feed.stale ? 'Showing last successful IPO update' : 'Live IPO feed unavailable'}</strong>
           <p>{feedDescription}</p>
         </div>
-        <span>{feed.source === 'nse' ? 'NSE INDIA' : feed.source === 'upstox' ? 'UPSTOX' : feed.configured ? 'UPSTOX ERROR' : 'SETUP'}</span>
+        <span>{feed.source === 'nse' ? 'NSE INDIA' : 'UNAVAILABLE'}</span>
       </div>
 
       <section className="ipo-alert-center" aria-labelledby="ipo-alerts-heading">

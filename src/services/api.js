@@ -1,11 +1,3 @@
-import { stocks } from '../data/stocks';
-import { nifty, indices } from '../data/nifty';
-
-const wait = (value) =>
-  new Promise((resolve) => {
-    window.setTimeout(() => resolve(value), 120);
-  });
-
 const inFlightJsonRequests = new Map();
 
 const performJsonRequest = async (url, options) => {
@@ -46,10 +38,6 @@ const requestJson = (url, options = {}) => {
 };
 
 export const marketApi = {
-  getStocks: () => wait(stocks),
-  getStock: (symbol) => wait(stocks.find((stock) => stock.symbol === symbol)),
-  getIndices: () => wait(indices),
-  getNifty: () => wait(nifty),
   getIpos: () => requestJson('/api/ipos'),
   getIpoAuthStatus: () => requestJson('/api/ipo/auth/status'),
   connectIpoBroker: (returnTo = '/ipo') => {
@@ -65,6 +53,19 @@ export const marketApi = {
   getCalendar: (kind, from, to, forceRefresh = false) => requestJson(
     `/api/calendar?kind=${encodeURIComponent(kind)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}${forceRefresh ? '&refresh=1' : ''}`,
   ),
+  getMarketStatus: () => requestJson('/api/market/status'),
+  getMarketSchedule: () => requestJson('/api/market/schedule'),
+  getMarketHolidays: (year) => requestJson(`/api/market/holidays${year ? `?year=${year}` : ''}`),
+  getSpecialSessions: () => requestJson('/api/market/special-sessions'),
+  addSpecialSession: (session) => requestJson('/api/market/special-sessions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(session),
+  }),
+  deleteSpecialSession: (date) => requestJson(`/api/market/special-sessions/${encodeURIComponent(date)}`, {
+    method: 'DELETE',
+  }),
+  syncMarketCalendar: () => requestJson('/api/market/sync-calendar', { method: 'POST' }),
   getIpoDetails: (ipoIdOrCompany) => requestJson(`/api/ipo/${encodeURIComponent(ipoIdOrCompany)}`),
   applyIpo: (application) => requestJson('/api/ipo/apply', {
     method: 'POST',
@@ -87,7 +88,19 @@ export const marketApi = {
       return [];
     }
   },
+  getMetalsOverview: () => requestJson('/api/metals/overview'),
+  getMetalInsight: (symbol) => requestJson(`/api/metals/insight?symbol=${encodeURIComponent(symbol)}`),
+  getMetalPaperState: () => requestJson('/api/metals/paper'),
+  placeMetalPaperOrder: (order) => requestJson('/api/metals/paper/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(order),
+  }),
+  cancelMetalPaperOrder: (orderId) => requestJson(`/api/metals/paper/orders/${encodeURIComponent(orderId)}`, {
+    method: 'DELETE',
+  }),
   getMarketNews: () => requestJson('/api/news/market?category=general'),
+  getMutualFundNews: () => requestJson('/api/news/mutual-funds'),
   getHealth: () => requestJson('/api/health'),
   getStockCatalog: () => requestJson('/api/stocks/list?exchange=NSE'),
   getLiveQuote: (symbol) => requestJson(`/api/stock/quote?symbol=${encodeURIComponent(symbol)}`),
@@ -99,10 +112,48 @@ export const marketApi = {
   ),
   getBatchQuotes: (symbols) => requestJson(`/api/stock/batch?symbols=${symbols.map(encodeURIComponent).join(',')}`),
   getProviderInfo: () => requestJson('/api/provider'),
-  askAICopilot: (message, context = {}) => fetch('/api/ai/chat', {
+  subscribeStockQuotes: (symbols, onQuote, onStatus, onError) => {
+    const source = new EventSource(`/api/stock/stream?symbols=${symbols.map(encodeURIComponent).join(',')}`);
+    source.addEventListener('quote', (event) => {
+      try {
+        onQuote?.(JSON.parse(event.data));
+      } catch {
+        onError?.(new Error('The market stream returned an invalid quote message.'));
+      }
+    });
+    source.addEventListener('status', (event) => {
+      try {
+        onStatus?.(JSON.parse(event.data));
+      } catch {
+        onError?.(new Error('The market stream returned an invalid status message.'));
+      }
+    });
+    source.addEventListener('provider_error', (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        onError?.(new Error(payload.error || 'The market provider stream is unavailable.'));
+      } catch {
+        onError?.(new Error('The market provider stream is unavailable.'));
+      }
+    });
+    source.onerror = () => onError?.(new Error('The market provider stream disconnected.'));
+    return () => source.close();
+  },
+  getMutualFundSchemes: (limit = 12, offset = 0) => requestJson(
+    `/api/mutual-funds/schemes?limit=${encodeURIComponent(limit)}&offset=${encodeURIComponent(offset)}`,
+  ),
+  searchMutualFunds: (query) => requestJson(`/api/mutual-funds/search?q=${encodeURIComponent(query)}`),
+  getMutualFundHistory: (schemeCode, startDate) => requestJson(
+    `/api/mutual-funds/${encodeURIComponent(schemeCode)}/nav${startDate ? `?startDate=${encodeURIComponent(startDate)}` : ''}`,
+  ),
+  getMutualFundLatest: (schemeCode, forceRefresh = false) => requestJson(`/api/mutual-funds/${encodeURIComponent(schemeCode)}/latest${forceRefresh ? '?refresh=1' : ''}`),
+  askAICopilot: (message, context = {}, history = []) => requestJson('/api/ai/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, context }),
-  }).then((r) => r.json()),
-  getAIStockAnalysis: (symbol) => requestJson(`/api/ai/analyze-stock?symbol=${encodeURIComponent(symbol)}`),
+    body: JSON.stringify({ message, context, history }),
+  }),
+  getAIStatus: () => requestJson('/api/ai/status'),
+  getAIStockAnalysis: (symbol, exchange = 'NSE') => requestJson(
+    `/api/ai/analyze-stock?symbol=${encodeURIComponent(symbol)}&exchange=${encodeURIComponent(exchange)}`,
+  ),
 };

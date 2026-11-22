@@ -5,6 +5,8 @@ import App from './App.jsx';
 import './App.css';
 import './pages/IPO.css';
 import './pages/Home.css';
+import './pages/FeatureAdditions.css';
+import './design-upgrade.css';
 
 createRoot(document.getElementById('root')).render(
   <BrowserRouter>

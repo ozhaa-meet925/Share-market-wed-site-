@@ -1,0 +1,647 @@
+/* ============================================================
+   MFHome.css — Mutual Funds Homepage
+   All classes prefixed: .mfh-
+   Dark theme via [data-theme=dark] .mfh-* selectors
+   ============================================================ */
+
+/* ── Layout Shell ──────────────────────────────────────────── */
+.mfh-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 100vh;
+}
+
+/* ── Hero ──────────────────────────────────────────────────── */
+.mfh-hero {
+  background: linear-gradient(135deg, #0a4a33 0%, #0d6f4e 45%, #0f8a60 100%);
+  color: #fff;
+  padding: 72px 24px 60px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.mfh-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 700px 400px at 20% 110%, rgba(255,255,255,0.06), transparent),
+    radial-gradient(ellipse 500px 300px at 80% -20%, rgba(255,255,255,0.08), transparent);
+  pointer-events: none;
+}
+.mfh-hero-inner {
+  position: relative;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.mfh-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: var(--r-pill);
+  padding: 4px 14px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  color: rgba(255,255,255,0.9);
+}
+.mfh-hero-title {
+  font-size: clamp(1.9rem, 4.5vw, 3rem);
+  font-weight: 800;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  margin: 0 0 14px;
+}
+.mfh-hero-title span {
+  color: #7fffc4;
+}
+.mfh-hero-sub {
+  font-size: var(--fs-lg);
+  color: rgba(255,255,255,0.78);
+  margin: 0 0 36px;
+  max-width: 540px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+.mfh-hero-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+.mfh-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  color: #0d6f4e;
+  font-weight: 700;
+  font-size: var(--fs-md);
+  padding: 12px 28px;
+  border-radius: var(--r-pill);
+  border: none;
+  cursor: pointer;
+  transition: transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+  text-decoration: none;
+}
+.mfh-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+}
+.mfh-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  font-weight: 700;
+  font-size: var(--fs-md);
+  padding: 12px 28px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid rgba(255,255,255,0.4);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+  text-decoration: none;
+  backdrop-filter: blur(4px);
+}
+.mfh-btn-outline:hover {
+  background: rgba(255,255,255,0.22);
+  transform: translateY(-2px);
+}
+.mfh-hero-search {
+  display: flex;
+  gap: 10px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+.mfh-hero-search-input {
+  flex: 1;
+  padding: 12px 18px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.14);
+  color: #fff;
+  font-size: var(--fs-md);
+  backdrop-filter: blur(6px);
+  outline: none;
+  transition: border-color var(--t-fast);
+}
+.mfh-hero-search-input::placeholder {
+  color: rgba(255,255,255,0.55);
+}
+.mfh-hero-search-input:focus {
+  border-color: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.2);
+}
+.mfh-hero-search-btn {
+  padding: 12px 22px;
+  background: #fff;
+  color: #0d6f4e;
+  font-weight: 700;
+  border-radius: var(--r-pill);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform var(--t-fast), box-shadow var(--t-fast);
+  white-space: nowrap;
+}
+.mfh-hero-search-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* ── Section shell ─────────────────────────────────────────── */
+.mfh-section {
+  padding: 52px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+.mfh-section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.mfh-section-title {
+  font-size: var(--fs-xl);
+  font-weight: 800;
+  color: var(--text);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.mfh-section-sub {
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+  margin: 4px 0 0;
+}
+.mfh-view-all {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--brand);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  transition: opacity var(--t-fast);
+}
+.mfh-view-all:hover { opacity: 0.75; }
+
+/* ── Portfolio Strip ───────────────────────────────────────── */
+.mfh-portfolio-strip {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 24px;
+}
+.mfh-portfolio-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.mfh-portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-2);
+}
+.mfh-stat-card {
+  background: var(--surface);
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mfh-stat-card:first-child { border-radius: var(--r-lg) 0 0 var(--r-lg); }
+.mfh-stat-card:last-child  { border-radius: 0 var(--r-lg) var(--r-lg) 0; }
+.mfh-stat-label {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+}
+.mfh-stat-value {
+  font-size: var(--fs-xl);
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.mfh-stat-value.gain { color: var(--gain); }
+.mfh-stat-value.loss { color: var(--loss); }
+.mfh-stat-delta {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text-3);
+}
+/* Shimmer skeleton */
+.mfh-shimmer {
+  background: linear-gradient(90deg, var(--surface-3) 25%, var(--surface-2) 50%, var(--surface-3) 75%);
+  background-size: 200% 100%;
+  animation: mfh-shimmer 1.4s infinite;
+  border-radius: var(--r-sm);
+}
+@keyframes mfh-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.mfh-skel-line {
+  height: 14px;
+  border-radius: 4px;
+}
+.mfh-skel-line.lg { height: 28px; width: 70%; }
+.mfh-skel-line.sm { height: 11px; width: 50%; }
+
+/* Empty portfolio banner */
+.mfh-empty-portfolio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 28px 24px;
+  background: linear-gradient(135deg, var(--brand-soft), var(--surface));
+  border-radius: var(--r-lg);
+  border: 1px dashed var(--brand);
+  flex-wrap: wrap;
+  text-align: center;
+}
+.mfh-empty-portfolio p {
+  margin: 0;
+  font-size: var(--fs-md);
+  color: var(--text-2);
+}
+.mfh-empty-portfolio a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 700;
+  padding: 10px 22px;
+  border-radius: var(--r-pill);
+  text-decoration: none;
+  font-size: var(--fs-sm);
+  transition: opacity var(--t-fast);
+}
+.mfh-empty-portfolio a:hover { opacity: 0.85; }
+
+/* ── Categories ────────────────────────────────────────────── */
+.mfh-cats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.mfh-cat-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 22px 20px;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease), border-color var(--t-fast);
+  box-shadow: var(--shadow-1);
+}
+.mfh-cat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-2);
+  border-color: var(--brand);
+}
+.mfh-cat-emoji {
+  font-size: 2rem;
+  line-height: 1;
+}
+.mfh-cat-name {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--text);
+}
+.mfh-cat-desc {
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  line-height: 1.5;
+}
+
+/* ── Top Performing Funds (horizontal scroll) ──────────────── */
+.mfh-top-scroll-wrap {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.mfh-top-scroll-wrap::-webkit-scrollbar { height: 5px; }
+.mfh-top-scroll-wrap::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+
+.mfh-fund-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  min-width: 230px;
+  max-width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow-1);
+  transition: transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.mfh-fund-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-2);
+}
+.mfh-fund-name {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.mfh-fund-house {
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+.mfh-fund-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mfh-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.mfh-badge.gain {
+  background: var(--gain-soft);
+  color: var(--gain);
+}
+.mfh-badge.loss {
+  background: var(--loss-soft);
+  color: var(--loss);
+}
+.mfh-badge.neutral {
+  background: var(--surface-3);
+  color: var(--text-3);
+}
+.mfh-fund-nav {
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+}
+.mfh-fund-nav strong {
+  color: var(--text);
+  font-size: var(--fs-md);
+}
+.mfh-btn-explore {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  padding: 9px 16px;
+  border-radius: var(--r-md);
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--t-fast), transform var(--t-fast);
+}
+.mfh-btn-explore:hover {
+  background: var(--brand);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.mfh-retry-btn {
+  padding: 10px 22px;
+  background: var(--surface-3);
+  color: var(--text-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+.mfh-retry-btn:hover { background: var(--surface-2); }
+
+/* Skeleton fund card */
+.mfh-fund-skel {
+  min-width: 230px;
+  max-width: 260px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Trending Funds Grid ───────────────────────────────────── */
+.mfh-trending-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.mfh-trend-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--shadow-1);
+  transition: transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.mfh-trend-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+}
+.mfh-trend-name {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.mfh-trend-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+}
+.mfh-cat-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+.mfh-view-link {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--brand);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: opacity var(--t-fast);
+}
+.mfh-view-link:hover { opacity: 0.75; }
+
+/* ── Quick Tools ───────────────────────────────────────────── */
+.mfh-tools-section {
+  background: var(--surface-2);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 48px 24px;
+}
+.mfh-tools-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.mfh-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.mfh-tool-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 28px 20px;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  transition: transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease), border-color var(--t-fast);
+  box-shadow: var(--shadow-1);
+}
+.mfh-tool-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-2);
+  border-color: var(--brand);
+}
+.mfh-tool-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-md);
+  background: var(--brand-soft);
+  color: var(--brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mfh-tool-name {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--text);
+}
+.mfh-tool-desc {
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  line-height: 1.5;
+}
+
+/* ── Disclaimer ────────────────────────────────────────────── */
+.mfh-disclaimer {
+  background: var(--surface-3);
+  border-top: 1px solid var(--line);
+  padding: 24px;
+  text-align: center;
+}
+.mfh-disclaimer p {
+  max-width: 900px;
+  margin: 0 auto;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  line-height: 1.7;
+}
+
+/* ── Dark theme overrides ──────────────────────────────────── */
+[data-theme='dark'] .mfh-hero {
+  background: linear-gradient(135deg, #071e14 0%, #0d4530 45%, #0f6a48 100%);
+}
+[data-theme='dark'] .mfh-hero-title span {
+  color: #3ddc97;
+}
+[data-theme='dark'] .mfh-btn-primary {
+  background: var(--brand);
+  color: #fff;
+}
+[data-theme='dark'] .mfh-hero-search-btn {
+  background: var(--brand);
+  color: #fff;
+}
+[data-theme='dark'] .mfh-cat-card:hover,
+[data-theme='dark'] .mfh-fund-card:hover {
+  border-color: var(--brand);
+}
+[data-theme='dark'] .mfh-tool-card:hover {
+  border-color: var(--brand);
+}
+[data-theme='dark'] .mfh-shimmer {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  animation: mfh-shimmer 1.4s infinite;
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .mfh-cats-grid      { grid-template-columns: repeat(4, 1fr); }
+  .mfh-trending-grid  { grid-template-columns: repeat(2, 1fr); }
+  .mfh-tools-grid     { grid-template-columns: repeat(2, 1fr); }
+  .mfh-portfolio-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .mfh-hero          { padding: 52px 16px 44px; }
+  .mfh-hero-title    { font-size: 2rem; }
+  .mfh-cats-grid     { grid-template-columns: repeat(2, 1fr); }
+  .mfh-trending-grid { grid-template-columns: repeat(2, 1fr); }
+  .mfh-tools-grid    { grid-template-columns: repeat(2, 1fr); }
+  .mfh-section       { padding: 36px 16px; }
+  .mfh-stat-value    { font-size: var(--fs-md); }
+  .mfh-portfolio-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+  .mfh-hero-search   { flex-direction: column; }
+  .mfh-cats-grid     { grid-template-columns: repeat(2, 1fr); }
+  .mfh-trending-grid { grid-template-columns: 1fr; }
+  .mfh-tools-grid    { grid-template-columns: repeat(2, 1fr); }
+  .mfh-portfolio-grid { grid-template-columns: 1fr; }
+  .mfh-stat-card:first-child,
+  .mfh-stat-card:last-child { border-radius: 0; }
+}

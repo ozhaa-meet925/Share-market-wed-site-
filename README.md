@@ -2,6 +2,21 @@
 
 A React + Vite share market dashboard with Indian indices, stocks, IPOs, commodities, portfolio, watchlist, orders, learning content, and calculators.
 
+## Trading platform modules
+
+| Area | Status |
+| --- | --- |
+| Market data | Delayed Yahoo research quotes are available; a live NSE/BSE feed needs a licensed provider token. Every price is labelled live, delayed or unavailable. |
+| Broker connections | Upstox and Zerodha Kite OAuth adapters: profile, funds, holdings, positions, quotes, history, order/trade book, place/modify/cancel. Tokens are encrypted at rest. |
+| Live order routing | Disabled by default. Requires `LIVE_TRADING_ENABLED=1`, per-account consent, `live:true`, an open NSE session and a passing Risk Shield decision. |
+| AI auto-trading | 20-second backend scans with paper execution by default. Live execution needs a fully ready broker (credentials, non-paper mode, connected token, consent, instrument mapping) plus fresh broker quotes, verified funds and a typed confirmation. Positions mirror only verified fills; exits are application-managed market orders. |
+| Smart recovery | Broker timeouts become `unverified` and are reconciled against the broker order book. Orders are never blindly resubmitted. |
+| AI Core | Deterministic Super Brain ensemble, Risk Shield, recovery, performance score and 24/7 health monitor. An LLM only explains; it never trades. |
+| Notifications | In-app notifications are persisted and pushed to the core event bus. Email is delivered over SMTP when configured; push is reported as unsupported until a provider exists. |
+| Compliance | `/compliance` and `/api/compliance/status` explain provider, broker and licensing status without exposing secrets. |
+
+Documentation: [API reference](docs/API.md) · [API & provider integration](docs/API_INTEGRATION.md) · [Database](docs/DATABASE.md) · [Security audit](docs/SECURITY_AUDIT.md) · [Performance](docs/PERFORMANCE.md) · [Test report](docs/TEST_REPORT.md) · [Deployment guide](docs/DEPLOYMENT.md) · [Platform audit](AUDIT.md).
+
 ## Run
 
 ```bash
@@ -16,7 +31,18 @@ npm run dev
 
 ```bash
 npm run build
+PORT=4000 NODE_ENV=production node server.js
 ```
+
+The production server serves `dist/` and `/api` from one port. Create `.env` from `.env.example`; never commit it.
+
+## Test
+
+```bash
+npm test
+```
+
+63 backend unit/integration tests cover the database, security headers/rate limits, broker adapters, live-order gating, reconciliation, live execution (fills, partials, rejects, unverified orders, stale quotes, risk blocks, cancellation and restart recovery), notifications under SMTP/without SMTP, index-feed normalization, research-quote freshness and compliance. CI (`.github/workflows/ci.yml`) blocks on test, build and secret-scan failures. See [docs/TEST_REPORT.md](docs/TEST_REPORT.md) for evidence and known gaps.
 
 ## Vercel deployment
 
@@ -24,11 +50,9 @@ The Vercel deployment serves the Vite app and routes `/api/*` requests to the Ex
 
 ## Live IPO listings, tracking, and applications
 
-The IPO page reads open and upcoming IPOs from Upstox, checks all result pages, and refreshes every minute. If Upstox is unavailable or rejects its token, the API falls back to the current and forthcoming issue feed published by NSE India and labels that source on screen. Closed or expired issues leave the active calendar; tracked issues keep their last-known details. The home page uses the same provider feed, and the UI never shows bundled sample IPOs as live data.
+The IPO page reads current and forthcoming issues from NSE India's public, keyless IPO feed and refreshes every minute. Upcoming issues move to Open on their application start date and leave the active calendar after the application closing date; they remain available in Listed / Closed history when published by NSE. Live listings do not require an Upstox token. If NSE is temporarily unavailable, the API labels and shows the last successful NSE data when available; the UI never presents sample IPOs as live. Tracked issues keep their last-known details. The home page uses the same provider feed.
 
-For listings, create an Upstox Analytics Token and set `UPSTOX_ACCESS_TOKEN` in `.env` locally or in the hosting provider's server-side environment variables. This read-only token can retrieve IPO listings and details. A user can also use their own secure OAuth session as the read-only feed token after connecting.
-
-Applying and tracking broker applications requires a separate Upstox OAuth app because the Analytics Token cannot submit bids. Configure `UPSTOX_CLIENT_ID`, `UPSTOX_CLIENT_SECRET`, `UPSTOX_REDIRECT_URI`, and a private random `IPO_SESSION_SECRET` on the server. Add the exact callback URL `<site-origin>/api/ipo/auth/callback` to the Upstox app. Keep all four values server-side and never commit `.env`. The site redirects each user to Upstox login; it stores that user's broker token in an encrypted, HttpOnly cookie and sends an application only after the user reviews and confirms the bid. The user must still approve the UPI mandate in their UPI app. The IPO page's **My Applications** view polls Upstox for mandate, exchange, and allotment status.
+Applying and tracking broker applications still requires a separate Upstox OAuth app. Configure `UPSTOX_CLIENT_ID`, `UPSTOX_CLIENT_SECRET`, `UPSTOX_REDIRECT_URI`, and a private random `IPO_SESSION_SECRET` on the server. Add the exact callback URL `<site-origin>/api/ipo/auth/callback` to the Upstox app. Keep all four values server-side and never commit `.env`. The site redirects each user to Upstox login; it stores that user's broker token in an encrypted, HttpOnly cookie and sends an application only after the user reviews and confirms the bid. The user must still approve the UPI mandate in their UPI app. The IPO page's **My Applications** view polls Upstox for mandate, exchange, and allotment status.
 
 IPO details include issue size, price band, dates, category subscriptions, registrar information, and available prospectus links. The upstream IPO detail API does not provide structured audited financial statements, use-of-proceeds breakdowns, strengths, or risk summaries for every issue; the app marks missing fields and links to the official RHP/DRHP when available instead of inventing those details.
 ## Live stock prices

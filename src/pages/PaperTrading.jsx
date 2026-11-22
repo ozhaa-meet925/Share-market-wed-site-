@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { CircleDollarSign, RotateCcw, Activity } from 'lucide-react';
 import { stocks as stockSeed } from '../data/stocks';
 import { useLiveStocks } from '../hooks/useLiveStocks';
-import { getPaperState, placePaperOrder, resetPaperTrading } from '../services/paperTrading';
+import { getHoldingQuantity, getPaperState, placePaperOrder, resetPaperTrading, PAPER_STATE_EVENT } from '../services/paperTrading';
 import { soundEffects } from '../services/sounds';
 
 const PaperTrading = () => {
@@ -11,10 +12,33 @@ const PaperTrading = () => {
   const [symbol, setSymbol] = useState(stockSeed[0].symbol);
   const [side, setSide] = useState('Buy');
   const [qty, setQty] = useState(1);
+  const [orderError, setOrderError] = useState('');
+
+  useEffect(() => {
+    const refresh = () => setState(getPaperState());
+    window.addEventListener(PAPER_STATE_EVENT, refresh);
+    return () => window.removeEventListener(PAPER_STATE_EVENT, refresh);
+  }, []);
+
+  useEffect(() => {
+    setOrderError('');
+  }, [symbol, side, qty]);
+
+  const heldQty = getHoldingQuantity(state, symbol);
+
   const selectedStock = liveStocks.find((stock) => stock.symbol === symbol) || liveStocks[0];
   const hasCurrentQuote = selectedStock.isLive && Number(selectedStock.price) > 0;
   const hasDemoPrice = selectedStock.isDemo && Number(selectedStock.price) > 0;
+  const hasResearchQuote = !hasCurrentQuote && !hasDemoPrice && Number(selectedStock.price) > 0
+    && (selectedStock.isResearch === true || selectedStock.isDelayed === true);
   const hasUsableQuote = hasCurrentQuote || hasDemoPrice;
+  const priceLabel = (stock) => {
+    if (!(Number(stock.price) > 0)) return 'Quote unavailable';
+    if (stock.isLive) return `₹${stock.price.toFixed(2)}`;
+    if (stock.isDemo) return `₹${stock.price.toFixed(2)} · DEMO`;
+    if (stock.isResearch || stock.isDelayed) return `₹${stock.price.toFixed(2)} · delayed`;
+    return 'Quote unavailable';
+  };
   const orderValue = useMemo(
     () => hasUsableQuote ? selectedStock.price * Math.max(1, Number(qty) || 1) : null,
     [hasUsableQuote, qty, selectedStock.price],
@@ -22,8 +46,14 @@ const PaperTrading = () => {
 
   const submit = () => {
     if (!hasUsableQuote) return;
-    setState(placePaperOrder({ symbol, side, qty, price: selectedStock.price, isDemoPrice: hasDemoPrice }));
-    soundEffects.playOrderSuccess();
+    try {
+      setState(placePaperOrder({ symbol, side, qty, price: selectedStock.price, isDemoPrice: hasDemoPrice }));
+      setOrderError('');
+      soundEffects.playOrderSuccess();
+    } catch (error) {
+      setOrderError(error.message);
+      soundEffects.playOrderCancel();
+    }
   };
 
   const reset = () => {
@@ -49,6 +79,11 @@ const PaperTrading = () => {
         <div className="paper-simulation-badge"><span /> Virtual account</div>
       </header>
 
+      <p className="paper-note paper-ai-note">
+        Testing the AI agent? Its virtual trades run in a separate paper account on the
+        {' '}<Link to="/ai-trading">AI Trader page</Link>. This practice wallet stays manual.
+      </p>
+
       <section className="paper-wallet-summary" aria-label="Virtual wallet balance">
         <div className="paper-wallet-icon"><CircleDollarSign size={21} /></div>
         <div className="paper-wallet-label"><span>Available virtual cash</span><small>For practice orders only</small></div>
@@ -68,7 +103,7 @@ const PaperTrading = () => {
           <label className="paper-field">
             Stock
             <select value={symbol} onChange={(event) => setSymbol(event.target.value)}>
-              {liveStocks.map((stock) => <option key={stock.symbol} value={stock.symbol}>{stock.symbol} — {stock.isLive || stock.isDemo ? `₹${stock.price.toFixed(2)}${stock.isDemo ? ' · DEMO' : ''}` : 'Quote unavailable'}</option>)}
+              {liveStocks.map((stock) => <option key={stock.symbol} value={stock.symbol}>{stock.symbol} — {priceLabel(stock)}</option>)}
             </select>
           </label>
 
@@ -102,12 +137,26 @@ const PaperTrading = () => {
             <input min="1" step="1" type="number" value={qty} onChange={(event) => setQty(event.target.value)} />
           </label>
 
+          {side === 'Sell' && (
+            <p className="paper-note">
+              You hold {heldQty} {symbol} {heldQty === 1 ? 'share' : 'shares'}.
+            </p>
+          )}
+
           <div className="order-value paper-order-value">
             <span>Estimated order value</span>
             <strong>{orderValue === null ? 'Waiting for live quote' : `₹${orderValue.toLocaleString('en-IN')}`}</strong>
           </div>
 
           <button className="primary-button paper-submit-button" type="button" disabled={!hasUsableQuote} onClick={submit}><CircleDollarSign size={17} /> Place Paper Order</button>
+          {!hasUsableQuote ? (
+            <p className="paper-note paper-quote-gate" role="status">
+              {hasResearchQuote
+                ? 'Paper orders need a verified live quote. The price shown is delayed research data, so the ticket stays disabled.'
+                : 'Waiting for a verified quote before a paper order can be placed.'}
+            </p>
+          ) : null}
+          {orderError ? <p className="error-message" role="alert">{orderError}</p> : null}
           <button className="secondary-button paper-reset-button" type="button" onClick={reset}><RotateCcw size={17} /> Reset demo account</button>
           <p className="paper-disclaimer">Virtual practice only. Demo prices are simulated, not current exchange prices.</p>
         </div>

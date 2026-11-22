@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { getCompanyLogoUrls } from '../data/companyLogos';
 
 const avatarGradients = [
@@ -12,62 +12,81 @@ const avatarGradients = [
   'linear-gradient(135deg, #c2410c, #ea580c)',
 ];
 
+const NAME_NOISE = new Set(['LIMITED', 'LTD', 'THE', 'CO', 'CORP', 'CORPORATION', 'INC', 'PVT', 'PRIVATE', 'AND', 'OF']);
+
 const getGradient = (sym = '') => {
-  const code = (sym.charCodeAt(0) || 65) + (sym.charCodeAt(1) || 66);
-  return avatarGradients[code % avatarGradients.length];
+  let hash = 0;
+  for (const char of sym) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  return avatarGradients[hash % avatarGradients.length];
+};
+
+export const companyInitials = (symbol = '', name = '') => {
+  const words = String(name || '').toUpperCase().split(/[^A-Z0-9&]+/).filter((word) => word && !NAME_NOISE.has(word));
+  if (words.length >= 2) return `${words[0][0]}${words[1][0]}`;
+  const single = words[0] || String(symbol || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  return single.slice(0, 2) || '?';
 };
 
 const CompanyLogo = ({ symbol = '', name = '', size = 36, className = '' }) => {
   const sym = String(symbol || '').toUpperCase().trim();
-  const urls = getCompanyLogoUrls(sym);
-  const [urlIndex, setUrlIndex] = useState(0);
-  const [hasError, setHasError] = useState(urls.length === 0);
+  const px = Number(size) > 0 ? Number(size) : 36;
+  const src = useMemo(() => getCompanyLogoUrls(sym)[0] || null, [sym]);
+  const [status, setStatus] = useState(src ? 'loading' : 'failed');
+  const [lowRes, setLowRes] = useState(false);
+  const imgRef = useRef(null);
 
-  useEffect(() => {
-    setUrlIndex(0);
-    setHasError(urls.length === 0);
-  }, [sym]);
-
-  const handleError = () => {
-    if (urlIndex + 1 < urls.length) {
-      setUrlIndex((prev) => prev + 1);
+  const settle = (img) => {
+    if (img.naturalWidth > 0) {
+      setLowRes(Math.min(img.naturalWidth, img.naturalHeight) < 32);
+      setStatus('loaded');
     } else {
-      setHasError(true);
+      setStatus('failed');
     }
   };
 
-  const initial = sym.slice(0, 1) || (name ? name.slice(0, 1) : '?');
+  useEffect(() => {
+    setLowRes(false);
+    setStatus(src ? 'loading' : 'failed');
+    const img = imgRef.current;
+    if (src && img?.complete) settle(img);
+  }, [src]);
+
+  const initials = companyInitials(sym, name);
+  const showImage = src && status !== 'failed';
 
   return (
     <div
-      className={`company-logo-wrapper ${className}`}
+      className={`company-logo-wrapper ${showImage && status === 'loaded' ? 'has-image' : ''} ${className}`.trim()}
       style={{
-        width: `${size}px`,
-        height: `${size}px`,
-        minWidth: `${size}px`,
-        minHeight: `${size}px`,
-        borderRadius: `${Math.round(size * 0.22)}px`,
+        width: `${px}px`,
+        height: `${px}px`,
+        minWidth: `${px}px`,
+        minHeight: `${px}px`,
+        borderRadius: `${Math.round(px * 0.24)}px`,
       }}
       title={name || sym}
     >
-      {!hasError && urls[urlIndex] ? (
-        <img
-          src={urls[urlIndex]}
-          alt={sym}
-          className="company-logo-img"
-          onError={handleError}
-          loading="lazy"
-        />
-      ) : (
-        <div
+      {status !== 'loaded' && (
+        <span
           className="company-logo-fallback"
-          style={{
-            background: getGradient(sym),
-            fontSize: `${Math.round(size * 0.45)}px`,
-          }}
+          style={{ background: getGradient(sym || name), fontSize: `${Math.round(px * (initials.length > 1 ? 0.36 : 0.44))}px` }}
+          aria-hidden={showImage ? 'true' : undefined}
         >
-          {initial}
-        </div>
+          {initials}
+        </span>
+      )}
+      {showImage && (
+        <img
+          ref={imgRef}
+          src={src}
+          alt={`${name || sym} logo`}
+          className={`company-logo-img ${status === 'loaded' ? 'is-loaded' : ''} ${lowRes ? 'is-low-res' : ''}`.trim()}
+          onLoad={(event) => settle(event.currentTarget)}
+          onError={() => setStatus('failed')}
+          loading="lazy"
+          decoding="async"
+          draggable="false"
+        />
       )}
     </div>
   );

@@ -4,8 +4,8 @@ import StockCard from '../components/StockCard';
 import { useStockCatalog } from '../hooks/useStockCatalog';
 import { marketApi } from '../services/api';
 
-const QUOTE_REFRESH_MS = 5000;
-const RESEARCH_REFRESH_MS = 60_000;
+const QUOTE_REFRESH_MS = 3000;
+const RESEARCH_REFRESH_MS = 3_000;
 
 const toFiniteNumber = (value) => {
   if (value === null || value === undefined || value === '') return null;
@@ -53,7 +53,7 @@ const AllStocks = () => {
   const [setupMessage, setSetupMessage] = useState('');
   const [quoteRequestFailed, setQuoteRequestFailed] = useState(false);
 
-  const ITEM_HEIGHT = 100;
+  const ITEM_HEIGHT = 248;
   const LIST_HEIGHT = Math.min(800, ITEM_HEIGHT * catalog.length);
   const visibleStocks = useMemo(
     () => catalog.slice(visibleRange.startIndex, visibleRange.stopIndex + 1),

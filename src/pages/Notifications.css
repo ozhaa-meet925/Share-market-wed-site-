@@ -1,0 +1,165 @@
+.account-notifications .notification-channels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0 0 12px;
+}
+
+.account-notifications .channel-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.account-notifications .channel-pill.on {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.account-notifications .channel-pill.off {
+  background: var(--surface-inset);
+  color: var(--text-3);
+}
+
+.notification-preferences {
+  display: grid;
+  gap: 10px;
+  padding: 13px;
+  margin: 0 0 12px;
+  border: 1px solid var(--border-color, var(--line));
+  border-radius: 12px;
+  background: var(--surface-inset);
+}
+
+.notification-preferences > label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.notification-preferences input[type='checkbox'] {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  margin-top: 2px;
+  accent-color: var(--brand);
+}
+
+.notification-preferences > label span {
+  display: grid;
+  gap: 3px;
+}
+
+.notification-preferences strong {
+  font-size: 0.84rem;
+}
+
+.notification-preferences small {
+  color: var(--text-3);
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.notification-preference-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.notification-preference-actions .secondary-button {
+  min-height: 34px;
+  font-size: 0.78rem;
+}
+
+:root[data-theme='dark'] .notification-preferences small {
+  color: var(--text-2);
+}
+
+:root[data-theme='dark'] .account-notifications .channel-pill.on {
+  background: var(--brand-soft);
+  color: var(--brand-bright);
+}
+
+:root[data-theme='dark'] .account-notifications .channel-pill.off {
+  background: var(--surface-inset);
+  color: var(--text-2);
+}
+
+.account-notifications .account-feed-note {
+  margin: 4px 0;
+  color: var(--text-3);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.account-notifications .account-feed-note.bad {
+  color: var(--loss);
+}
+
+:root[data-theme='dark'] .account-notifications .account-feed-note {
+  color: var(--text-2);
+}
+
+:root[data-theme='dark'] .account-notifications .account-feed-note.bad {
+  color: var(--loss);
+}
+
+.account-notifications .account-event.is-unread {
+  border-left: 3px solid var(--brand);
+  padding-left: 10px;
+}
+
+:root[data-theme='dark'] .account-notifications .account-event.is-unread {
+  border-left-color: var(--brand-bright);
+}
+
+.account-notifications .account-event strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.account-notifications .account-event > div > span:not(.account-event-meta) {
+  display: block;
+  line-height: 1.45;
+}
+
+.account-notifications .account-event-meta {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.72rem;
+  opacity: 0.75;
+}
+
+.account-notifications .link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+@media (max-width: 720px) {
+  .alerts-top-actions {
+    flex-wrap: wrap;
+  }
+
+  .alerts-top-actions .ringtone-picker-wrap {
+    flex: 1 1 100%;
+  }
+
+  .alerts-top-actions .ringtone-select {
+    max-width: 100%;
+  }
+
+  .alerts-top-actions > .primary-button,
+  .alerts-top-actions > .secondary-button {
+    flex: 1 1 auto;
+  }
+}

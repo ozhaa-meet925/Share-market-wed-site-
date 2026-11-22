@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { marketApi } from '../services/api';
 
-const IPO_REFRESH_MS = 30_000; // refresh every 30 seconds
+const IPO_REFRESH_MS = 30_000;
+const IPO_RETRY_MS = 30_000;
 
 const emptyFeed = {
   data: [],
@@ -14,15 +15,28 @@ const emptyFeed = {
   message: 'Loading live IPO listings…',
 };
 
+const nextRefreshDelay = (response) => {
+  const serverInterval = Number(response.autoRefreshIntervalMs || response.refreshIntervalMs || IPO_REFRESH_MS * 2);
+  if (!Number.isFinite(serverInterval) || serverInterval <= 0) return IPO_REFRESH_MS;
+  if (response.stale || response.live === false) return IPO_RETRY_MS;
+  return Math.max(20_000, Math.min(60_000, Math.round(serverInterval / 2)));
+};
+
 export const useIpoFeed = () => {
   const [feed, setFeed] = useState(emptyFeed);
 
   useEffect(() => {
     let active = true;
     let requestPending = false;
+    let timer = null;
+
+    const scheduleRefresh = (delayMs) => {
+      if (!active) return;
+      timer = window.setTimeout(refresh, delayMs);
+    };
 
     const refresh = async () => {
-      if (requestPending) return;
+      if (!active || requestPending) return;
       requestPending = true;
 
       try {
@@ -31,6 +45,7 @@ export const useIpoFeed = () => {
           throw new Error('The IPO provider returned an invalid response.');
         }
         if (active) setFeed({ ...response, loading: false });
+        scheduleRefresh(nextRefreshDelay(response));
       } catch (error) {
         if (active) {
           setFeed((current) => {
@@ -52,6 +67,7 @@ export const useIpoFeed = () => {
                 : error.message || 'The live IPO provider could not be reached.',
             };
           });
+          scheduleRefresh(IPO_RETRY_MS);
         }
       } finally {
         requestPending = false;
@@ -59,11 +75,10 @@ export const useIpoFeed = () => {
     };
 
     refresh();
-    const interval = window.setInterval(refresh, IPO_REFRESH_MS);
 
     return () => {
       active = false;
-      window.clearInterval(interval);
+      if (timer) window.clearTimeout(timer);
     };
   }, []);
 

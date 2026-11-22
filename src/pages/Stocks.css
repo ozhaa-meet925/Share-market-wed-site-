@@ -1,12 +1,12 @@
 .stocks-page.screener-page {
-  --stocks-ink: #18251f;
-  --stocks-muted: #6f7f76;
-  --stocks-border: #e1e9e4;
-  --stocks-surface: #ffffff;
-  --stocks-canvas: #f4f8f5;
-  --stocks-green: #07835f;
-  --stocks-green-dark: #056747;
-  --stocks-green-soft: #eaf7f0;
+  --stocks-ink: var(--text);
+  --stocks-muted: var(--text-3);
+  --stocks-border: var(--line-soft);
+  --stocks-surface: var(--surface);
+  --stocks-canvas: var(--bg);
+  --stocks-green: var(--brand);
+  --stocks-green-dark: var(--brand-strong);
+  --stocks-green-soft: var(--brand-soft);
   width: min(100%, 1540px);
   min-height: calc(100vh - 72px);
   margin: 0 auto;
@@ -16,8 +16,8 @@
 }
 
 :root body:has(.stocks-page) {
-  background: #f4f8f5;
-  scrollbar-color: #bfcec4 #f4f8f5;
+  background: var(--bg);
+  scrollbar-color: var(--silver) var(--bg);
 }
 
 .stocks-page .stocks-hero {
@@ -31,12 +31,12 @@
   overflow: hidden;
   margin: 0 0 18px;
   padding: clamp(26px, 4.2vw, 52px);
-  border: 1px solid #dcebe1;
+  border: 1px solid var(--line-soft);
   border-radius: 24px;
   background:
-    radial-gradient(ellipse at 76% 12%, rgba(204, 245, 222, 0.7), transparent 38%),
-    linear-gradient(115deg, #ffffff 0%, #f4fbf6 52%, #e7f6ec 100%);
-  box-shadow: 0 18px 48px rgba(30, 72, 49, 0.08);
+    radial-gradient(ellipse at 76% 12%, var(--brand-soft), transparent 38%),
+    linear-gradient(115deg, var(--surface) 0%, var(--surface-2) 52%, var(--brand-soft) 100%);
+  box-shadow: var(--shadow-3);
 }
 
 .stocks-hero-copy,
@@ -68,7 +68,7 @@
 .stocks-page .stocks-hero h1 {
   max-width: 760px;
   margin: 14px 0 12px;
-  color: #13241c;
+  color: var(--text);
   font-family: 'Plus Jakarta Sans', Inter, sans-serif;
   font-size: clamp(2rem, 4vw, 3.55rem);
   font-weight: 800;
@@ -79,7 +79,7 @@
 .stocks-hero-copy > p {
   max-width: 660px;
   margin: 0;
-  color: #64756a;
+  color: var(--text-3);
   font-size: clamp(0.95rem, 1.2vw, 1.08rem);
   line-height: 1.7;
 }
@@ -98,10 +98,10 @@
   justify-content: center;
   gap: 8px;
   padding: 9px 13px;
-  border: 1px solid #d7e4db;
+  border: 1px solid var(--line-soft);
   border-radius: 11px;
-  background: rgba(255, 255, 255, 0.76);
-  color: #314d3d;
+  background: var(--surface);
+  color: var(--text-2);
   font-size: 0.83rem;
   font-weight: 750;
   text-decoration: none;
@@ -110,18 +110,18 @@
 
 .stocks-hero-links a:hover {
   transform: translateY(-2px);
-  border-color: #8bc4a3;
-  box-shadow: 0 8px 20px rgba(30, 72, 49, 0.09);
+  border-color: var(--brand-glow);
+  box-shadow: var(--shadow-2);
 }
 
 .stocks-quote-card {
   display: grid;
   gap: 12px;
   padding: 21px;
-  border: 1px solid rgba(214, 231, 220, 0.92);
+  border: 1px solid var(--line-soft);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 14px 30px rgba(38, 79, 56, 0.08);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
   backdrop-filter: blur(8px);
 }
 
@@ -137,7 +137,7 @@
 
 .stocks-quote-card-top > span {
   gap: 7px;
-  color: #64756a;
+  color: var(--text-3);
   font-size: 0.69rem;
   font-weight: 850;
   letter-spacing: 0.1em;
@@ -151,17 +151,17 @@
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #e6a441;
-  box-shadow: 0 0 0 4px rgba(230, 164, 65, 0.13);
+  background: var(--gold-bright);
+  box-shadow: 0 0 0 4px var(--gold-soft);
 }
 
 .stocks-quote-card-top i.is-live {
-  background: #0aa56e;
-  box-shadow: 0 0 0 4px rgba(10, 165, 110, 0.13);
+  background: var(--brand-bright);
+  box-shadow: 0 0 0 4px var(--brand-soft);
 }
 
 .stocks-quote-card > strong {
-  color: #18392a;
+  color: var(--text);
   font-family: 'Plus Jakarta Sans', Inter, sans-serif;
   font-size: clamp(1.7rem, 3vw, 2.35rem);
   letter-spacing: -0.05em;
@@ -171,14 +171,14 @@
 .stocks-quote-card > p,
 .stocks-quote-updated {
   margin: 0;
-  color: #6b7b71;
+  color: var(--text-3);
   font-size: 0.8rem;
   line-height: 1.55;
 }
 
 .stocks-quote-updated {
   padding-top: 11px;
-  border-top: 1px solid #e8eee9;
+  border-top: 1px solid var(--line-soft);
   font-size: 0.72rem;
   font-weight: 700;
 }
@@ -199,9 +199,9 @@
 .stocks-hero-decoration span {
   width: clamp(12px, 2vw, 25px);
   height: 35%;
-  border: 1px solid #55a576;
+  border: 1px solid var(--brand-bright);
   border-radius: 5px 5px 2px 2px;
-  background: linear-gradient(180deg, rgba(35, 155, 93, 0.28), rgba(35, 155, 93, 0.02));
+  background: linear-gradient(180deg, var(--brand-glow), transparent);
 }
 
 .stocks-hero-decoration span:nth-child(2) { height: 55%; }
@@ -224,7 +224,7 @@
   border: 1px solid var(--stocks-border);
   border-radius: 15px;
   background: var(--stocks-surface);
-  box-shadow: 0 5px 16px rgba(30, 55, 41, 0.035);
+  box-shadow: var(--shadow-1);
 }
 
 .stocks-summary-card > span,
@@ -241,7 +241,7 @@
 .stocks-summary-card > strong {
   display: block;
   margin: 9px 0 4px;
-  color: #1b3929;
+  color: var(--text);
   font-family: 'Plus Jakarta Sans', Inter, sans-serif;
   font-size: clamp(1.45rem, 2.3vw, 1.9rem);
   font-weight: 800;
@@ -250,7 +250,7 @@
 }
 
 .stocks-summary-card > strong small {
-  color: #7b8b80;
+  color: var(--text-3);
   font-family: Inter, sans-serif;
   font-size: 0.85rem;
   font-weight: 700;
@@ -266,7 +266,7 @@
   border: 1px solid var(--stocks-border);
   border-radius: 20px;
   background: var(--stocks-surface);
-  box-shadow: 0 14px 38px rgba(30, 55, 41, 0.055);
+  box-shadow: var(--shadow-2);
 }
 
 .stocks-screener-heading {
@@ -302,8 +302,8 @@
   padding: 8px 12px;
   border: 1px solid var(--stocks-border);
   border-radius: 10px;
-  background: #fff;
-  color: #456152;
+  background: var(--surface);
+  color: var(--text-2);
   font-size: 0.78rem;
   font-weight: 750;
   cursor: pointer;
@@ -312,8 +312,8 @@
 
 .stocks-reset-button:hover,
 .stocks-empty-state button:hover {
-  border-color: #9bc9aa;
-  background: #f1faf4;
+  border-color: var(--brand-glow);
+  background: var(--brand-soft);
   color: var(--stocks-green-dark);
 }
 
@@ -323,17 +323,17 @@
   align-items: center;
   gap: 12px;
   padding: 0 14px;
-  border: 1px solid #dce7df;
+  border: 1px solid var(--line-soft);
   border-radius: 13px;
-  background: #fbfdfb;
-  color: #829188;
+  background: var(--surface-2);
+  color: var(--text-3);
   transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
 }
 
 .stocks-search:focus-within {
-  border-color: #50a77b;
-  background: #ffffff;
-  box-shadow: 0 0 0 4px rgba(24, 132, 88, 0.1);
+  border-color: var(--brand-bright);
+  background: var(--surface);
+  box-shadow: var(--ring);
 }
 
 .stocks-search > svg {
@@ -353,7 +353,7 @@
 }
 
 .stocks-search input::placeholder {
-  color: #97a49b;
+  color: var(--text-3);
 }
 
 .stocks-search > button {
@@ -364,8 +364,8 @@
   place-items: center;
   border: 0;
   border-radius: 8px;
-  background: #edf4ef;
-  color: #456152;
+  background: var(--surface-3);
+  color: var(--text-2);
   font-size: 1.15rem;
   cursor: pointer;
 }
@@ -375,8 +375,8 @@
   min-height: 56px;
   align-items: center;
   gap: 12px;
-  border-bottom: 1px solid #edf1ee;
-  color: #69796f;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--text-3);
   font-size: 0.75rem;
   font-weight: 750;
 }
@@ -390,10 +390,10 @@
 .stocks-quick-filters button {
   min-height: 30px;
   padding: 5px 10px;
-  border: 1px solid #d8e6dc;
+  border: 1px solid var(--line-soft);
   border-radius: 999px;
-  background: #f8fbf9;
-  color: #486653;
+  background: var(--surface-2);
+  color: var(--text-2);
   font-size: 0.72rem;
   font-weight: 750;
   cursor: pointer;
@@ -401,14 +401,14 @@
 
 .stocks-quick-filters button:hover,
 .stocks-quick-filters button.active {
-  border-color: #87c5a0;
+  border-color: var(--brand-glow);
   background: var(--stocks-green-soft);
   color: var(--stocks-green-dark);
 }
 
 .stocks-filter-hint {
   margin-left: auto;
-  color: #98a39c;
+  color: var(--text-3);
   font-size: 0.7rem;
   font-weight: 500;
 }
@@ -418,32 +418,32 @@
   margin: 12px 0 16px;
   padding: 2px 1px 9px;
   scrollbar-width: thin;
-  scrollbar-color: #bfd4c5 transparent;
+  scrollbar-color: var(--silver-bright) transparent;
 }
 
 .stocks-page .category-tabs button {
   min-height: 34px;
   padding: 7px 11px;
-  border: 1px solid #e1e9e4;
+  border: 1px solid var(--line-soft);
   border-radius: 999px;
-  background: #ffffff;
-  color: #66766c;
+  background: var(--surface);
+  color: var(--text-3);
   font-size: 0.74rem;
   font-weight: 700;
   transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
 }
 
 .stocks-page .category-tabs button:hover {
-  border-color: #9fceb0;
-  background: #f1faf4;
-  color: #16704c;
+  border-color: var(--brand-glow);
+  background: var(--brand-soft);
+  color: var(--brand);
 }
 
 .stocks-page .category-tabs button.active {
   border-color: var(--stocks-green);
   background: var(--stocks-green);
   color: #ffffff;
-  box-shadow: 0 4px 11px rgba(7, 131, 95, 0.16);
+  box-shadow: 0 4px 11px var(--brand-glow);
 }
 
 .stocks-filter-grid {
@@ -451,9 +451,9 @@
   grid-template-columns: 1.3fr repeat(4, minmax(0, 1fr));
   gap: 10px;
   padding: 15px;
-  border: 1px solid #e7ede8;
+  border: 1px solid var(--line-soft);
   border-radius: 13px;
-  background: #f8faf8;
+  background: var(--surface-2);
 }
 
 .stocks-filter-grid label {
@@ -463,13 +463,13 @@
   align-items: center;
   gap: 7px 5px;
   min-width: 0;
-  color: #63736a;
+  color: var(--text-3);
   font-size: 0.72rem;
   font-weight: 750;
 }
 
 .stocks-filter-grid label > span {
-  color: #91a097;
+  color: var(--text-3);
   font-size: 0.68rem;
 }
 
@@ -480,19 +480,19 @@
   min-width: 0;
   min-height: 39px;
   padding: 8px 10px;
-  border: 1px solid #dce5df;
+  border: 1px solid var(--line-soft);
   border-radius: 9px;
   outline: 0;
-  background: #ffffff;
-  color: #25372c;
+  background: var(--surface);
+  color: var(--text);
   font: inherit;
   font-size: 0.8rem;
 }
 
 .stocks-filter-grid label > input:focus,
 .stocks-filter-grid label > select:focus {
-  border-color: #56a87b;
-  box-shadow: 0 0 0 3px rgba(24, 132, 88, 0.1);
+  border-color: var(--brand-bright);
+  box-shadow: var(--ring);
 }
 
 .stocks-results-toolbar {
@@ -501,18 +501,18 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  color: #738178;
+  color: var(--text-3);
   font-size: 0.8rem;
 }
 
 .stocks-results-toolbar > div:first-child strong {
-  color: #1f3829;
+  color: var(--text);
   font-size: 0.95rem;
 }
 
 .stocks-results-toolbar > div:first-child > span {
   margin: 0 5px;
-  color: #b3bdb6;
+  color: var(--text-3);
 }
 
 .stocks-view-controls {
@@ -531,7 +531,7 @@
   border: 1px solid transparent;
   border-radius: 9px;
   background: transparent;
-  color: #718077;
+  color: var(--text-3);
   font-size: 0.74rem;
   font-weight: 750;
   cursor: pointer;
@@ -542,9 +542,9 @@
 }
 
 .stocks-view-controls > button.active {
-  border-color: #dce9df;
-  background: #eef7f0;
-  color: #116b49;
+  border-color: var(--line-soft);
+  background: var(--brand-soft);
+  color: var(--brand);
 }
 
 .stocks-page-size {
@@ -552,17 +552,17 @@
   align-items: center;
   gap: 6px;
   margin-right: 5px;
-  color: #77867d;
+  color: var(--text-3);
   font-size: 0.73rem;
 }
 
 .stocks-page-size select {
   min-height: 32px;
   padding: 4px 6px;
-  border: 1px solid #e0e8e2;
+  border: 1px solid var(--line-soft);
   border-radius: 8px;
-  background: #fff;
-  color: #304a39;
+  background: var(--surface);
+  color: var(--text-2);
   font: inherit;
 }
 
@@ -574,54 +574,54 @@
 
 .stocks-page .stocks-card-grid > .stock-card {
   min-width: 0;
-  border: 1px solid #e0e8e2;
+  border: 1px solid var(--line-soft);
   border-radius: 15px;
-  background: #ffffff;
-  box-shadow: 0 7px 20px rgba(30, 55, 41, 0.045);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
   color: var(--stocks-ink);
   transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .stocks-page .stocks-card-grid > .stock-card:hover {
   transform: translateY(-3px);
-  border-color: #a9cfb4;
-  box-shadow: 0 14px 30px rgba(30, 75, 48, 0.09);
+  border-color: var(--brand-glow);
+  box-shadow: var(--shadow-2);
 }
 
 .stocks-page .stocks-card-grid .stock-title strong,
 .stocks-page .stocks-card-grid .stock-current-price b,
 .stocks-page .stocks-card-grid .stock-footer > span {
-  color: #1c3024;
+  color: var(--text);
 }
 
 .stocks-page .stocks-card-grid .stock-title span,
 .stocks-page .stocks-card-grid .stock-footer .stock-current-price > span {
-  color: #748278;
+  color: var(--text-3);
 }
 
 .stocks-table-scroll {
   overflow: auto;
-  border: 1px solid #e6ece7;
+  border: 1px solid var(--line-soft);
   border-radius: 13px;
-  scrollbar-color: #bfd4c5 transparent;
+  scrollbar-color: var(--silver-bright) transparent;
 }
 
 .stocks-table {
   width: 100%;
   min-width: 840px;
   border-collapse: collapse;
-  color: #425248;
+  color: var(--text-2);
   font-size: 0.79rem;
   text-align: left;
 }
 
 .stocks-table thead {
-  background: #f5f8f5;
+  background: var(--surface-2);
 }
 
 .stocks-table th {
   padding: 12px 14px;
-  color: #78867d;
+  color: var(--text-3);
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -631,12 +631,12 @@
 
 .stocks-table td {
   padding: 12px 14px;
-  border-top: 1px solid #edf1ee;
+  border-top: 1px solid var(--line-soft);
   white-space: nowrap;
 }
 
 .stocks-table tbody tr:hover {
-  background: #fbfdfb;
+  background: var(--surface-2);
 }
 
 .stocks-table-company {
@@ -655,21 +655,21 @@
 }
 
 .stocks-table-company strong {
-  color: #21382b;
+  color: var(--text);
   font-size: 0.8rem;
 }
 
 .stocks-table-company small {
   max-width: 230px;
   overflow: hidden;
-  color: #829087;
+  color: var(--text-3);
   font-size: 0.7rem;
   text-overflow: ellipsis;
 }
 
 .stocks-table-price {
   display: block;
-  color: #23372a;
+  color: var(--text);
   font-size: 0.83rem;
 }
 
@@ -683,38 +683,38 @@
 }
 
 .stocks-data-badge.is-live {
-  background: #e6f6ec;
-  color: #167548;
+  background: var(--brand-soft);
+  color: var(--brand);
 }
 
 .stocks-data-badge.is-demo {
-  background: #fff5e5;
-  color: #986317;
+  background: var(--warn-soft);
+  color: var(--warn);
 }
 
 .stocks-data-badge.is-stale {
-  background: #eef1ef;
-  color: #65736a;
+  background: var(--surface-3);
+  color: var(--text-3);
 }
 
 .stocks-change-pill {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #69796f;
+  color: var(--text-3);
   font-weight: 750;
 }
 
-.stocks-change-pill.is-up { color: #0a8a5c; }
-.stocks-change-pill.is-down { color: #cb4f4f; }
+.stocks-change-pill.is-up { color: var(--gain); }
+.stocks-change-pill.is-down { color: var(--loss); }
 
 .stocks-empty-state {
   display: grid;
   justify-items: center;
   padding: 56px 20px;
-  border: 1px dashed #d5e2d8;
+  border: 1px dashed var(--line-strong);
   border-radius: 15px;
-  background: #fbfdfb;
+  background: var(--surface-2);
   text-align: center;
 }
 
@@ -724,19 +724,19 @@
   height: 48px;
   place-items: center;
   border-radius: 15px;
-  background: #eaf6ee;
+  background: var(--brand-soft);
   color: var(--stocks-green);
 }
 
 .stocks-empty-state h3 {
   margin: 14px 0 4px;
-  color: #203629;
+  color: var(--text);
   font-size: 1rem;
 }
 
 .stocks-empty-state p {
   margin: 0 0 15px;
-  color: #77867d;
+  color: var(--text-3);
   font-size: 0.82rem;
 }
 
@@ -746,7 +746,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  color: #77867d;
+  color: var(--text-3);
   font-size: 0.75rem;
 }
 
@@ -765,10 +765,10 @@
   justify-content: center;
   gap: 4px;
   padding: 6px 9px;
-  border: 1px solid #e1e9e4;
+  border: 1px solid var(--line-soft);
   border-radius: 9px;
-  background: #ffffff;
-  color: #476352;
+  background: var(--surface);
+  color: var(--text-2);
   font: inherit;
   font-weight: 700;
   cursor: pointer;
@@ -780,7 +780,7 @@
 }
 
 .stocks-pagination > div > span strong {
-  color: #1e392a;
+  color: var(--text);
 }
 
 .stocks-data-note {
@@ -788,7 +788,7 @@
   align-items: flex-start;
   gap: 8px;
   margin: 14px 3px 0;
-  color: #78877e;
+  color: var(--text-3);
   font-size: 0.72rem;
   line-height: 1.5;
 }
@@ -800,19 +800,19 @@
 }
 
 :root[data-theme='dark'] .stocks-page.screener-page {
-  --stocks-ink: #ecf5ee;
-  --stocks-muted: #a7b7ac;
-  --stocks-border: #34443a;
-  --stocks-surface: #202a23;
-  --stocks-canvas: #151d18;
-  --stocks-green: #72d5a0;
-  --stocks-green-dark: #a3e7bd;
-  --stocks-green-soft: #263d2e;
+  --stocks-ink: var(--text);
+  --stocks-muted: var(--text-2);
+  --stocks-border: var(--line);
+  --stocks-surface: var(--surface);
+  --stocks-canvas: var(--bg);
+  --stocks-green: var(--brand);
+  --stocks-green-dark: var(--brand-bright);
+  --stocks-green-soft: var(--brand-soft);
 }
 
 :root[data-theme='dark'] body:has(.stocks-page) {
-  background: #151d18;
-  scrollbar-color: #445449 #151d18;
+  background: var(--bg);
+  scrollbar-color: var(--silver) var(--bg);
 }
 
 :root[data-theme='dark'] .stocks-page .stocks-hero {
@@ -827,7 +827,7 @@
 :root[data-theme='dark'] .stocks-page .stocks-table-price,
 :root[data-theme='dark'] .stocks-page .stocks-results-toolbar > div:first-child strong,
 :root[data-theme='dark'] .stocks-page .stocks-empty-state h3 {
-  color: #edf6ef;
+  color: var(--text);
 }
 
 :root[data-theme='dark'] .stocks-page .stocks-hero-copy > p,
@@ -836,7 +836,7 @@
 :root[data-theme='dark'] .stocks-page .stocks-screener-heading p,
 :root[data-theme='dark'] .stocks-page .stocks-filter-hint,
 :root[data-theme='dark'] .stocks-page .stocks-data-note {
-  color: #a0b0a5;
+  color: var(--text-2);
 }
 
 :root[data-theme='dark'] .stocks-page .stocks-quote-card,
@@ -845,69 +845,69 @@
 :root[data-theme='dark'] .stocks-page .stocks-search,
 :root[data-theme='dark'] .stocks-page .stocks-page-size select,
 :root[data-theme='dark'] .stocks-page .stocks-pagination button {
-  border-color: #3b4b40;
-  background: #26332a;
-  color: #dae8de;
+  border-color: var(--line);
+  background: var(--surface-2);
+  color: var(--text);
 }
 
 :root[data-theme='dark'] .stocks-page .stocks-search input,
 :root[data-theme='dark'] .stocks-page .stocks-filter-grid label > input,
 :root[data-theme='dark'] .stocks-page .stocks-filter-grid label > select {
-  color: #e9f1eb;
+  color: var(--text);
 }
 
 :root[data-theme='dark'] .stocks-page .stocks-filter-grid,
 :root[data-theme='dark'] .stocks-page .stocks-table thead,
 :root[data-theme='dark'] .stocks-page .stocks-empty-state {
-  border-color: #36463b;
-  background: #1a241d;
+  border-color: var(--line);
+  background: var(--surface-2);
 }
 
 :root[data-theme='dark'] .stocks-page .stocks-filter-grid label > input,
 :root[data-theme='dark'] .stocks-page .stocks-filter-grid label > select {
-  border-color: #3b4b40;
-  background: #202b23;
+  border-color: var(--line);
+  background: var(--surface-2);
 }
 
 :root[data-theme='dark'] .stocks-page .category-tabs button,
 :root[data-theme='dark'] .stocks-page .stocks-quick-filters button {
-  border-color: #3a4a3e;
-  background: #202b23;
-  color: #b3c3b8;
+  border-color: var(--line);
+  background: var(--surface-2);
+  color: var(--text-2);
 }
 
 :root[data-theme='dark'] .stocks-page .category-tabs button.active,
 :root[data-theme='dark'] .stocks-page .stocks-quick-filters button.active {
-  border-color: #56b981;
-  background: #286a49;
+  border-color: var(--brand-bright);
+  background: var(--brand-strong);
   color: #ffffff;
 }
 
 :root[data-theme='dark'] .stocks-page .stocks-table,
 :root[data-theme='dark'] .stocks-page .stocks-table-company,
 :root[data-theme='dark'] .stocks-page .stocks-change-pill {
-  color: #d1ded5;
+  color: var(--text-2);
 }
 
 :root[data-theme='dark'] .stocks-page .stocks-table-scroll,
 :root[data-theme='dark'] .stocks-page .stocks-table td,
 :root[data-theme='dark'] .stocks-page .stocks-discovery-row {
-  border-color: #34443a;
+  border-color: var(--line);
 }
 
 :root[data-theme='dark'] .stocks-page .stocks-table tbody tr:hover {
-  background: #26352b;
+  background: var(--surface-3);
 }
 
 :root[data-theme='dark'] .stocks-page .stocks-card-grid > .stock-card {
-  border-color: #35463a;
-  background: #202a23;
+  border-color: var(--line);
+  background: var(--surface);
 }
 
 :root[data-theme='dark'] .stocks-page .stocks-card-grid .stock-title strong,
 :root[data-theme='dark'] .stocks-page .stocks-card-grid .stock-current-price b,
 :root[data-theme='dark'] .stocks-page .stocks-card-grid .stock-footer > span {
-  color: #e5efe8;
+  color: var(--text);
 }
 
 @media (max-width: 1080px) {

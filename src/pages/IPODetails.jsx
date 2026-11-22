@@ -22,8 +22,9 @@ const formatUpdatedTime = (value) => value
   ? new Date(value).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
   : '—';
 const displayDate = (value) => {
-  if (!value || value === '—') return '—';
-  return /\b20\d{2}\b/.test(value) ? value : `${value} ${new Date().getFullYear()}`;
+  const text = String(value || '').trim();
+  if (!text || /^(—|-|not provided|not announced|not available|n\/a)$/i.test(text)) return 'Not provided';
+  return /\b20\d{2}\b/.test(text) ? text : `${text} ${new Date().getFullYear()}`;
 };
 const formatFactLabel = (value) => String(value).replaceAll('_', ' ').replace(/([a-z])([A-Z])/g, '$1 $2').replace(/\b\w/g, (letter) => letter.toUpperCase());
 const factEntries = (value) => {

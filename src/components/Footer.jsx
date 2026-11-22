@@ -65,6 +65,7 @@ const Footer = () => (
       </div>
       <p>
         Securities market investments are subject to market risks. Read all scheme and offer documents carefully before investing. Virtual paper trading balances represent simulated educational capital and do not constitute actual monetary liability or investment advice.
+        {' '}<Link className="footer-compliance-link" to="/compliance">Compliance &amp; data sources →</Link>
       </p>
     </div>
 

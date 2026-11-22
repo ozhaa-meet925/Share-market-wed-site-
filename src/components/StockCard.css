@@ -1,7 +1,57 @@
 /* StockCard flash animation for price direction changes */
 
 .stock-card {
+  cursor: pointer;
+  text-decoration: none;
   transition: background-color 0.2s ease-in-out;
+}
+
+.stock-card:focus-visible {
+  outline: 3px solid var(--brand-glow);
+  outline-offset: 3px;
+}
+
+.stock-card-details-button {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--brand);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.stock-card-details-button:hover {
+  border-color: var(--brand-glow);
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+}
+
+.stock-card-history-retry {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--brand);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.mini-candle-chart-empty {
+  display: grid;
+  place-items: center;
+  color: var(--text-3);
+  font-size: 0.72rem;
 }
 
 /* Flash when price goes up */
@@ -10,7 +60,7 @@
 }
 
 @keyframes flashUp {
-  0% { background-color: rgba(0, 200, 0, 0.2); }
+  0% { background-color: var(--gain-soft); }
   100% { background-color: transparent; }
 }
 
@@ -20,19 +70,19 @@
 }
 
 @keyframes flashDown {
-  0% { background-color: rgba(200, 0, 0, 0.2); }
+  0% { background-color: var(--loss-soft); }
   100% { background-color: transparent; }
 }
 
 /* Optional: make the price text colored */
 .pill.gain-pill {
-  background-color: #e6f7e6;
-  color: #2e7d32;
+  background-color: var(--gain-soft);
+  color: var(--gain);
 }
 
 .pill.loss-pill {
-  background-color: #fdecea;
-  color: #c62828;
+  background-color: var(--loss-soft);
+  color: var(--loss);
 }
 
 .stock-card .stock-price-value {
@@ -42,13 +92,13 @@
 .stock-card .stock-current-price b.stock-price-value.price-up,
 .stock-card .market-stock-price.stock-price-value.price-up,
 .stock-card .market-stock-change.price-up {
-  color: #11875d !important;
+  color: var(--gain) !important;
 }
 
 .stock-card .stock-current-price b.stock-price-value.price-down,
 .stock-card .market-stock-price.stock-price-value.price-down,
 .stock-card .market-stock-change.price-down {
-  color: #c43b38 !important;
+  color: var(--loss) !important;
 }
 
 .stock-card .stock-current-price b.stock-price-value.price-neutral,
@@ -72,12 +122,12 @@
 
 @keyframes stockPriceFlashUp {
   0%, 40%, 80%, 100% { background-color: transparent; text-shadow: none; transform: scale(1); }
-  20%, 60% { background-color: rgba(17, 135, 93, 0.2); text-shadow: 0 0 8px rgba(17, 135, 93, 0.5); transform: scale(1.06); }
+  20%, 60% { background-color: var(--gain-soft); text-shadow: 0 0 8px rgba(17, 135, 93, 0.5); transform: scale(1.06); }
 }
 
 @keyframes stockPriceFlashDown {
   0%, 40%, 80%, 100% { background-color: transparent; text-shadow: none; transform: scale(1); }
-  20%, 60% { background-color: rgba(196, 59, 56, 0.18); text-shadow: 0 0 8px rgba(196, 59, 56, 0.45); transform: scale(1.06); }
+  20%, 60% { background-color: var(--loss-soft); text-shadow: 0 0 8px rgba(196, 59, 56, 0.45); transform: scale(1.06); }
 }
 
 @media (prefers-reduced-motion: reduce) {

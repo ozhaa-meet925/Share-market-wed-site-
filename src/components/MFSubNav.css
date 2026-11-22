@@ -1,0 +1,69 @@
+/* ============================================================
+   MFSubNav.css — Mutual Funds Sub-Navigation Bar
+   ============================================================ */
+
+.mfnav-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 60px;
+  z-index: 40;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.mfnav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.mfnav-inner::-webkit-scrollbar {
+  display: none;
+}
+
+.mfnav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 14px;
+  font-size: var(--fs-sm);
+  font-weight: 550;
+  color: var(--text-2);
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: all 0.16s ease;
+}
+
+.mfnav-link:hover {
+  color: var(--brand);
+}
+
+.mfnav-link.active {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+  font-weight: 650;
+}
+
+.mfnav-ai-badge {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+[data-theme='dark'] .mfnav-bar {
+  background: var(--surface-2);
+  border-bottom-color: var(--line);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}

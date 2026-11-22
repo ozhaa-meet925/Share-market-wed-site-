@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Clock3, Radio, ArrowUpRight, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import MarketStatusBadge from './MarketStatusBadge';
 import CompanyLogo from './CompanyLogo';
+import { TickArrow, priceDirection, tickToneClass } from './PriceChange';
 import { useCatalogQuotes } from '../hooks/useCatalogQuotes';
 
 const PAGE_SIZE = 15;
@@ -193,13 +194,13 @@ const LivePriceTracker = ({ items = [], lastUpdated = null }) => {
                 </div>
                 <div className="live-price-value">
                   <span className="live-current-price-label">{stock.isDemo ? `Simulated demo price · ${stock.marketOpen ? 'updates 09:00–16:00 IST' : 'session closed'} · not real` : stock.isResearch ? `Research quote · not live · ${stock.isStale ? 'stale · ' : ''}${stock.provider || 'Yahoo Finance'}` : stock.isLive ? `Current price · ${stock.dataSource || 'Upstox'}` : stock.isStale ? 'Last quote · stale' : 'Live quote required'}</span>
-                  <b className={`stock-price-value ${stock.lastTick ? `price-${stock.lastTick}` : hasLiveChange ? (isGain ? 'price-up' : 'price-down') : ''} ${stock.flash ? `price-flash-${stock.flash}` : ''}`}>
+                  <b className={`stock-price-value ${tickToneClass(priceDirection(stock.change, stock.changePercent, stock.flash, stock.lastTick), stock.flash)}`}>
                     {formatPrice(stock.price)}
-                    {stock.isLive && stock.lastTick === 'up' ? ' ▲' : stock.isLive && stock.lastTick === 'down' ? ' ▼' : ''}
+                    {hasLiveChange ? <TickArrow direction={priceDirection(stock.change, stock.changePercent, stock.flash, stock.lastTick)} /> : null}
                   </b>
                   {hasLiveChange ? (
-                    <span className={isGain ? 'gain' : 'loss'}>
-                      {isGain ? '+' : ''}{Number(stock.change).toFixed(2)} ({isGain ? '+' : ''}{Number(stock.changePercent).toFixed(2)}%)
+                    <span className={Number(stock.change) > 0 ? 'gain' : Number(stock.change) < 0 ? 'loss' : 'price-flat'}>
+                      {Number(stock.change) > 0 ? '+' : ''}{Number(stock.change).toFixed(2)} ({Number(stock.changePercent) > 0 ? '+' : ''}{Number(stock.changePercent).toFixed(2)}%)
                     </span>
                   ) : <span>{stock.isDemo ? 'Demo change · simulated' : stock.isStale ? 'Last quote · stale' : 'Change unavailable'}</span>}
                   {(stock.isLive || stock.isResearch) && stock.high && stock.low && (

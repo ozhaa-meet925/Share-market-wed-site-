@@ -1,0 +1,152 @@
+/* ============================================================
+   MFPortfolio.css — Mutual Fund Portfolio Page
+   Prefix: .mfp-
+   ============================================================ */
+
+.mfp-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 16px 80px;
+}
+
+.mfp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.mfp-title {
+  font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.mfp-sub {
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  margin: 0;
+}
+
+.mfp-add-btn {
+  padding: 9px 18px;
+  border-radius: var(--r-md);
+  border: none;
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 0.16s ease;
+}
+
+.mfp-add-btn:hover {
+  opacity: 0.92;
+}
+
+.mfp-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 900px) {
+  .mfp-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.mfp-stat-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-2);
+}
+
+.mfp-stat-label {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 6px;
+}
+
+.mfp-stat-val {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.mfp-stat-val.gain {
+  color: var(--gain);
+}
+
+.mfp-stat-val.loss {
+  color: var(--loss);
+}
+
+.mfp-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  padding: 24px;
+  box-shadow: var(--shadow-2);
+  margin-bottom: 28px;
+}
+
+.mfp-table-wrap {
+  overflow-x: auto;
+}
+
+.mfp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.mfp-table th {
+  text-align: left;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+  color: var(--text-3);
+  font-weight: 650;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+}
+
+.mfp-table td {
+  padding: 14px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+}
+
+.mfp-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.mfp-modal {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  padding: 28px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: var(--shadow-3);
+}

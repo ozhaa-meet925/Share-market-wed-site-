@@ -1,0 +1,482 @@
+/* ==========================================================================
+   MarketStatusBadge.css
+   Modern, responsive, real-time Indian stock market timing & status widget
+   ========================================================================== */
+
+.market-status-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--line, rgba(29, 35, 41, 0.12));
+  border-radius: var(--r-lg, 14px);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+  font-family: inherit;
+  color: var(--text, #171d22);
+  width: 100%;
+  max-width: 580px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme='dark'] .market-status-panel {
+  background: #1a2027;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  color: #f1f5f9;
+}
+
+/* Subtle top glow bar based on market status */
+.market-status-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #10b981, #059669);
+  opacity: 0.85;
+}
+
+.market-status-panel.is-closed::before {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.market-status-panel.is-preopen::before {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.market-status-panel.is-special::before {
+  background: linear-gradient(90deg, #3b82f6, #6366f1);
+}
+
+/* ── Top Header Row ─────────────────────────────────────────────────────── */
+.market-status-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Status Badge Pill */
+.market-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border-radius: var(--r-pill, 999px);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+/* Status: Market Open (Green) */
+.market-status-badge.market-status-live {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+[data-theme='dark'] .market-status-badge.market-status-live {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.35);
+}
+
+/* Status: Market Closed (Red) */
+.market-status-badge.market-status-closed {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+[data-theme='dark'] .market-status-badge.market-status-closed {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.3);
+}
+
+/* Status: Pre-Open / Closing (Amber) */
+.market-status-badge.market-status-preopen {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+[data-theme='dark'] .market-status-badge.market-status-preopen {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.35);
+}
+
+/* Status: Special Trading Session (Blue) */
+.market-status-badge.market-status-special {
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+[data-theme='dark'] .market-status-badge.market-status-special {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border-color: rgba(96, 165, 250, 0.35);
+}
+
+/* Animated Pulsing Dot */
+.market-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  background-color: currentColor;
+  position: relative;
+}
+
+.market-status-live .market-status-dot,
+.market-status-special .market-status-dot {
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: marketPulse 1.8s infinite cubic-bezier(0.66, 0, 0, 1);
+}
+
+.market-status-special .market-status-dot {
+  box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  animation: marketPulseBlue 1.8s infinite cubic-bezier(0.66, 0, 0, 1);
+}
+
+@keyframes marketPulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+@keyframes marketPulseBlue {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+  70% { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}
+
+/* Live IST Clock */
+.market-status-clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-2, #4c5760);
+  font-variant-numeric: tabular-nums;
+  background: var(--surface-2, #f8fafc);
+  border: 1px solid var(--line-soft, rgba(29, 35, 41, 0.08));
+  padding: 4px 10px;
+  border-radius: var(--r-sm, 6px);
+}
+
+[data-theme='dark'] .market-status-clock {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+}
+
+.market-status-clock b {
+  color: var(--text, #0f172a);
+  font-weight: 700;
+}
+[data-theme='dark'] .market-status-clock b {
+  color: #f8fafc;
+}
+
+/* ── Middle Highlights Grid ─────────────────────────────────────────────── */
+.market-status-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 8px;
+}
+
+.market-metric-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--r-md, 10px);
+  background: var(--surface-2, #f8fafc);
+  border: 1px solid var(--line-soft, rgba(29, 35, 41, 0.06));
+}
+
+[data-theme='dark'] .market-metric-box {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.market-metric-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-3, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.market-metric-value {
+  font-size: 13.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text, #0f172a);
+}
+
+[data-theme='dark'] .market-metric-value {
+  color: #f1f5f9;
+}
+
+.market-metric-value.highlight-countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(13, 111, 78, 0.09);
+  color: #0d6f4e;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+[data-theme='dark'] .market-metric-value.highlight-countdown {
+  background: rgba(52, 211, 153, 0.15);
+  color: #34d399;
+}
+
+.market-metric-value.highlight-countdown.is-closed {
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+}
+
+[data-theme='dark'] .market-metric-value.highlight-countdown.is-closed {
+  background: rgba(248, 113, 113, 0.14);
+  color: #f87171;
+}
+
+/* ── Live Index Status Chips (NSE, BSE, F&O, MCX) ────────────────────────── */
+.market-indices-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 2px;
+}
+
+.market-index-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  background: var(--surface-inset, rgba(15, 23, 42, 0.03));
+  border: 1px solid var(--line-soft, rgba(15, 23, 42, 0.07));
+  color: var(--text-2, #334155);
+}
+
+[data-theme='dark'] .market-index-chip {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.07);
+  color: #cbd5e1;
+}
+
+.market-index-name {
+  font-weight: 600;
+  color: var(--text, #0f172a);
+}
+
+[data-theme='dark'] .market-index-name {
+  color: #f8fafc;
+}
+
+.market-index-tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 4px;
+  border-radius: 3px;
+  letter-spacing: 0.02em;
+}
+
+.market-index-tag.is-open {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+}
+[data-theme='dark'] .market-index-tag.is-open {
+  background: rgba(16, 185, 129, 0.25);
+  color: #34d399;
+}
+
+.market-index-tag.is-closed {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+}
+[data-theme='dark'] .market-index-tag.is-closed {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.market-index-tag.is-special {
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+}
+[data-theme='dark'] .market-index-tag.is-special {
+  background: rgba(59, 130, 246, 0.25);
+  color: #60a5fa;
+}
+
+/* ── Footer Information Row ─────────────────────────────────────────────── */
+.market-status-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--line, rgba(29, 35, 41, 0.08));
+  font-size: 11.5px;
+  color: var(--text-3, #64748b);
+  flex-wrap: wrap;
+}
+
+[data-theme='dark'] .market-status-footer {
+  border-top-color: rgba(255, 255, 255, 0.06);
+  color: #94a3b8;
+}
+
+.market-holiday-notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-2, #475569);
+  font-weight: 500;
+}
+
+[data-theme='dark'] .market-holiday-notice {
+  color: #cbd5e1;
+}
+
+.market-holiday-notice b {
+  color: var(--gold, #b8860b);
+  font-weight: 600;
+}
+
+.market-schedule-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 2px 6px;
+  color: var(--brand, #0d6f4e);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.market-schedule-toggle-btn:hover {
+  background: var(--brand-soft, #e3f6ee);
+}
+
+[data-theme='dark'] .market-schedule-toggle-btn {
+  color: #34d399;
+}
+[data-theme='dark'] .market-schedule-toggle-btn:hover {
+  background: rgba(52, 211, 153, 0.12);
+}
+
+/* ── Expandable Schedule Drawer ─────────────────────────────────────────── */
+.market-schedule-drawer {
+  margin-top: 4px;
+  padding: 12px;
+  border-radius: var(--r-md, 10px);
+  background: var(--surface-2, #f8fafc);
+  border: 1px solid var(--line, rgba(29, 35, 41, 0.08));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: drawerSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme='dark'] .market-schedule-drawer {
+  background: #15191e;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+@keyframes drawerSlide {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.schedule-drawer-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text, #0f172a);
+}
+
+[data-theme='dark'] .schedule-drawer-heading {
+  color: #f8fafc;
+}
+
+.schedule-timeline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.schedule-timeline-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--line-soft, rgba(29, 35, 41, 0.05));
+}
+
+[data-theme='dark'] .schedule-timeline-item {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.schedule-timeline-item.is-current {
+  background: rgba(16, 185, 129, 0.09);
+  border-color: rgba(16, 185, 129, 0.3);
+  font-weight: 600;
+}
+
+[data-theme='dark'] .schedule-timeline-item.is-current {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(52, 211, 153, 0.35);
+}
+
+.schedule-timeline-time {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2, #475569);
+  font-weight: 600;
+}
+
+[data-theme='dark'] .schedule-timeline-time {
+  color: #cbd5e1;
+}
+
+/* Subtext Note */
+.market-status-note {
+  font-size: 11px;
+  color: var(--text-3, #64748b);
+  line-height: 1.4;
+}
+
+[data-theme='dark'] .market-status-note {
+  color: #94a3b8;
+}

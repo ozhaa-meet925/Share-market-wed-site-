@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FileText,
@@ -10,17 +10,52 @@ import {
   TrendingDown,
   Filter,
 } from 'lucide-react';
-import { getPaperState, resetPaperTrading } from '../services/paperTrading';
+import { metalBySymbol } from '../data/metals';
+import { useMetalPaperState } from '../hooks/useMetalPaperState';
+import { marketApi } from '../services/api';
+import { getPaperState, savePaperState, PAPER_STATE_EVENT } from '../services/paperTrading';
 
-const formatCurrency = (val) =>
-  `₹${Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const formatCurrency = (val) => {
+  const amount = Number(val);
+  if (!Number.isFinite(amount)) return '—';
+  return `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+const METAL_STATUS = {
+  FILLED: 'Executed',
+  PENDING: 'Pending',
+  CANCELLED: 'Cancelled',
+  REJECTED: 'Rejected',
+};
 
 const Orders = () => {
   const [paperState, setPaperState] = useState(getPaperState);
+  const { state: metalPaperState, applyState: setMetalPaperState } = useMetalPaperState();
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [sideFilter, setSideFilter] = useState('ALL');
+  const [actionStatus, setActionStatus] = useState('');
 
-  const orders = paperState.orders || [];
+  useEffect(() => {
+    const refresh = () => setPaperState(getPaperState());
+    window.addEventListener(PAPER_STATE_EVENT, refresh);
+    return () => window.removeEventListener(PAPER_STATE_EVENT, refresh);
+  }, []);
+
+  const equityOrders = (paperState.orders || []).filter((order) => !metalBySymbol.has(order.symbol));
+  const metalOrders = (metalPaperState?.orders || []).map((order) => ({
+    id: order.id,
+    symbol: order.symbol,
+    side: order.side === 'BUY' ? 'Buy' : 'Sell',
+    orderType: order.orderType === 'LIMIT' ? 'Limit' : 'Market',
+    qty: Number(order.quantityGrams),
+    price: Number(order.executionPricePerGram || order.limitPricePerGram),
+    totalValue: Number(order.grossValue || (order.quantityGrams * (order.executionPricePerGram || order.limitPricePerGram))),
+    charges: Number(order.charges || 0),
+    status: METAL_STATUS[order.status] || order.status,
+    date: new Date(order.createdAt).toLocaleString('en-IN'),
+    isMetal: true,
+  }));
+  const orders = [...metalOrders, ...equityOrders];
 
   const filteredOrders = orders.filter((order) => {
     if (statusFilter !== 'ALL' && order.status.toUpperCase() !== statusFilter) return false;
@@ -30,15 +65,27 @@ const Orders = () => {
 
   const executedOrders = orders.filter((o) => o.status === 'Executed');
   const pendingOrders = orders.filter((o) => o.status === 'Pending');
-  const totalTurnover = executedOrders.reduce((acc, o) => acc + (o.qty * o.price), 0);
+  const totalTurnover = executedOrders.reduce((acc, order) => acc + Number(order.totalValue || (order.qty * order.price)), 0);
 
-  const handleCancelOrder = (orderId) => {
-    const updatedOrders = orders.map((o) =>
-      o.id === orderId ? { ...o, status: 'Cancelled' } : o
+  const handleCancelOrder = async (order) => {
+    setActionStatus('');
+    if (order.isMetal) {
+      try {
+        const payload = await marketApi.cancelMetalPaperOrder(order.id);
+        setMetalPaperState(payload);
+        setActionStatus(`${order.symbol} limit order cancelled and its reservation was released.`);
+      } catch (error) {
+        setActionStatus(error.message);
+      }
+      return;
+    }
+    const updatedOrders = equityOrders.map((item) =>
+      item.id === order.id ? { ...item, status: 'Cancelled' } : item
     );
     const nextState = { ...paperState, orders: updatedOrders };
-    localStorage.setItem('share-market-paper-state', JSON.stringify(nextState));
+    savePaperState(nextState);
     setPaperState(nextState);
+    setActionStatus(`${order.symbol} paper order cancelled.`);
   };
 
   return (
@@ -54,6 +101,8 @@ const Orders = () => {
           </Link>
         </div>
       </div>
+
+      {actionStatus && <p className="paper-note" role="status">{actionStatus}</p>}
 
       {/* Orders KPI Metrics */}
       <section className="orders-kpi-grid">
@@ -85,7 +134,7 @@ const Orders = () => {
       <section className="panel orders-filter-bar">
         <div className="filter-group">
           <span className="filter-label"><Filter size={14} /> Status:</span>
-          {['ALL', 'EXECUTED', 'PENDING', 'CANCELLED'].map((st) => (
+          {['ALL', 'EXECUTED', 'PENDING', 'CANCELLED', 'REJECTED'].map((st) => (
             <button
               key={st}
               className={`filter-btn ${statusFilter === st ? 'active' : ''}`}
@@ -131,14 +180,15 @@ const Orders = () => {
             <tbody>
               {filteredOrders.map((order) => {
                 const isBuy = order.side === 'Buy';
-                const totalValue = order.qty * order.price;
+                const totalValue = Number(order.totalValue || (order.qty * order.price));
+                const symbolRoute = order.isMetal ? metalBySymbol.get(order.symbol)?.route : `/stocks/${order.symbol}`;
 
                 return (
                   <tr key={order.id}>
                     <td><code className="order-id-code">{order.id}</code></td>
                     <td>{order.date}</td>
                     <td>
-                      <Link to={`/stocks/${order.symbol}`} className="order-symbol-link">
+                      <Link to={symbolRoute} className="order-symbol-link">
                         <b>{order.symbol}</b>
                       </Link>
                     </td>
@@ -149,14 +199,17 @@ const Orders = () => {
                       </span>
                     </td>
                     <td><span className="type-badge">{order.orderType || 'Market'}</span></td>
-                    <td><b>{order.qty}</b></td>
-                    <td>{formatCurrency(order.price)}</td>
-                    <td><strong>{formatCurrency(totalValue)}</strong></td>
+                    <td><b>{order.qty} {order.isMetal ? 'g' : ''}</b></td>
+                    <td>{formatCurrency(order.price)}{order.isMetal ? '/g' : ''}</td>
+                    <td>
+                      <strong>{formatCurrency(totalValue)}</strong>
+                      {order.isMetal && order.charges > 0 ? <small> + {formatCurrency(order.charges)} estimated charges</small> : null}
+                    </td>
                     <td>
                       <span className={`status-badge-custom status-${order.status.toLowerCase()}`}>
                         {order.status === 'Executed' && <CheckCircle2 size={13} />}
                         {order.status === 'Pending' && <Clock size={13} />}
-                        {order.status === 'Cancelled' && <XCircle size={13} />}
+                        {(order.status === 'Cancelled' || order.status === 'Rejected') && <XCircle size={13} />}
                         {order.status}
                       </span>
                     </td>
@@ -165,7 +218,7 @@ const Orders = () => {
                         <button
                           type="button"
                           className="cancel-order-btn"
-                          onClick={() => handleCancelOrder(order.id)}
+                          onClick={() => handleCancelOrder(order)}
                         >
                           Cancel
                         </button>

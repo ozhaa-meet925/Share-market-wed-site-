@@ -1,0 +1,442 @@
+/* Bullion Insights Suite Styles */
+.bullion-insights-suite {
+  margin-top: 36px;
+  margin-bottom: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.suite-header {
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  padding-bottom: 16px;
+}
+
+.suite-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(217, 119, 6, 0.12);
+  color: #d97706;
+  font-weight: 800;
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.suite-title h2 {
+  font-size: 1.55rem;
+  font-weight: 800;
+  margin: 0 0 4px;
+  color: var(--text-1, #0f172a);
+}
+
+.suite-title p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-3, #64748b);
+}
+
+/* Karat Cards */
+.karat-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.karat-card {
+  background: var(--surface-1, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+[data-theme='dark'] .karat-card {
+  background: #111827;
+  border-color: #1f2937;
+}
+
+.karat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+}
+
+.karat-tag {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: var(--surface-2, #f1f5f9);
+  color: var(--text-2, #475569);
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.karat-name {
+  margin: 0 0 2px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-1, #0f172a);
+}
+
+.karat-purity {
+  font-size: 0.8rem;
+  color: var(--text-3, #64748b);
+  margin-bottom: 12px;
+}
+
+.karat-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: auto;
+}
+
+.karat-price {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #d97706;
+}
+
+.karat-unit {
+  font-size: 0.82rem;
+  color: var(--text-3, #64748b);
+}
+
+.karat-per-gram {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-2, #334155);
+}
+
+/* Two Column Layout */
+.insights-two-column {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 20px;
+}
+
+.insight-card {
+  background: var(--surface-1, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='dark'] .insight-card {
+  background: #111827;
+  border-color: #1f2937;
+}
+
+.card-top {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.card-icon-wrap {
+  background: rgba(217, 119, 6, 0.12);
+  color: #d97706;
+  padding: 10px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-top h3 {
+  margin: 0 0 2px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-1, #0f172a);
+}
+
+.card-top p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-3, #64748b);
+}
+
+/* City Table */
+.city-table-responsive {
+  max-height: 280px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.city-table {
+  width: 100%;
+  min-width: 0;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.city-table th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--text-3, #64748b);
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  position: sticky;
+  top: 0;
+  background: var(--surface-1, #ffffff);
+}
+
+[data-theme='dark'] .city-table th {
+  background: #111827;
+}
+
+.city-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border-color, #f1f5f9);
+  cursor: pointer;
+}
+
+.city-table tr:hover td {
+  background: var(--surface-2, #f8fafc);
+}
+
+.city-table tr.selected-row td {
+  background: rgba(217, 119, 6, 0.08);
+  font-weight: 700;
+}
+
+.city-region-tag {
+  font-size: 0.72rem;
+  color: var(--text-3, #64748b);
+}
+
+.city-price-cell {
+  text-align: right;
+  font-weight: 800;
+  color: #d97706;
+}
+
+/* Calculator Inputs */
+.calc-inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.calc-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.calc-input-group label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-2, #334155);
+}
+
+.calc-input-group select,
+.calc-input-group input {
+  border: 1px solid var(--border-color, #cbd5e1);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  background: #ffffff;
+  color: var(--text-1, #0f172a);
+}
+
+[data-theme='dark'] .calc-input-group select,
+[data-theme='dark'] .calc-input-group input {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+.receipt-breakdown {
+  background: var(--surface-2, #f8fafc);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+[data-theme='dark'] .receipt-breakdown {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+.receipt-line {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 0.85rem;
+}
+
+.receipt-line.total-line {
+  border-top: 1px dashed var(--border-color, #cbd5e1);
+  margin-top: 8px;
+  padding-top: 10px;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.total-val {
+  font-size: 1.3rem;
+  color: #10b981;
+}
+
+/* Ratio Card */
+.ratio-display-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.ratio-number strong {
+  display: block;
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #0d6f4e;
+}
+
+.ratio-number span {
+  font-size: 0.75rem;
+  color: var(--text-3, #64748b);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.ratio-signal-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.ratio-gauge-track {
+  height: 10px;
+  background: var(--surface-2, #e2e8f0);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.ratio-gauge-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #d97706, #10b981);
+}
+
+.ratio-scale-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text-3, #64748b);
+  font-weight: 600;
+}
+
+/* SIP Accumulator */
+.sip-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.sip-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sip-field label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-2, #334155);
+}
+
+.sip-field select {
+  border: 1px solid var(--border-color, #cbd5e1);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-weight: 700;
+  background: #ffffff;
+  color: var(--text-1, #0f172a);
+}
+
+[data-theme='dark'] .sip-field select {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+.sip-results-box {
+  background: var(--surface-2, #f8fafc);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 10px;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+[data-theme='dark'] .sip-results-box {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+.sip-stat span {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-3, #64748b);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.sip-stat strong {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-1, #0f172a);
+}
+
+.text-brand {
+  color: #d97706 !important;
+}
+
+.text-gain {
+  color: #10b981 !important;
+}
+
+.sip-assumption-note {
+  margin: 10px 0 0;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: var(--text-3, #64748b);
+}
+
+@media (max-width: 600px) {
+  .karat-cards-grid,
+  .insights-two-column {
+    grid-template-columns: 1fr;
+  }
+
+  .suite-title h2 {
+    font-size: 1.3rem;
+  }
+
+  .insight-card {
+    padding: 16px;
+  }
+}

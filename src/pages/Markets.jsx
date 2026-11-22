@@ -1,7 +1,5 @@
 import { Link } from 'react-router-dom';
 import {
-  TrendingUp,
-  TrendingDown,
   Activity,
   ArrowUpRight,
   Radio,
@@ -11,10 +9,13 @@ import {
   Landmark,
 } from 'lucide-react';
 import MarketCard from '../components/MarketCard';
+import MarketStatusBadge from '../components/MarketStatusBadge';
+import { TickArrow } from '../components/PriceChange';
 import { indices, nifty } from '../data/nifty';
 import { sectors as sectorSeed, stocks as stockSeed } from '../data/stocks';
 import { useMarketIndices } from '../hooks/useMarketIndices';
 import { useLiveStocks } from '../hooks/useLiveStocks';
+import SectorHeatmap from '../components/SectorHeatmap';
 
 const flowChartPreview = [
   { label: 'Day 1', fii: 28, dii: 46 },
@@ -42,7 +43,24 @@ const formatCueTime = (value) => {
 };
 
 const Markets = () => {
-  const { quotes, histories, lastUpdated } = useMarketIndices(marketIndexSymbols);
+  const {
+    quotes,
+    histories,
+    historyMeta,
+    lastUpdated,
+    retryHistory,
+  } = useMarketIndices(marketIndexSymbols);
+  const indexHistoryProps = (symbol) => {
+    const meta = historyMeta.get(symbol) || {};
+    return {
+      history: histories.get(symbol) || [],
+      historyStatus: meta.status || 'loading',
+      historyError: meta.error || '',
+      historyProvider: meta.provider || '',
+      historyIsResearch: meta.isResearch === true,
+      onRetryHistory: retryHistory,
+    };
+  };
   const { stocks: trackedStocks } = useLiveStocks(stockSeed);
   return (
     <div className="page markets-page">
@@ -64,12 +82,17 @@ const Markets = () => {
       </div>
     </div>
 
+    {/* Real-time Exchange Timing & Status Dashboard */}
+    <div style={{ marginBottom: 18 }}>
+      <MarketStatusBadge />
+    </div>
+
     {/* Indices Strip */}
     <section className="market-strip">
       <MarketCard
         name={nifty.name}
         quote={quotes.get('NIFTY')}
-        history={histories.get('NIFTY')}
+        {...indexHistoryProps('NIFTY')}
         lastUpdated={lastUpdated}
       />
       {indices.slice(1).map((index) => (
@@ -77,7 +100,7 @@ const Markets = () => {
           key={index.name}
           name={index.name}
           quote={index.symbol ? quotes.get(index.symbol) : null}
-          history={index.symbol ? histories.get(index.symbol) : []}
+          {...(index.symbol ? indexHistoryProps(index.symbol) : {})}
           lastUpdated={lastUpdated}
         />
       ))}
@@ -151,13 +174,16 @@ const Markets = () => {
             const isLive = quote?.isLive === true && Number(quote.c) > 0;
             const isDemo = quote?.isDemo === true && Number(quote.c) > 0;
             const isResearch = quote?.isResearch === true && Number(quote.c) > 0;
-            const positive = Number(quote?.d) >= 0;
+            const changeValue = Number(quote?.d);
+            const positive = changeValue > 0;
+            const flat = Number.isFinite(changeValue) && changeValue === 0;
+            const cueDirection = !(isLive || isDemo || isResearch) ? null : flat ? 'flat' : positive ? 'up' : 'down';
             return (
               <div className="cue-card" key={cue.label}>
                 <span className="cue-title">{cue.label}</span>
-                <b>{cue.symbol ? formatCuePrice(quote, cue.currency) : 'Quote unavailable'}</b>
-                <small className={isLive || isDemo || isResearch ? positive ? 'gain' : 'loss' : ''}>
-                  {(isLive || isDemo || isResearch) && quote.dp !== null ? `${isDemo ? 'Demo ' : ''}${isResearch ? 'Research ' : ''}${positive ? '+' : ''}${Number(quote.dp).toFixed(2)}% · ` : ''}{cue.unit}
+                <b className={cueDirection ? `price-${cueDirection}` : ''}>{cue.symbol ? formatCuePrice(quote, cue.currency) : 'Quote unavailable'}</b>
+                <small className={cueDirection ? (cueDirection === 'up' ? 'gain' : cueDirection === 'down' ? 'loss' : 'price-flat') : ''}>
+                  {cueDirection && quote.dp !== null ? <><TickArrow direction={cueDirection} />{`${isDemo ? 'Demo ' : ''}${isResearch ? 'Research ' : ''}${positive ? '+' : ''}${Number(quote.dp).toFixed(2)}% · `}</> : ''}{cue.unit}
                 </small>
                 <small>{isDemo ? 'Simulated demo feed · not real' : isResearch ? `${quote.provider || 'Yahoo Finance research feed'} · research only · ${formatCueTime(quote.timestamp)}` : isLive ? `${quote.provider || 'Market provider'} · ${formatCueTime(quote.timestamp)}` : 'Connect a live market provider'}</small>
               </div>
@@ -183,24 +209,28 @@ const Markets = () => {
 
       <div className="sector-matrix-list">
         {sectorSeed.map((sector) => {
-          const members = trackedStocks.filter((stock) => stock.sector === sector.name && (stock.isLive || stock.isDemo) && stock.changePercent !== null);
+          const members = trackedStocks.filter((stock) => stock.sector === sector.name && (stock.isLive || stock.isDemo || stock.isResearch) && stock.changePercent !== null);
           const sectorChange = members.length
             ? Number((members.reduce((sum, stock) => sum + Number(stock.changePercent), 0) / members.length).toFixed(2))
             : null;
-          const isUp = sectorChange !== null && sectorChange >= 0;
+          const isUp = sectorChange !== null && sectorChange > 0;
+          const isFlat = sectorChange === 0;
           return (
             <div className="sector-matrix-row" key={sector.name}>
               <div className="sec-meta">
                 <strong>{sector.name}</strong>
-                <span>{members.length} {members.some((stock) => stock.isDemo) ? 'demo tracked' : 'live tracked'} {members.length === 1 ? 'stock' : 'stocks'}</span>
+                <span>{members.length} {members.some((stock) => stock.isDemo) ? 'demo tracked' : members.some((stock) => stock.isResearch && !stock.isLive) ? 'research tracked · delayed' : 'live tracked'} {members.length === 1 ? 'stock' : 'stocks'}</span>
               </div>
-              <div className="sec-track">{sectorChange !== null && <div className={`sec-bar ${isUp ? 'bar-gain' : 'bar-loss'}`} style={{ width: `${Math.min(100, Math.abs(sectorChange) * 25 + 15)}%` }} />}</div>
-              <b className={sectorChange === null ? '' : isUp ? 'gain' : 'loss'}>{sectorChange === null ? '—' : `${isUp ? '+' : ''}${sectorChange}%`}</b>
+              <div className="sec-track">{sectorChange !== null && <div className={`sec-bar ${isFlat ? 'bar-flat' : isUp ? 'bar-gain' : 'bar-loss'}`} style={{ width: `${Math.min(100, Math.abs(sectorChange) * 25 + 15)}%` }} />}</div>
+              <b className={sectorChange === null ? '' : isFlat ? 'price-flat' : isUp ? 'gain' : 'loss'}>{sectorChange === null ? '—' : <><TickArrow direction={isFlat ? 'flat' : isUp ? 'up' : 'down'} />{`${isUp ? '+' : ''}${sectorChange}%`}</>}</b>
             </div>
           );
         })}
       </div>
     </section>
+
+    {/* Real-time Sector Heatmap Component */}
+    <SectorHeatmap />
     </div>
   );
 };

@@ -1,15 +1,6 @@
-const USERS_KEY = 'sharemarket:users';
 const SESSION_KEY = 'sharemarket:session';
 
-const readUsers = () => {
-  try {
-    return JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
-  } catch {
-    return [];
-  }
-};
-
-export const getCurrentUser = () => {
+const readSession = () => {
   try {
     return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
   } catch {
@@ -17,68 +8,154 @@ export const getCurrentUser = () => {
   }
 };
 
-export const registerUser = ({ name, email, password, phone, dob, bank, accountHolder, dematBroker, dematId }) => {
-  const users = readUsers();
-  if (users.some((user) => user.email === email.toLowerCase())) throw new Error('An account with this email already exists.');
-  const user = {
-    id: `USR-${Date.now()}`,
-    name,
-    email: email.toLowerCase(),
-    password,
-    phone,
-    dob,
-    bank,
-    accountHolder,
-    dematBroker: dematBroker || 'ShareMarket PRO',
-    dematId: dematId || `SM-${Math.floor(10000000 + Math.random() * 90000000)}`,
-    kycStatus: 'verified',
-    linkedDemat: true,
-  };
-  localStorage.setItem(USERS_KEY, JSON.stringify([...users, user]));
-  localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-  return user;
+let currentUser = readSession();
+
+const setSession = (user) => {
+  currentUser = user || null;
+  if (currentUser) localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+  else localStorage.removeItem(SESSION_KEY);
+  window.dispatchEvent(new CustomEvent('sharemarket:session-changed', { detail: currentUser }));
 };
 
-export const loginWithDemat = ({ broker, dematId, pin }) => {
-  if (!dematId || dematId.length < 4) throw new Error('Enter a valid Demat Client ID / UCC.');
-  if (!pin || pin.length < 4) throw new Error('Enter your 4 or 6-digit Demat Trading PIN.');
-
-  const users = readUsers();
-  let user = users.find((u) => u.dematId?.toUpperCase() === dematId.toUpperCase() || u.email?.includes(dematId.toLowerCase()));
-  if (!user) {
-    // Auto-create or connect demo Demat account
-    const brokerName = broker || 'ShareMarket';
-    user = {
-      id: `USR-${Date.now()}`,
-      name: 'ShareMarket Trader',
-      email: `${dematId.toLowerCase()}@sharemarket.in`,
-      phone: '9876543210',
-      dematBroker: 'ShareMarket PRO',
-      dematId: dematId.toUpperCase(),
-      kycStatus: 'verified',
-      linkedDemat: true,
-      bank: 'HDFC Bank',
-    };
-    localStorage.setItem(USERS_KEY, JSON.stringify([...users, user]));
+const request = async (url, options = {}) => {
+  const response = await fetch(url, {
+    credentials: 'same-origin',
+    ...options,
+    headers: {
+      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(options.headers || {}),
+    },
+  });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = new Error(payload?.error || `The account service returned HTTP ${response.status}.`);
+    error.code = payload?.code;
+    error.status = response.status;
+    throw error;
   }
-  localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-  return user;
+  return payload;
 };
 
-export const loginUser = ({ email, password }) => {
-  const user = readUsers().find((item) => item.email === email.toLowerCase() && item.password === password);
-  if (!user) throw new Error('Email or password is incorrect.');
-  const session = { id: user.id, name: user.name, email: user.email };
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-  return session;
+export const getCurrentUser = () => currentUser;
+
+export const refreshSession = async () => {
+  try {
+    const payload = await request('/api/auth/me');
+    setSession(payload?.user || null);
+    return currentUser;
+  } catch {
+    return currentUser;
+  }
 };
 
-export const loginUserByPhone = ({ phone }) => {
-  const user = readUsers().find((item) => item.phone === phone);
-  if (!user) throw new Error('No account was found for this phone number.');
-  const session = { id: user.id, name: user.name, email: user.email, phone: user.phone, bank: user.bank, kycStatus: user.kycStatus };
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-  return session;
+export const requestOtp = (phone) => request('/api/auth/otp/request', {
+  method: 'POST',
+  body: JSON.stringify({ phone }),
+});
+
+export const verifyOtp = (phone, code) => request('/api/auth/otp/verify', {
+  method: 'POST',
+  body: JSON.stringify({ phone, code }),
+});
+
+export const registerAccount = async (details) => {
+  const payload = await request('/api/auth/register', {
+    method: 'POST',
+    body: JSON.stringify(details),
+  });
+  setSession(payload.user);
+  return payload.user;
 };
 
-export const logoutUser = () => localStorage.removeItem(SESSION_KEY);
+export const loginWithPin = async ({ phone, pin, verificationToken }) => {
+  const payload = await request('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ phone, pin, verificationToken }),
+  });
+  setSession(payload.user);
+  return payload.user;
+};
+
+export const loginWithFace = async ({ phone } = {}) => {
+  const payload = await request('/api/auth/biometric/login', {
+    method: 'POST',
+    body: JSON.stringify({ phone }),
+  });
+  setSession(payload.user);
+  return payload.user;
+};
+
+export const logoutUser = async () => {
+  try {
+    await request('/api/auth/logout', { method: 'POST', body: JSON.stringify({}) });
+  } finally {
+    setSession(null);
+  }
+};
+
+export const fetchWatchlist = () => request('/api/me/watchlist');
+
+export const saveWatchlist = (symbols) => request('/api/me/watchlist', {
+  method: 'PUT',
+  body: JSON.stringify({ symbols }),
+});
+
+export const fetchSecuritySettings = () => request('/api/auth/security');
+
+export const changeTradingPin = async ({ currentPin, newPin }) => {
+  const payload = await request('/api/auth/security/pin', {
+    method: 'POST',
+    body: JSON.stringify({ currentPin, newPin }),
+  });
+  if (payload?.user) setSession(payload.user);
+  return payload;
+};
+
+export const logoutAllDevices = async () => {
+  try {
+    await request('/api/auth/security/logout-all', { method: 'POST', body: JSON.stringify({}) });
+  } finally {
+    setSession(null);
+  }
+};
+
+export const fetchPaperState = () => request('/api/me/paper');
+
+export const savePaperState = (state) => request('/api/me/paper', {
+  method: 'PUT',
+  body: JSON.stringify({ state }),
+});
+
+// ── Active Devices & Remote Logout API ──────────────────────────────────────
+export const fetchActiveDevices = () => request('/api/auth/security/devices');
+
+export const revokeDevice = (sessionId) => request('/api/auth/security/devices/revoke', {
+  method: 'POST',
+  body: JSON.stringify({ sessionId }),
+});
+
+export const revokeOtherDevices = () => request('/api/auth/security/devices/revoke-others', {
+  method: 'POST',
+  body: JSON.stringify({}),
+});
+
+// ── Google Authenticator (TOTP 2FA) API ─────────────────────────────────────
+export const setupTotp = () => request('/api/auth/security/totp/setup', {
+  method: 'POST',
+  body: JSON.stringify({}),
+});
+
+export const enableTotp = ({ secret, token }) => request('/api/auth/security/totp/enable', {
+  method: 'POST',
+  body: JSON.stringify({ secret, token }),
+});
+
+export const disableTotp = ({ pin, token }) => request('/api/auth/security/totp/disable', {
+  method: 'POST',
+  body: JSON.stringify({ pin, token }),
+});
+
+export const verifyTotp = (token) => request('/api/auth/security/totp/verify', {
+  method: 'POST',
+  body: JSON.stringify({ token }),
+});
