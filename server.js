@@ -3530,10 +3530,19 @@ app.get('/api/stock/history', async (req, res) => {
       return res.json(makePayload(candles, 'Alpha Vantage', plan));
     } catch (error) {
       console.warn(`Alpha Vantage historical candles error for ${symbol} (${resolution}):`, error.message);
+      const researchPayload = await researchHistoryPayload();
+      if (researchPayload) return res.json(researchPayload);
       return res.status(502).json({ error: 'Historical candle data is unavailable right now.' });
     }
   }
 
+  if (isYahooResearchEnabled()) {
+    return res.status(502).json({
+      error: `Yahoo Finance research history returned no verified candles for ${symbol} at ${resolution}. Try another symbol or a wider chart range.`,
+      provider: 'Yahoo Finance research feed',
+      isResearch: true,
+    });
+  }
   return res.status(503).json({ error: 'Configure Upstox or Alpha Vantage history access to load verified candles.' });
 });
 

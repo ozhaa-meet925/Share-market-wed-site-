@@ -367,19 +367,39 @@ export const getYahooResearchHistory = async ({
 
   const pending = (async () => {
     let candles;
+    let usedDirectFallback = false;
     if (process.env.VERCEL === '1' || process.env.VERCEL_FUNCTIONS === '1') {
       candles = await fetchYahooHistory(request, { from, to, interval });
     } else {
-      const payload = await runWorker([{
-        kind: 'history',
-        symbol: request.symbol,
-        exchange: request.exchange,
-        interval: plan.baseResolution,
-        start,
-        end,
-        all: from <= 0,
-      }]);
-      candles = payload?.histories?.[request.key] || [];
+      try {
+        const payload = await runWorker([{
+          kind: 'history',
+          symbol: request.symbol,
+          exchange: request.exchange,
+          interval: plan.baseResolution,
+          start,
+          end,
+          all: from <= 0,
+        }]);
+        candles = payload?.histories?.[request.key] || [];
+      } catch (error) {
+        console.warn(`Local yfinance history failed for ${request.key}; trying Yahoo chart history:`, error.message);
+        candles = [];
+      }
+      const hasCandlesInWindow = candles.some((candle) => Number(candle.time) <= Number(to || Date.now() / 1000)
+        && Number(candle.time) + plan.seconds > Number(from || 0));
+      if (!hasCandlesInWindow) {
+        try {
+          const directCandles = await fetchYahooHistory(request, { from, to, interval });
+          if (directCandles.length) {
+            candles = directCandles;
+            usedDirectFallback = true;
+          }
+        } catch (error) {
+          console.warn(`Direct Yahoo research history failed for ${request.key}:`, error.response?.status || error.message);
+          candles = [];
+        }
+      }
     }
 
     const verified = candles.filter((candle) => Number(candle.time) <= Number(to || Date.now() / 1000));
@@ -387,7 +407,7 @@ export const getYahooResearchHistory = async ({
 
     const value = {
       candles: merged.filter((candle) => Number(candle.time) + plan.seconds > Number(from || 0)),
-      provider: `${getYahooResearchProviderName()} research feed`,
+      provider: usedDirectFallback ? 'Yahoo Finance direct research feed' : `${getYahooResearchProviderName()} research feed`,
       effectiveResolution: plan.baseResolution,
       fallbackNote: mergeNote(plan),
       isLive: false,
