@@ -1,0 +1,19 @@
+.portfolio-benchmark-panel {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.1fr) minmax(240px, 1fr);
+  gap: 18px 28px;
+  align-items: center;
+  margin: 0 0 22px;
+  padding: 20px 22px;
+}
+.portfolio-benchmark-panel h2 { margin: 5px 0; font-size: 1.08rem; }
+.portfolio-benchmark-panel p { margin: 0; color: var(--text-3); font-size: .83rem; line-height: 1.5; }
+.portfolio-benchmark-values { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+.portfolio-benchmark-values > div { display: grid; gap: 6px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; }
+.portfolio-benchmark-values span { color: var(--text-3); font-size: .75rem; }
+.portfolio-benchmark-values strong { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+.portfolio-benchmark-panel > small { grid-column: 1 / -1; color: var(--text-3); line-height: 1.5; }
+@media (max-width: 650px) {
+  .portfolio-benchmark-panel { grid-template-columns: minmax(0,1fr); padding: 16px; }
+  .portfolio-benchmark-panel > small { grid-column: auto; }
+}

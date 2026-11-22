@@ -1,0 +1,7 @@
+.reports-monthly-panel { margin: 0 0 20px; padding: 20px; }
+.reports-monthly-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 10px; }
+.reports-monthly-card { display: grid; gap: 7px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-inset); }
+.reports-monthly-card > span { color: var(--text-3); font-size: .78rem; font-weight: 700; }
+.reports-monthly-card > strong { font-size: 1.02rem; font-variant-numeric: tabular-nums; }
+.reports-monthly-card > small, .reports-monthly-empty { color: var(--text-3); font-size: .76rem; line-height: 1.5; }
+.reports-monthly-empty { margin: 0; }

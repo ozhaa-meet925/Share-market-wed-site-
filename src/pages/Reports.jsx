@@ -16,6 +16,7 @@ import { useCatalogQuotes } from '../hooks/useCatalogQuotes';
 import { useMetalPaperState } from '../hooks/useMetalPaperState';
 import { useMetalQuotes } from '../hooks/useMetalQuotes';
 import { getPaperPositions, getPaperState, PAPER_STATE_EVENT } from '../services/paperTrading';
+import './ReportsEnhancements.css';
 
 const stockMeta = new Map([...stockSeed, ...metalCatalogStocks].map((stock) => [stock.symbol, stock]));
 
@@ -28,6 +29,23 @@ const formatCurrency = (value) => {
 const formatSigned = (value) => {
   if (value === null || value === undefined || !Number.isFinite(Number(value))) return '—';
   return `${Number(value) >= 0 ? '+' : ''}${formatCurrency(value)}`;
+};
+
+const monthKeyFromTimestamp = (value) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return null;
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit',
+  }).formatToParts(date);
+  const year = parts.find((part) => part.type === 'year')?.value;
+  const month = parts.find((part) => part.type === 'month')?.value;
+  return year && month ? `${year}-${month}` : null;
+};
+
+const formatMonthKey = (value) => {
+  const [year, month] = value.split('-').map(Number);
+  return new Intl.DateTimeFormat('en-IN', { month: 'short', year: 'numeric' }).format(new Date(year, month - 1, 1));
 };
 
 const Reports = () => {
@@ -57,6 +75,15 @@ const Reports = () => {
     const lots = new Map();
     const closedTrades = [];
     const unmatchedSells = [];
+    const monthlyPnl = new Map();
+    const addMonthlyPnl = (timestamp, pnl) => {
+      const month = monthKeyFromTimestamp(timestamp);
+      if (!month || !Number.isFinite(pnl)) return;
+      const summary = monthlyPnl.get(month) || { month, pnl: 0, trades: 0 };
+      summary.pnl += pnl;
+      summary.trades += 1;
+      monthlyPnl.set(month, summary);
+    };
     let executedCount = 0;
     let turnover = 0;
 
@@ -107,7 +134,9 @@ const Reports = () => {
         if (matchedQty > 0) {
           const pnl = matchedQty * price - cost;
           row.realizedPnl += pnl;
-          closedTrades.push({ symbol, qty: matchedQty, pnl });
+          const executedAt = order.executedAt || order.filledAt || order.createdAt || order.timestamp || null;
+          closedTrades.push({ symbol, qty: matchedQty, pnl, executedAt });
+          addMonthlyPnl(executedAt, pnl);
         }
         if (remaining > 0) {
           row.unmatchedSellQty += remaining;
@@ -148,6 +177,26 @@ const Reports = () => {
     });
 
     const filledMetalOrders = (metalPaperState?.orders || []).filter((order) => order.status === 'FILLED');
+    const metalCostBasis = new Map();
+    for (const order of filledMetalOrders.slice().sort((left, right) => new Date(left.filledAt || left.createdAt || 0) - new Date(right.filledAt || right.createdAt || 0))) {
+      const symbol = String(order.symbol || '').toUpperCase();
+      const quantity = Number(order.quantityGrams);
+      const price = Number(order.executionPricePerGram);
+      if (!symbol || !(quantity > 0) || !(price > 0)) continue;
+      const charges = Number(order.charges || 0);
+      const current = metalCostBasis.get(symbol) || { quantity: 0, average: 0 };
+      if (order.side === 'BUY') {
+        const nextQuantity = current.quantity + quantity;
+        const nextCost = current.quantity * current.average + quantity * price + charges;
+        metalCostBasis.set(symbol, { quantity: nextQuantity, average: nextCost / nextQuantity });
+      } else if (order.side === 'SELL' && current.quantity >= quantity) {
+        const realizedPnl = (price - current.average) * quantity - charges;
+        addMonthlyPnl(order.filledAt || order.createdAt, realizedPnl);
+        current.quantity -= quantity;
+        if (current.quantity <= 0) current.average = 0;
+        metalCostBasis.set(symbol, current);
+      }
+    }
     const metalHoldingBySymbol = new Map((metalPaperState?.holdings || []).map((holding) => [holding.symbol, holding]));
     const metalSymbols = new Set([
       ...filledMetalOrders.map((order) => order.symbol),
@@ -212,6 +261,7 @@ const Reports = () => {
       wins,
       losses,
       unmatchedSells,
+      monthlyPnl: [...monthlyPnl.values()].sort((left, right) => left.month.localeCompare(right.month)),
     };
   }, [metalPaperState?.holdings, metalPaperState?.orders, metalQuotes, paperState.orders, positions, quotes]);
 
@@ -301,6 +351,30 @@ const Reports = () => {
           <strong className="kpi-value">{formatCurrency(report.turnover)}</strong>
           <small className="kpi-subtext">{report.executedCount} executed orders · metals charges {formatCurrency(report.totalCharges)}</small>
         </div>
+      </section>
+
+      <section className="panel reports-monthly-panel" aria-labelledby="monthly-pnl-title">
+        <div className="section-heading">
+          <div>
+            <span>Monthly performance</span>
+            <h2 id="monthly-pnl-title">Realized paper P&amp;L by month</h2>
+          </div>
+          <FileText size={19} />
+        </div>
+        {report.monthlyPnl.length ? (
+          <div className="reports-monthly-grid">
+            {report.monthlyPnl.slice(-12).map((month) => (
+              <article key={month.month} className="reports-monthly-card">
+                <span>{formatMonthKey(month.month)}</span>
+                <strong className={month.pnl >= 0 ? 'gain' : 'loss'}>{formatSigned(month.pnl)}</strong>
+                <small>{month.trades} matched sell {month.trades === 1 ? 'trade' : 'trades'}</small>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="reports-monthly-empty">Monthly realized P&amp;L will appear for matched sells with a recorded execution timestamp. Older trades without a timestamp are excluded.</p>
+        )}
+        {report.monthlyPnl.length ? <p className="reports-monthly-empty">Only timestamped, matched paper sells are included. Older equity orders without execution timestamps are omitted; this is a virtual ledger summary, not a tax statement.</p> : null}
       </section>
 
       <section className="panel reports-breakdown">

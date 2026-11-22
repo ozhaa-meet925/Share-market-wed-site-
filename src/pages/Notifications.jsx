@@ -29,11 +29,30 @@ const Notifications = () => {
   const [marking, setMarking] = useState(false);
   const [pushBusy, setPushBusy] = useState(false);
   const [devicePushEnabled, setDevicePushEnabled] = useState(false);
+  const [calendarReminders, setCalendarReminders] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('sharemarket.calendar.reminders.v1') || '[]').filter((item) => Number(item.triggerAt) > Date.now()); } catch { return []; }
+  });
   const [channelBusy, setChannelBusy] = useState('');
   const [channelMessage, setChannelMessage] = useState('');
   const { news, isLive } = useMarketNews();
   const hasLoadedFeed = useRef(false);
   const seenNotificationIds = useRef(new Set());
+
+  useEffect(() => {
+    const syncReminders = (event) => {
+      let next = event?.detail;
+      if (!Array.isArray(next)) {
+        try { next = JSON.parse(localStorage.getItem('sharemarket.calendar.reminders.v1') || '[]'); } catch { next = []; }
+      }
+      setCalendarReminders(Array.isArray(next) ? next.filter((item) => Number(item.triggerAt) > Date.now()) : []);
+    };
+    window.addEventListener('sharemarket:calendar-reminders-updated', syncReminders);
+    window.addEventListener('storage', syncReminders);
+    return () => {
+      window.removeEventListener('sharemarket:calendar-reminders-updated', syncReminders);
+      window.removeEventListener('storage', syncReminders);
+    };
+  }, []);
 
   const loadAccountFeed = useCallback(async () => {
     try {
@@ -412,7 +431,7 @@ const Notifications = () => {
                 disabled={channelBusy === 'emailEnabled' || !accountFeed.channels.email.recipientConfigured}
                 onChange={(event) => updatePreference('emailEnabled', event.target.checked)}
               />
-              <span><strong>Email trading and risk alerts</strong><small>{accountFeed.channels.email.recipientConfigured ? accountFeed.channels.email.reason : 'Add an email address to your account to enable email delivery.'}</small></span>
+              <span><strong>Email account, risk and price alerts</strong><small>{accountFeed.channels.email.recipientConfigured ? `${accountFeed.channels.email.reason} This includes triggered price alerts.` : 'Add an email address to your account to enable email delivery for account and price alerts.'}</small></span>
             </label>
             <label>
               <input
@@ -469,6 +488,24 @@ const Notifications = () => {
             ))}
           </div>
         ) : null}
+      </section>
+
+      <section className="panel calendar-notification-reminders" aria-labelledby="calendar-reminders-title">
+        <div className="section-heading">
+          <div><span>Market calendar</span><h2 id="calendar-reminders-title">Upcoming calendar reminders</h2></div>
+          <BellRing size={19} />
+        </div>
+        {calendarReminders.length ? (
+          <ul>
+            {calendarReminders.slice().sort((a, b) => a.triggerAt - b.triggerAt).map((reminder) => (
+              <li key={reminder.id}>
+                <span><strong>{reminder.title}</strong><small>{reminder.hoursBefore === 24 ? '1 day before' : '1 hour before'} · {new Date(`${reminder.date}T00:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} · browser reminder</small></span>
+                <a href="/calendar">Open calendar</a>
+              </li>
+            ))}
+          </ul>
+        ) : <p>No upcoming calendar reminders. Set a holiday or market-event reminder from the Calendar page.</p>}
+        <small>Calendar reminders are saved on this browser and require the Calendar page to remain open at the reminder time.</small>
       </section>
 
       <section className="panel">

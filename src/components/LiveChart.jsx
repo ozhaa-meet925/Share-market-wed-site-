@@ -1347,7 +1347,14 @@ const LiveChart = ({ symbol = 'RELIANCE', stock: providedStock, range = '1D', as
           </div>
         )}
         {displayData.length ? (
-          <div className="live-chart-canvas" ref={containerRef} style={{ position: 'relative' }} aria-label={`${stock.symbol} verified ${mode} market history chart`}>
+          <div
+            className="live-chart-canvas"
+            ref={containerRef}
+            style={{ position: 'relative' }}
+            role="img"
+            tabIndex={0}
+            aria-label={`${stock.name || stock.symbol} (${stock.symbol}) ${mode} chart. ${historyResolution || intervalLabel} interval. ${displayData.length} verified historical data points. Latest visible close ${formatLegendPrice(displayData.at(-1)?.close)}. ${quoteSource}. ${hasQuote ? `Latest quote published ${formatMarketTime(displayQuote?.timestamp)}.` : 'Current quote unavailable.'} Use the chart controls before this region to change style and interval.`}
+          >
             <svg
               data-render-revision={drawingRevision}
               viewBox={`0 0 ${Math.max(1, chartDimensions.width)} ${Math.max(1, chartDimensions.height)}`}

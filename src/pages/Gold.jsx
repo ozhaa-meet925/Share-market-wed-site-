@@ -6,6 +6,7 @@ import PriceAlertForm from '../components/PriceAlertForm';
 import ZerodhaCommodityPanel from '../components/ZerodhaCommodityPanel';
 import BullionInsightsSuite from '../components/BullionInsightsSuite';
 import MetalAIInsights from '../components/MetalAIInsights';
+import MetalMarketSnapshot from '../components/MetalMarketSnapshot';
 import { useMetalQuotes } from '../hooks/useMetalQuotes';
 import {
   isBenchmarkMetalQuote,
@@ -63,6 +64,8 @@ const Gold = () => {
           <span className="gold-art-spark gold-art-spark-two">✧</span>
         </div>
       </section>
+
+      <MetalMarketSnapshot name="Gold" quote={quote} market={market} unit="10g" />
 
       <div className="gold-chart-heading">
         <div>

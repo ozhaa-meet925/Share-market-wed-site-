@@ -1,0 +1,3 @@
+.watchlist-change-filter { display: grid; align-content: center; gap: 5px; min-width: 155px; color: var(--text-2); font-size: .76rem; font-weight: 700; }
+.watchlist-change-filter select { min-height: 40px; padding: 8px 10px; border: 1px solid var(--border-color, var(--line)); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; }
+.watchlist-change-filter select:focus-visible, .live-chart-canvas:focus-visible { outline: 3px solid #0b8b62; outline-offset: 3px; }

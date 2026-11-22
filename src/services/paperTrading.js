@@ -119,6 +119,7 @@ export const placePaperOrder = ({ symbol, side, qty, price, orderType = 'Market'
   const status = orderType === 'Limit' ? 'Pending' : 'Executed';
   const executed = status === 'Executed';
   const id = `ORD-${Date.now().toString().slice(-6)}`;
+  const executedAt = executed ? new Date().toISOString() : null;
   const date = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
   const order = {
     id,
@@ -130,6 +131,7 @@ export const placePaperOrder = ({ symbol, side, qty, price, orderType = 'Market'
     orderType,
     isDemoPrice,
     status,
+    executedAt,
   };
 
   if (executed && side === 'Buy' && current.cash < orderValue) {

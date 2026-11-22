@@ -136,6 +136,16 @@
   opacity: 0.75;
 }
 
+.calendar-notification-reminders { margin-top: 18px; }
+.calendar-notification-reminders > ul { display: grid; gap: 8px; margin: 0 0 10px; padding: 0; list-style: none; }
+.calendar-notification-reminders > ul > li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; }
+.calendar-notification-reminders li > span { display: grid; gap: 4px; }
+.calendar-notification-reminders li small, .calendar-notification-reminders > p, .calendar-notification-reminders > small { color: var(--text-3); font-size: .78rem; line-height: 1.5; }
+.calendar-notification-reminders li a { color: var(--brand); font-size: .8rem; font-weight: 750; white-space: nowrap; }
+.calendar-notification-reminders > p { margin: 0 0 8px; }
+.calendar-notification-reminders > small { display: block; }
+@media (max-width: 560px) { .calendar-notification-reminders > ul > li { align-items: flex-start; flex-direction: column; } }
+
 .account-notifications .link-button {
   padding: 0;
   border: 0;

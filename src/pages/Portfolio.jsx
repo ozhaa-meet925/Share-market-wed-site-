@@ -21,7 +21,9 @@ import { stocks as stockSeed } from '../data/stocks';
 import { useLiveStocks } from '../hooks/useLiveStocks';
 import { useMetalPaperState } from '../hooks/useMetalPaperState';
 import { useMetalQuotes } from '../hooks/useMetalQuotes';
+import { useMarketIndices } from '../hooks/useMarketIndices';
 import { getPaperPositions, getPaperState, PAPER_STATE_EVENT } from '../services/paperTrading';
+import './PortfolioEnhancements.css';
 
 const portfolioStocks = [...stockSeed, ...metalCatalogStocks];
 const stockMeta = new Map(portfolioStocks.map((stock) => [stock.symbol, stock]));
@@ -35,6 +37,7 @@ const formatCurrency = (val) => {
 const Portfolio = () => {
   const { stocks: liveStocks } = useLiveStocks(portfolioStocks);
   const { quotes: metalQuotes } = useMetalQuotes();
+  const { quotes: indexQuotes } = useMarketIndices(['NIFTY']);
   const { state: metalPaperState } = useMetalPaperState();
   const [tradingStock, setTradingStock] = useState(null);
   const [paperState, setPaperState] = useState(getPaperState);
@@ -95,6 +98,7 @@ const Portfolio = () => {
         isLive: live?.isLive === true,
         isDemo: live?.isDemo === true,
         isResearch: live?.isResearch === true,
+        isClose: live?.isClose === true,
         isSpot: live?.isSpot === true,
         isMetal: Boolean(metal),
         route: metal?.route || null,
@@ -143,6 +147,20 @@ const Portfolio = () => {
   const totalDayGain = allDayChangesAvailable ? holdingsData.reduce((acc, h) => acc + h.dayGain, 0) : null;
   const isOverallGain = totalPnl !== null && totalPnl >= 0;
   const isDayGain = totalDayGain !== null && totalDayGain >= 0;
+  const benchmarkQuote = indexQuotes.get('NIFTY');
+  const benchmarkDailyRaw = benchmarkQuote?.dp;
+  const benchmarkDailyChange = benchmarkQuote?.isStale !== true && benchmarkQuote?.isDemo !== true
+    && (benchmarkQuote?.isLive === true || benchmarkQuote?.isClose === true)
+    && benchmarkDailyRaw !== null && benchmarkDailyRaw !== undefined ? Number(benchmarkDailyRaw) : NaN;
+  const comparableHoldings = holdingsData.filter((holding) => (
+    holding.currentVal !== null && holding.changePercent !== null && holding.changePercent !== undefined
+    && Number.isFinite(Number(holding.changePercent)) && holding.isStale !== true && !holding.isDemo
+    && (holding.isLive === true || holding.isClose === true)
+  ));
+  const comparableValue = comparableHoldings.reduce((total, holding) => total + holding.currentVal, 0);
+  const portfolioDailyPercent = comparableValue > 0
+    ? comparableHoldings.reduce((total, holding) => total + holding.currentVal * Number(holding.changePercent) / 100, 0) / comparableValue * 100
+    : null;
 
   // Sector allocation
   const sectorAllocation = useMemo(() => {
@@ -267,6 +285,29 @@ const Portfolio = () => {
             <span>Equities {formatCurrency(equityPaperCash)} · Metals {metalPaperState ? formatCurrency(metalPaperCash) : 'sign in'}</span>
           </div>
         </div>
+      </section>
+
+      <section className="panel portfolio-benchmark-panel" aria-labelledby="portfolio-benchmark-title">
+        <div>
+          <span className="kpi-label">Same-day benchmark · provider-reported moves</span>
+          <h2 id="portfolio-benchmark-title">Held positions vs Nifty 50</h2>
+          <p>Weighted daily change for holdings with fresh quotes, compared with the Nifty 50 daily change.</p>
+        </div>
+        <div className="portfolio-benchmark-values">
+          <div>
+            <span>Your holdings · {comparableHoldings.length}/{holdingsData.length} priced</span>
+            <strong className={portfolioDailyPercent === null ? '' : portfolioDailyPercent >= 0 ? 'gain' : 'loss'}>
+              {portfolioDailyPercent === null ? 'Unavailable' : `${portfolioDailyPercent >= 0 ? '+' : ''}${portfolioDailyPercent.toFixed(2)}%`}
+            </strong>
+          </div>
+          <div>
+            <span>Nifty 50</span>
+            <strong className={Number.isFinite(benchmarkDailyChange) ? benchmarkDailyChange >= 0 ? 'gain' : 'loss' : ''}>
+              {Number.isFinite(benchmarkDailyChange) ? `${benchmarkDailyChange >= 0 ? '+' : ''}${benchmarkDailyChange.toFixed(2)}%` : 'Unavailable'}
+            </strong>
+          </div>
+        </div>
+        <small>Daily comparison only. It is not a since-purchase or time-weighted return; incomplete or delayed holdings are excluded.</small>
       </section>
 
       {hasHoldings && delayedQuoteCount > 0 && (

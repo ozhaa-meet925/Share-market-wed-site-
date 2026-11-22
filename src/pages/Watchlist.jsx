@@ -36,6 +36,7 @@ import {
   renameWatchlist,
   deleteWatchlist,
 } from '../utils/watchlist';
+import './WatchlistEnhancements.css';
 
 const formatCurrency = (val) => Number(val) > 0
   ? `₹${Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -50,6 +51,7 @@ const Watchlist = () => {
   const activeList = getActiveWatchlist(listsState);
   const watchlistSymbols = activeList.symbols;
   const [searchQuery, setSearchQuery] = useState('');
+  const [changeFilter, setChangeFilter] = useState('all');
   const [showNewList, setShowNewList] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [renaming, setRenaming] = useState(false);
@@ -174,6 +176,17 @@ const Watchlist = () => {
   const spotQuoteCount = watchedStocks.filter((stock) => stock.isSpot).length;
   const delayedQuoteCount = researchQuoteCount + spotQuoteCount;
   const quoteStatusClass = liveQuoteCount ? 'is-live' : delayedQuoteCount ? 'is-research' : 'is-unavailable';
+
+  const visibleWatchedStocks = useMemo(() => {
+    const searched = watchedStocks.filter((stock) => (
+      `${stock.symbol} ${stock.name}`.toLowerCase().includes(searchQuery.trim().toLowerCase())
+    ));
+    if (changeFilter === 'gainers') return searched.filter((stock) => Number(stock.changePercent) > 0);
+    if (changeFilter === 'losers') return searched.filter((stock) => Number(stock.changePercent) < 0);
+    if (changeFilter === 'unchanged') return searched.filter((stock) => stock.changePercent !== null && stock.changePercent !== undefined && Number(stock.changePercent) === 0);
+    if (changeFilter === 'unavailable') return searched.filter((stock) => stock.changePercent === null || stock.changePercent === undefined || !Number.isFinite(Number(stock.changePercent)));
+    return searched;
+  }, [changeFilter, searchQuery, watchedStocks]);
 
   const handleRemove = (symbol) => {
     setListsState(saveActiveWatchlistSymbols(watchlistSymbols.filter((item) => item !== symbol)));
@@ -385,11 +398,21 @@ const Watchlist = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
+        <label className="watchlist-change-filter">
+          <span>Price change</span>
+          <select value={changeFilter} onChange={(event) => setChangeFilter(event.target.value)} aria-label="Filter watchlist by daily price change">
+            <option value="all">All movements</option>
+            <option value="gainers">Gainers</option>
+            <option value="losers">Losers</option>
+            <option value="unchanged">Unchanged</option>
+            <option value="unavailable">Change unavailable</option>
+          </select>
+        </label>
       </section>
 
       {/* Watchlist Grid */}
       <section className="watchlist-cards-grid">
-        {watchedStocks.map((stk) => {
+        {visibleWatchedStocks.map((stk) => {
           const isGain = Number(stk.change) > 0;
           const isLoss = Number(stk.change) < 0;
           const changeDirection = isGain ? 'up' : isLoss ? 'down' : 'flat';
@@ -504,11 +527,11 @@ const Watchlist = () => {
         })}
       </section>
 
-      {watchedStocks.length === 0 && (
+      {visibleWatchedStocks.length === 0 && (
         <div className="panel empty-watchlist-state">
           <Star size={42} className="empty-icon" />
-          <h3>No stocks in this filter</h3>
-          <p>Add Indian equities or Gold / Silver metals from the dropdown above to track their market movements.</p>
+          <h3>{watchedStocks.length ? 'No securities match this filter' : 'No stocks in this watchlist'}</h3>
+          <p>{watchedStocks.length ? 'Change the search or daily movement filter to see tracked securities.' : 'Add Indian equities or Gold / Silver metals from the dropdown above to track their market movements.'}</p>
         </div>
       )}
 

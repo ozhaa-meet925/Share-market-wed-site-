@@ -53,7 +53,7 @@ const PriceAlertForm = ({ stock, unitLabel = '₹' }) => {
   };
 
   return (
-    <section className="price-alert-section">
+    <section className="price-alert-section" id="price-alerts">
       <div className="section-heading">
         <div>
           <span>Personal alert</span>

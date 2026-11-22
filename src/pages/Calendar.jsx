@@ -257,6 +257,7 @@ const Calendar = () => {
   useEffect(() => {
     try {
       window.localStorage.setItem(CALENDAR_REMINDER_STORAGE_KEY, JSON.stringify(reminders));
+      window.dispatchEvent(new CustomEvent('sharemarket:calendar-reminders-updated', { detail: reminders }));
     } catch {
       setReminderMessage('This browser could not save reminders locally.');
     }

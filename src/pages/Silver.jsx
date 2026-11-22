@@ -5,6 +5,7 @@ import MetalInstrumentsPanel from '../components/MetalInstrumentsPanel';
 import ZerodhaCommodityPanel from '../components/ZerodhaCommodityPanel';
 import BullionInsightsSuite from '../components/BullionInsightsSuite';
 import MetalAIInsights from '../components/MetalAIInsights';
+import MetalMarketSnapshot from '../components/MetalMarketSnapshot';
 import PriceAlertForm from '../components/PriceAlertForm';
 import { useMetalQuotes } from '../hooks/useMetalQuotes';
 import {
@@ -59,6 +60,8 @@ const Silver = () => {
         </div>
         <div className="silver-coin-art" aria-hidden="true"><span>Ag</span><i>.999</i></div>
       </section>
+
+      <MetalMarketSnapshot name="Silver" quote={quote} market={market} unit="kg" />
 
       <div className="silver-chart-heading">
         <div><span>MARKET PRICE</span><h2>Silver price chart</h2></div>
